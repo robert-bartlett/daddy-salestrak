@@ -7,8 +7,9 @@ import { cn } from '@/lib/utils';
 import * as DropdownMenuPrimitive from '@rn-primitives/dropdown-menu';
 import { Link, usePathname, type Href } from 'expo-router';
 import type { LucideIcon } from 'lucide-react-native';
+import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Platform, type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
+import { Platform, type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { FadeIn } from 'react-native-reanimated';
 import { FullWindowOverlay as RNFullWindowOverlay } from 'react-native-screens';
 
@@ -151,6 +152,8 @@ type NavMenuContentProps = DropdownMenuPrimitive.ContentProps & {
 
 const NavMenuContent = React.forwardRef<DropdownMenuPrimitive.ContentRef, NavMenuContentProps>(
   ({ className, overlayClassName, overlayStyle, portalHost, children, ...props }, ref) => {
+    const { colorScheme } = useColorScheme();
+
     return (
       <DropdownMenuPrimitive.Portal hostName={portalHost}>
         <FullWindowOverlay>
@@ -160,33 +163,36 @@ const NavMenuContent = React.forwardRef<DropdownMenuPrimitive.ContentRef, NavMen
               native: StyleSheet.flatten([StyleSheet.absoluteFill, overlayStyle]),
             })}
             className={overlayClassName}>
-            <NativeOnlyAnimatedView entering={FadeIn}>
-              <TextClassContext.Provider value="text-popover-foreground">
-                <DropdownMenuPrimitive.Content
-                  ref={ref}
-                  className={cn(
-                    'min-w-[10rem] overflow-hidden rounded-md border border-border bg-popover shadow-lg shadow-black/5',
-                    Platform.select({
-                      web: cn(
-                        'origin-(--radix-context-menu-content-transform-origin) z-50 cursor-default animate-in fade-in-0 zoom-in-95',
-                        props.side === 'bottom' && 'slide-in-from-top-2',
-                        props.side === 'top' && 'slide-in-from-bottom-2'
-                      ),
-                    }),
-                    className
-                  )}
-                  {...props}>
-                  <ScrollArea
-                    maxHeight={SCROLL_MAX_HEIGHT}
-                    scrollbarSize="thin"
-                    bounces={false}
-                    className="bg-popover"
-                    viewportClassName="p-1">
-                    {children}
-                  </ScrollArea>
-                </DropdownMenuPrimitive.Content>
-              </TextClassContext.Provider>
-            </NativeOnlyAnimatedView>
+            {/* Wrap in View with dark class for portal content to inherit dark mode CSS variables */}
+            <View className={colorScheme === 'dark' ? 'dark' : ''}>
+              <NativeOnlyAnimatedView entering={FadeIn}>
+                <TextClassContext.Provider value="text-popover-foreground">
+                  <DropdownMenuPrimitive.Content
+                    ref={ref}
+                    className={cn(
+                      'min-w-[10rem] overflow-hidden rounded-md border border-border bg-popover shadow-lg shadow-black/5',
+                      Platform.select({
+                        web: cn(
+                          'origin-(--radix-context-menu-content-transform-origin) z-50 cursor-default animate-in fade-in-0 zoom-in-95',
+                          props.side === 'bottom' && 'slide-in-from-top-2',
+                          props.side === 'top' && 'slide-in-from-bottom-2'
+                        ),
+                      }),
+                      className
+                    )}
+                    {...props}>
+                    <ScrollArea
+                      maxHeight={SCROLL_MAX_HEIGHT}
+                      scrollbarSize="thin"
+                      bounces={false}
+                      className="bg-popover"
+                      viewportClassName="p-1">
+                      {children}
+                    </ScrollArea>
+                  </DropdownMenuPrimitive.Content>
+                </TextClassContext.Provider>
+              </NativeOnlyAnimatedView>
+            </View>
           </DropdownMenuPrimitive.Overlay>
         </FullWindowOverlay>
       </DropdownMenuPrimitive.Portal>
