@@ -5,8 +5,9 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PanelLeft } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, Pressable, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useSidebar } from './sidebar-context';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarSeparatorProps = React.ComponentProps<typeof Separator>;
 
@@ -69,18 +70,45 @@ type SidebarRailProps = React.ComponentProps<typeof Pressable>;
  * - Only visible when sidebar can be collapsed
  * - Click to toggle sidebar state
  * - Provides additional hit target for toggling
+ * - Positioned to straddle the sidebar edge (half inside, half outside)
+ * - Uses physical positioning (left/right) intentionally, as it depends on the
+ *   physical `side` prop, not text direction. The sidebar's screen position
+ *   is a layout decision that doesn't change with RTL.
  */
 const SidebarRail = React.forwardRef<View, SidebarRailProps>(
   ({ className, onPress, ...props }, ref) => {
-    const { toggleSidebar } = useSidebar();
+    const { toggleSidebar, state } = useSidebar();
+    const internal = useSidebarInternal();
+    const collapsible = internal?.collapsible ?? 'offcanvas';
+    const side = internal?.side ?? 'left';
+    const isCollapsed = state === 'collapsed';
+
+    if (collapsible === 'none') {
+      return null;
+    }
+
+    // Position rail on the edge of sidebar:
+    // - Left sidebar: rail on right edge (right-0, translate-x-1/2 to center on edge)
+    // - Right sidebar: rail on left edge (left-0, -translate-x-1/2 to center on edge)
+    const isLeft = side === 'left';
 
     return (
       <Pressable
         ref={ref}
         className={cn(
-          'absolute right-0 top-0 z-20 h-full w-4 -translate-x-1/2 active:opacity-100',
+          'absolute top-0 z-20 h-full w-4 active:opacity-100',
+          isLeft ? 'right-0 translate-x-1/2' : 'left-0 -translate-x-1/2',
           Platform.select({
-            web: 'cursor-ew-resize hover:opacity-100',
+            web: cn(
+              'outline-none hover:opacity-100 focus-visible:opacity-100',
+              // Focus indicator: vertical line at center of rail
+              'focus-visible:after:absolute focus-visible:after:inset-y-0 focus-visible:after:left-1/2 focus-visible:after:w-0.5 focus-visible:after:-translate-x-1/2 focus-visible:after:bg-sidebar-ring',
+              // Cursor indicates resize direction based on side and collapsed state
+              isLeft
+                ? isCollapsed ? 'cursor-e-resize' : 'cursor-w-resize'
+                : isCollapsed ? 'cursor-w-resize' : 'cursor-e-resize'
+            ),
+            default: '',
           }),
           className
         )}
@@ -98,10 +126,7 @@ const SidebarRail = React.forwardRef<View, SidebarRailProps>(
 
 SidebarRail.displayName = 'SidebarRail';
 
-type SidebarInputProps = TextInputProps & {
-  disabled?: boolean;
-  invalid?: boolean;
-};
+type SidebarInputProps = React.ComponentProps<typeof Input>;
 
 /**
  * Search input styled for the sidebar.

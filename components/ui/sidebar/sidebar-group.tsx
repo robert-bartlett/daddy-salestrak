@@ -2,8 +2,7 @@ import { Text, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSidebar } from './sidebar-context';
-import { useSidebarInternal } from './sidebar';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarGroupProps = React.ComponentProps<typeof View>;
 
@@ -29,7 +28,6 @@ const SidebarGroup = React.forwardRef<View, SidebarGroupProps>(
 SidebarGroup.displayName = 'SidebarGroup';
 
 type SidebarGroupLabelProps = React.ComponentProps<typeof View> & {
-  asChild?: boolean;
   children?: React.ReactNode;
 };
 
@@ -41,13 +39,10 @@ type SidebarGroupLabelProps = React.ComponentProps<typeof View> & {
  * - Hidden when sidebar is in collapsed icon mode
  */
 const SidebarGroupLabel = React.forwardRef<View, SidebarGroupLabelProps>(
-  ({ className, asChild, children, ...props }, ref) => {
-    const { state, isMobile } = useSidebar();
+  ({ className, children, ...props }, ref) => {
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
-    if (isCollapsed) {
+    if (internal?.isCollapsed) {
       return null;
     }
 
@@ -101,12 +96,9 @@ type SidebarGroupActionProps = React.ComponentProps<typeof Pressable> & {
  */
 const SidebarGroupAction = React.forwardRef<View, SidebarGroupActionProps>(
   ({ className, showOnHover, ...props }, ref) => {
-    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
-    if (isCollapsed) {
+    if (internal?.isCollapsed) {
       return null;
     }
 
@@ -115,7 +107,7 @@ const SidebarGroupAction = React.forwardRef<View, SidebarGroupActionProps>(
         ref={ref}
         accessibilityRole="button"
         className={cn(
-          'absolute right-2 top-2 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
+          'absolute end-2 top-2 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
           Platform.select({
             web: cn(
               'hover:opacity-100 focus-visible:opacity-100',

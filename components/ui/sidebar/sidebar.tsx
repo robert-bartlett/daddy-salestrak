@@ -1,34 +1,132 @@
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { AlertTriangle } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../text';
+import {
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_WIDTH_MOBILE,
+} from './sidebar-constants';
 import { SidebarContext, useSidebar } from './sidebar-context';
+import {
+  SidebarInternalContext,
+  type SidebarInternalContextValue,
+} from './sidebar-internal-context';
 
-// Sidebar width constants (matching CSS variables)
-const SIDEBAR_WIDTH = 256; // 16rem
-const SIDEBAR_WIDTH_ICON = 48; // 3rem
-const SIDEBAR_WIDTH_MOBILE = 288; // 18rem
+// ============================================================================
+// Error Boundary
+// ============================================================================
+
+type SidebarErrorBoundaryProps = {
+  children: React.ReactNode;
+  /** Fallback UI to render when an error occurs. Receives error and reset function. */
+  fallback?: React.ReactNode | ((props: { error: Error; reset: () => void }) => React.ReactNode);
+  /** Called when an error is caught. Use for logging/reporting. */
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+};
+
+type SidebarErrorBoundaryState = {
+  hasError: boolean;
+  error: Error | null;
+};
+
+/**
+ * Error boundary for sidebar components.
+ *
+ * @remarks
+ * - Catches JavaScript errors anywhere in the sidebar component tree
+ * - Displays a fallback UI instead of crashing the entire app
+ * - Provides a reset mechanism to retry rendering
+ * - Supports custom fallback UI and error reporting callbacks
+ *
+ * @example
+ * ```tsx
+ * <SidebarErrorBoundary
+ *   onError={(error) => console.error('Sidebar error:', error)}
+ *   fallback={<Text>Something went wrong</Text>}
+ * >
+ *   <SidebarProvider>
+ *     <Sidebar>...</Sidebar>
+ *   </SidebarProvider>
+ * </SidebarErrorBoundary>
+ * ```
+ */
+class SidebarErrorBoundary extends React.Component<
+  SidebarErrorBoundaryProps,
+  SidebarErrorBoundaryState
+> {
+  constructor(props: SidebarErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): SidebarErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    this.props.onError?.(error, errorInfo);
+  }
+
+  reset = (): void => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render(): React.ReactNode {
+    if (this.state.hasError && this.state.error) {
+      const { fallback } = this.props;
+
+      // Custom fallback provided
+      if (fallback) {
+        if (typeof fallback === 'function') {
+          return fallback({ error: this.state.error, reset: this.reset });
+        }
+        return fallback;
+      }
+
+      // Default fallback UI - minimal sidebar-shaped placeholder
+      return (
+        <View className="flex h-full w-16 flex-col items-center justify-center bg-sidebar-background p-2">
+          <AlertTriangle size={20} className="mb-2 text-destructive" />
+          <Pressable
+            onPress={this.reset}
+            className="rounded px-2 py-1"
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading sidebar">
+            <Text className="text-xs text-muted-foreground">Retry</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const sidebarVariants = cva(
   'flex h-full flex-col bg-sidebar-background text-sidebar-foreground',
   {
     variants: {
       variant: {
-        sidebar: 'border-r border-sidebar-border',
+        // border-e = end border (right in LTR, left in RTL)
+        sidebar: 'border-e border-sidebar-border',
         floating: 'm-2 rounded-lg border border-sidebar-border shadow-lg',
         inset: '',
       },
       side: {
         left: '',
-        right: 'border-l border-r-0',
+        // border-s = start border (left in LTR, right in RTL)
+        right: 'border-s border-e-0',
       },
     },
     compoundVariants: [
       {
         variant: 'floating',
         side: 'right',
-        className: 'border-l border-r',
+        className: 'border-s border-e',
       },
     ],
     defaultVariants: {
@@ -42,19 +140,6 @@ type SidebarProps = React.ComponentProps<typeof View> & {
   collapsible?: 'offcanvas' | 'icon' | 'none';
   side?: 'left' | 'right';
 };
-
-/**
- * Internal context for passing sidebar configuration to children
- */
-const SidebarInternalContext = React.createContext<{
-  collapsible: 'offcanvas' | 'icon' | 'none';
-  variant: 'sidebar' | 'floating' | 'inset';
-  side: 'left' | 'right';
-} | null>(null);
-
-function useSidebarInternal() {
-  return React.useContext(SidebarInternalContext);
-}
 
 /**
  * Main sidebar container component.
@@ -71,6 +156,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
       children,
       collapsible = 'offcanvas',
       side = 'left',
+      style,
       ...props
     },
     ref
@@ -79,34 +165,40 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     const sidebarContext = useSidebar();
     const { isMobile, state, openMobile, setOpenMobile, variant } = sidebarContext;
 
-    const internalContext = React.useMemo(
-      () => ({ collapsible, variant: variant ?? 'sidebar', side: side ?? 'left' }),
-      [collapsible, variant, side]
+    // Compute isCollapsed once here to avoid repeated calculations in child components
+    // On mobile, sidebar always shows expanded in the sheet (isCollapsed = false)
+    const isCollapsed = !isMobile && state === 'collapsed' && collapsible === 'icon';
+
+    const internalContext = React.useMemo<SidebarInternalContextValue>(
+      () => ({ collapsible, variant, side, isCollapsed }),
+      [collapsible, variant, side, isCollapsed]
     );
 
     // Mobile: Use Sheet component
-    // We need to re-provide the SidebarContext inside the portal because portal content
-    // renders at the PortalHost location which is outside the original context tree
+    // Portal Context Bridging: SheetContent renders its children via a Portal at the
+    // PortalHost location (typically at the app root), which is outside the original
+    // React context tree. We must re-provide both SidebarContext and SidebarInternalContext
+    // inside the portal so that child components (menu items, groups, etc.) can access
+    // sidebar state and configuration. Without this, useContext calls would return null
+    // or default values instead of the actual sidebar state.
     if (isMobile) {
       return (
-        <SidebarInternalContext.Provider value={internalContext}>
-          <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-            <SheetContent
-              side={side}
-              showCloseButton={false}
-              className={cn(
-                'w-[--sidebar-width-mobile] bg-sidebar-background p-0',
-                className
-              )}
-              style={{ width: SIDEBAR_WIDTH_MOBILE }}>
-              <SidebarContext.Provider value={sidebarContext}>
-                <SidebarInternalContext.Provider value={internalContext}>
-                  <View className="flex h-full flex-col">{children}</View>
-                </SidebarInternalContext.Provider>
-              </SidebarContext.Provider>
-            </SheetContent>
-          </Sheet>
-        </SidebarInternalContext.Provider>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+          <SheetContent
+            ref={ref}
+            side={side}
+            className={cn('bg-sidebar-background p-0', className)}
+            style={[{ width: SIDEBAR_WIDTH_MOBILE }, style]}
+            {...props}>
+            {/* Dialog content needs a title for screen readers; keep it visually hidden. */}
+            <SheetTitle className="sr-only">Sidebar navigation</SheetTitle>
+            <SidebarContext.Provider value={sidebarContext}>
+              <SidebarInternalContext.Provider value={internalContext}>
+                <View className="flex h-full flex-col">{children}</View>
+              </SidebarInternalContext.Provider>
+            </SidebarContext.Provider>
+          </SheetContent>
+        </Sheet>
       );
     }
 
@@ -117,7 +209,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
           <View
             ref={ref}
             className={cn(sidebarVariants({ variant, side }), className)}
-            style={{ width: SIDEBAR_WIDTH }}
+            style={[{ width: SIDEBAR_WIDTH }, style]}
             {...props}>
             {children}
           </View>
@@ -126,12 +218,11 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     }
 
     // Desktop collapsible sidebar
-    const isCollapsed = state === 'collapsed';
-    const width = isCollapsed
-      ? collapsible === 'icon'
-        ? SIDEBAR_WIDTH_ICON
-        : 0
-      : SIDEBAR_WIDTH;
+    // Note: isCollapsed (from above) is specifically for icon-only mode used by children.
+    // Here we use state directly for layout calculations that apply to any collapsible mode.
+    const isStateCollapsed = state === 'collapsed';
+    const collapsedWidth = collapsible === 'icon' ? SIDEBAR_WIDTH_ICON : 0;
+    const width = isStateCollapsed ? collapsedWidth : SIDEBAR_WIDTH;
 
     return (
       <SidebarInternalContext.Provider value={internalContext}>
@@ -139,18 +230,18 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
           ref={ref}
           className={cn(
             'shrink-0',
-            Platform.select({ web: 'transition-[width] duration-200 ease-linear' }),
-            collapsible === 'offcanvas' && isCollapsed && 'hidden'
+            Platform.select({ web: 'transition-[width] duration-200 ease-linear motion-reduce:transition-none', default: '' }),
+            collapsible === 'offcanvas' && isStateCollapsed && 'hidden'
           )}
-          style={{ width }}
+          style={[{ width }, style]}
           {...props}>
           <View
             className={cn(
               sidebarVariants({ variant, side }),
               'h-full',
-              collapsible === 'icon' && isCollapsed && 'items-center overflow-hidden'
+              collapsible === 'icon' && isStateCollapsed && 'items-center overflow-hidden'
             )}
-            style={{ width: collapsible === 'icon' && isCollapsed ? SIDEBAR_WIDTH_ICON : SIDEBAR_WIDTH }}>
+            style={{ width: collapsible === 'icon' && isStateCollapsed ? SIDEBAR_WIDTH_ICON : SIDEBAR_WIDTH }}>
             {children}
           </View>
         </View>
@@ -182,9 +273,10 @@ const SidebarInset = React.forwardRef<View, SidebarInsetProps>(
         className={cn(
           'relative flex flex-1 flex-col bg-background',
           // Non-inset: use min-h-screen for full height
-          !isInset && Platform.select({ web: 'min-h-screen' }),
+          !isInset && Platform.select({ web: 'min-h-screen', default: '' }),
           // Inset variant: rounded card effect on desktop with proper height
-          isInset && !isMobile && 'my-2 mr-2 rounded-xl shadow-lg overflow-hidden',
+          // me-2 = margin-end (right in LTR, left in RTL)
+          isInset && !isMobile && 'my-2 me-2 rounded-xl shadow-lg overflow-hidden',
           className
         )}
         {...props}>
@@ -196,5 +288,93 @@ const SidebarInset = React.forwardRef<View, SidebarInsetProps>(
 
 SidebarInset.displayName = 'SidebarInset';
 
-export { Sidebar, SidebarInset, useSidebarInternal };
-export type { SidebarProps, SidebarInsetProps };
+// ============================================================================
+// Layout Components
+// ============================================================================
+
+type SidebarHeaderProps = React.ComponentProps<typeof View>;
+
+/**
+ * Header section of the sidebar.
+ *
+ * @remarks
+ * - Renders at the top of the sidebar
+ * - Typically contains logo, branding, or user info
+ * - Does not scroll with content
+ */
+const SidebarHeader = React.forwardRef<View, SidebarHeaderProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <View
+        ref={ref}
+        className={cn('flex flex-col gap-2 p-2', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+SidebarHeader.displayName = 'SidebarHeader';
+
+type SidebarContentProps = React.ComponentProps<typeof ScrollView> & {
+  children?: React.ReactNode;
+};
+
+/**
+ * Main scrollable content area of the sidebar.
+ *
+ * @remarks
+ * - Contains the primary navigation items
+ * - Scrolls independently when content overflows
+ * - Use SidebarGroup components within this area
+ */
+const SidebarContent = React.forwardRef<ScrollView, SidebarContentProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <ScrollView
+        ref={ref}
+        className={cn('flex-1', className)}
+        contentContainerClassName="flex flex-col gap-2 p-2"
+        showsVerticalScrollIndicator={false}
+        {...props}>
+        {children}
+      </ScrollView>
+    );
+  }
+);
+
+SidebarContent.displayName = 'SidebarContent';
+
+type SidebarFooterProps = React.ComponentProps<typeof View>;
+
+/**
+ * Footer section of the sidebar.
+ *
+ * @remarks
+ * - Renders at the bottom of the sidebar
+ * - Typically contains settings, logout, or secondary actions
+ * - Does not scroll with content
+ */
+const SidebarFooter = React.forwardRef<View, SidebarFooterProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <View
+        ref={ref}
+        className={cn('flex flex-col gap-2 p-2', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+SidebarFooter.displayName = 'SidebarFooter';
+
+export { Sidebar, SidebarContent, SidebarErrorBoundary, SidebarFooter, SidebarHeader, SidebarInset };
+export type {
+  SidebarContentProps,
+  SidebarErrorBoundaryProps,
+  SidebarFooterProps,
+  SidebarHeaderProps,
+  SidebarInsetProps,
+  SidebarProps,
+};

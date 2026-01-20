@@ -99,19 +99,22 @@ export default function RootLayout() {
     <ThemeProvider value={NAV_THEME[colorScheme ?? 'dark']}>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       <Stack
-        screenOptions={{
-          headerTitle: 'Design System',
-          headerLeft: () => <ComponentMenu />,
-          headerRight: () => <ThemeToggle />,
-          headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
-          headerBackButtonDisplayMode: 'minimal',
-          headerLeftContainerStyle: {
-            paddingLeft: Platform.OS === 'web' ? 16 : 0,
-          },
-          headerRightContainerStyle: {
-            paddingRight: Platform.OS === 'web' ? 16 : 0,
-          },
-        }}
+        screenOptions={
+          {
+            headerTitle: 'Design System',
+            headerLeft: () => <ComponentMenu />,
+            headerRight: () => <ThemeToggle />,
+            headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
+            headerBackButtonDisplayMode: 'minimal',
+            // These props exist in React Navigation but expo-router types are incomplete
+            headerLeftContainerStyle: {
+              paddingLeft: Platform.OS === 'web' ? 16 : 0,
+            },
+            headerRightContainerStyle: {
+              paddingRight: Platform.OS === 'web' ? 16 : 0,
+            },
+          } as React.ComponentProps<typeof Stack>['screenOptions']
+        }
       />
       <PortalHost />
     </ThemeProvider>
