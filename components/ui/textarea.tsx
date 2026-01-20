@@ -13,7 +13,12 @@ const DEFAULT_NUM_LINES_WEB = 2;
 const DEFAULT_NUM_LINES_NATIVE = 8;
 
 type TextareaProps = TextInputProps & {
-  /** Whether the textarea is in an error state */
+  /** Mark the textarea as invalid for error states. Maps to aria-invalid on web. */
+  invalid?: boolean;
+  /**
+   * @deprecated Use `invalid` instead for consistency with Input component.
+   * Whether the textarea is in an error state.
+   */
   error?: boolean;
 };
 
@@ -37,6 +42,7 @@ const Textarea = React.forwardRef<TextInput, TextareaProps>(
         default: DEFAULT_NUM_LINES_NATIVE,
       }),
       placeholderClassName,
+      invalid,
       error,
       onFocus,
       onBlur,
@@ -44,6 +50,8 @@ const Textarea = React.forwardRef<TextInput, TextareaProps>(
     },
     ref
   ) => {
+    // Support both `invalid` (preferred) and `error` (deprecated) for backward compatibility
+    const isInvalid = invalid ?? error;
     // Track focus state for native platforms (web uses CSS :focus-visible)
     const [isFocused, setIsFocused] = React.useState(false);
 
@@ -74,8 +82,8 @@ const Textarea = React.forwardRef<TextInput, TextareaProps>(
             web: 'placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive field-sizing-content resize-y outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:pointer-events-none',
             native: isFocused && 'border-ring',
           }),
-          // Error state
-          error && 'border-destructive',
+          // Invalid/error state
+          isInvalid && 'border-destructive',
           // Disabled state
           props.editable === false && 'opacity-50',
           className
@@ -86,7 +94,7 @@ const Textarea = React.forwardRef<TextInput, TextareaProps>(
         textAlignVertical="top"
         onFocus={handleFocus}
         onBlur={handleBlur}
-        aria-invalid={error}
+        aria-invalid={isInvalid}
         {...props}
       />
     );

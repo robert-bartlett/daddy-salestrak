@@ -127,8 +127,12 @@ const ScrollArea = React.forwardRef<ScrollAreaRef, ScrollAreaProps>(
 
     // Native implementation using ScrollView
     // Hide scroll indicators on mobile for cleaner appearance
+    // Only apply numeric dimension values on native (strings like '100vh' are web-only)
+    const nativeMaxHeight = typeof maxHeight === 'number' ? maxHeight : undefined;
+    const nativeMaxWidth = typeof maxWidth === 'number' ? maxWidth : undefined;
+
     return (
-      <View className={className} style={{ maxHeight: maxHeight as number, maxWidth: maxWidth as number }}>
+      <View className={className} style={{ maxHeight: nativeMaxHeight, maxWidth: nativeMaxWidth }}>
         <ScrollView
           ref={ref as React.Ref<ScrollView>}
           horizontal={orientation === 'horizontal'}
