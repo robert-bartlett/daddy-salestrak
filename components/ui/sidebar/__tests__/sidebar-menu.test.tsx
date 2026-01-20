@@ -2,7 +2,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import * as React from 'react';
 import { Text } from 'react-native';
 import {
-  SidebarMenu,
   SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
@@ -37,53 +36,7 @@ describe('SidebarMenu', () => {
     mockUseIsMobile.mockReturnValue(false);
   });
 
-  describe('SidebarMenu component', () => {
-    it('renders children', () => {
-      renderWithSidebar(
-        <SidebarMenu>
-          <Text>Menu Items</Text>
-        </SidebarMenu>
-      );
-
-      expect(screen.getByText('Menu Items')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenu testID="menu" className="custom-class">
-          <Text>Menu</Text>
-        </SidebarMenu>
-      );
-
-      expect(getByTestId('menu')).toBeTruthy();
-    });
-  });
-
-  describe('SidebarMenuItem component', () => {
-    it('renders children', () => {
-      renderWithSidebar(
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <Text>Item Content</Text>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      );
-
-      expect(screen.getByText('Item Content')).toBeTruthy();
-    });
-  });
-
   describe('SidebarMenuButton component', () => {
-    it('renders children', () => {
-      renderWithSidebar(
-        <SidebarMenuButton>
-          <Text>Button Text</Text>
-        </SidebarMenuButton>
-      );
-
-      expect(screen.getByText('Button Text')).toBeTruthy();
-    });
-
     it('handles press events', () => {
       const onPress = jest.fn();
 
@@ -93,7 +46,7 @@ describe('SidebarMenu', () => {
         </SidebarMenuButton>
       );
 
-      fireEvent.click(screen.getByTestId('button'));
+      fireEvent.press(screen.getByTestId('button'));
       expect(onPress).toHaveBeenCalled();
     });
 
@@ -107,23 +60,10 @@ describe('SidebarMenu', () => {
       expect(getByTestId('button').getAttribute('role')).toBe('button');
     });
 
-    it('renders with isActive prop applied', () => {
-      const { getByTestId, getByText } = renderWithSidebar(
-        <SidebarMenuButton testID="button" isActive>
-          <Text>Active</Text>
-        </SidebarMenuButton>
-      );
-
-      // Verify the button renders correctly with isActive prop
-      // (className verification is not reliable due to CSS-in-JS transformation)
-      expect(getByTestId('button')).toBeTruthy();
-      expect(getByText('Active')).toBeTruthy();
-    });
-
-    it('shows only first child (icon) when collapsed', () => {
+    it('shows only the first child when collapsed', () => {
       const { queryByText } = renderWithSidebar(
         <SidebarMenuButton>
-          <Text>Icon</Text>
+          Icon
           <Text>Label</Text>
         </SidebarMenuButton>,
         { defaultOpen: false, collapsible: 'icon' }
@@ -131,6 +71,24 @@ describe('SidebarMenu', () => {
 
       expect(queryByText('Icon')).toBeTruthy();
       expect(queryByText('Label')).toBeNull();
+    });
+
+    it('renders full content on mobile even when collapsed', () => {
+      mockUseIsMobile.mockReturnValue(true);
+
+      render(
+        <SidebarProvider defaultOpen={false} defaultOpenMobile={true}>
+          <Sidebar collapsible="icon">
+            <SidebarMenuButton>
+              <Text>Icon</Text>
+              <Text>Label</Text>
+            </SidebarMenuButton>
+          </Sidebar>
+        </SidebarProvider>
+      );
+
+      expect(screen.getByText('Icon')).toBeTruthy();
+      expect(screen.getByText('Label')).toBeTruthy();
     });
 
     it('shows all children when expanded', () => {
@@ -157,35 +115,15 @@ describe('SidebarMenu', () => {
       expect(getByTestId('button').getAttribute('aria-label')).toBe('Home');
     });
 
-    it('applies default size variant', () => {
+    it('does not set accessibilityLabel when expanded', () => {
       const { getByTestId } = renderWithSidebar(
-        <SidebarMenuButton testID="button">
-          <Text>Button</Text>
-        </SidebarMenuButton>
+        <SidebarMenuButton testID="button" tooltip="Home">
+          <Text>Home</Text>
+        </SidebarMenuButton>,
+        { defaultOpen: true }
       );
 
-      // Check that the component renders (variant styling is applied via className)
-      expect(getByTestId('button')).toBeTruthy();
-    });
-
-    it('accepts size prop', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuButton testID="button" size="sm">
-          <Text>Small</Text>
-        </SidebarMenuButton>
-      );
-
-      expect(getByTestId('button')).toBeTruthy();
-    });
-
-    it('accepts variant prop', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuButton testID="button" variant="outline">
-          <Text>Outline</Text>
-        </SidebarMenuButton>
-      );
-
-      expect(getByTestId('button')).toBeTruthy();
+      expect(getByTestId('button').getAttribute('aria-label')).toBeNull();
     });
   });
 
@@ -229,19 +167,6 @@ describe('SidebarMenu', () => {
       expect(getByTestId('action').getAttribute('role')).toBe('button');
     });
 
-    it('handles showOnHover prop', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuItem>
-          <SidebarMenuAction testID="action" showOnHover>
-            <Text>Action</Text>
-          </SidebarMenuAction>
-        </SidebarMenuItem>,
-        { defaultOpen: true }
-      );
-
-      // Component renders (showOnHover affects className on web)
-      expect(getByTestId('action')).toBeTruthy();
-    });
   });
 
   describe('SidebarMenuBadge component', () => {

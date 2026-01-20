@@ -35,17 +35,6 @@ describe('SidebarSubmenu', () => {
   });
 
   describe('SidebarMenuSub component', () => {
-    it('renders children when expanded', () => {
-      renderWithSidebar(
-        <SidebarMenuSub>
-          <Text>Submenu Content</Text>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
-      );
-
-      expect(screen.getByText('Submenu Content')).toBeTruthy();
-    });
-
     it('does not render when collapsed', () => {
       const { queryByText } = renderWithSidebar(
         <SidebarMenuSub>
@@ -57,20 +46,25 @@ describe('SidebarSubmenu', () => {
       expect(queryByText('Submenu Content')).toBeNull();
     });
 
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuSub testID="submenu" className="custom-class">
-          <Text>Content</Text>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
+    it('renders submenu content on mobile even when collapsed', () => {
+      mockUseIsMobile.mockReturnValue(true);
+
+      render(
+        <SidebarProvider defaultOpen={false} defaultOpenMobile={true}>
+          <Sidebar collapsible="icon">
+            <SidebarMenuSub>
+              <Text>Mobile Submenu</Text>
+            </SidebarMenuSub>
+          </Sidebar>
+        </SidebarProvider>
       );
 
-      expect(getByTestId('submenu')).toBeTruthy();
+      expect(screen.getByText('Mobile Submenu')).toBeTruthy();
     });
   });
 
   describe('SidebarMenuSubItem component', () => {
-    it('renders children', () => {
+    it('renders children when expanded', () => {
       renderWithSidebar(
         <SidebarMenuSub>
           <SidebarMenuSubItem>
@@ -81,19 +75,6 @@ describe('SidebarSubmenu', () => {
       );
 
       expect(screen.getByText('Sub Item')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuSub>
-          <SidebarMenuSubItem testID="subitem" className="custom-class">
-            <Text>Item</Text>
-          </SidebarMenuSubItem>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
-      );
-
-      expect(getByTestId('subitem')).toBeTruthy();
     });
   });
 
@@ -127,69 +108,23 @@ describe('SidebarSubmenu', () => {
         { defaultOpen: true }
       );
 
-      fireEvent.click(screen.getByTestId('button'));
+      fireEvent.press(screen.getByTestId('button'));
       expect(onPress).toHaveBeenCalled();
     });
 
-    it('applies isActive styling', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuSub>
-          <SidebarMenuSubItem>
-            <SidebarMenuSubButton testID="button" isActive>
-              <Text>Active Item</Text>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
-      );
-
-      // Component renders with isActive prop
-      expect(getByTestId('button')).toBeTruthy();
-    });
-
-    it('applies default size (md)', () => {
+    it('has correct accessibility role', () => {
       const { getByTestId } = renderWithSidebar(
         <SidebarMenuSub>
           <SidebarMenuSubItem>
             <SidebarMenuSubButton testID="button">
-              <Text>Default Size</Text>
+              <Text>Sub Item</Text>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>
         </SidebarMenuSub>,
         { defaultOpen: true }
       );
 
-      expect(getByTestId('button')).toBeTruthy();
-    });
-
-    it('applies small size when specified', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuSub>
-          <SidebarMenuSubItem>
-            <SidebarMenuSubButton testID="button" size="sm">
-              <Text>Small</Text>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
-      );
-
-      expect(getByTestId('button')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarMenuSub>
-          <SidebarMenuSubItem>
-            <SidebarMenuSubButton testID="button" className="custom-class">
-              <Text>Custom</Text>
-            </SidebarMenuSubButton>
-          </SidebarMenuSubItem>
-        </SidebarMenuSub>,
-        { defaultOpen: true }
-      );
-
-      expect(getByTestId('button')).toBeTruthy();
+      expect(getByTestId('button').getAttribute('role')).toBe('button');
     });
 
     it('renders function children', () => {

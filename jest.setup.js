@@ -74,3 +74,9 @@ jest.mock('react-native-screens', () => ({
 
 // Silence the warning about act() in tests
 global.IS_REACT_ACT_ENVIRONMENT = true;
+
+// Provide a press alias for DOM-based fireEvent in React Native tests.
+const { fireEvent } = require('@testing-library/react');
+if (!fireEvent.press) {
+  fireEvent.press = fireEvent.click;
+}

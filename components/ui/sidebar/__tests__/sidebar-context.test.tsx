@@ -44,14 +44,18 @@ describe('SidebarContext', () => {
   });
 
   describe('SidebarProvider', () => {
-    it('renders children correctly', () => {
+    it('toggles open state with keyboard shortcut', () => {
       render(
         <SidebarProvider>
-          <Text>Test Content</Text>
+          <TestConsumer />
         </SidebarProvider>
       );
 
-      expect(screen.getByText('Test Content')).toBeTruthy();
+      expect(screen.getByTestId('open').textContent).toBe('true');
+
+      fireEvent.keyDown(window, { key: 'b', ctrlKey: true });
+
+      expect(screen.getByTestId('open').textContent).toBe('false');
     });
 
     it('provides default values', () => {
@@ -120,7 +124,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('open').textContent).toBe('true');
 
-      fireEvent.click(screen.getByTestId('toggle'));
+      fireEvent.press(screen.getByTestId('toggle'));
 
       expect(screen.getByTestId('open').textContent).toBe('false');
     });
@@ -137,7 +141,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('openMobile').textContent).toBe('false');
 
-      fireEvent.click(screen.getByTestId('toggle'));
+      fireEvent.press(screen.getByTestId('toggle'));
 
       expect(screen.getByTestId('openMobile').textContent).toBe('true');
     });
@@ -151,7 +155,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('open').textContent).toBe('true');
 
-      fireEvent.click(screen.getByTestId('setOpen'));
+      fireEvent.press(screen.getByTestId('setOpen'));
 
       expect(screen.getByTestId('open').textContent).toBe('false');
     });
@@ -165,7 +169,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('openMobile').textContent).toBe('false');
 
-      fireEvent.click(screen.getByTestId('setOpenMobile'));
+      fireEvent.press(screen.getByTestId('setOpenMobile'));
 
       expect(screen.getByTestId('openMobile').textContent).toBe('true');
     });
@@ -183,7 +187,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('open').textContent).toBe('false');
 
-      fireEvent.click(screen.getByTestId('toggle'));
+      fireEvent.press(screen.getByTestId('toggle'));
 
       expect(onOpenChange).toHaveBeenCalledWith(true);
     });
@@ -202,7 +206,7 @@ describe('SidebarContext', () => {
 
       expect(screen.getByTestId('openMobile').textContent).toBe('false');
 
-      fireEvent.click(screen.getByTestId('toggle'));
+      fireEvent.press(screen.getByTestId('toggle'));
 
       expect(onOpenMobileChange).toHaveBeenCalledWith(true);
     });

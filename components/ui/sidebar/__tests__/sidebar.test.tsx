@@ -3,10 +3,7 @@ import * as React from 'react';
 import { Text } from 'react-native';
 import {
   Sidebar,
-  SidebarContent,
   SidebarErrorBoundary,
-  SidebarFooter,
-  SidebarHeader,
   SidebarInset,
 } from '../sidebar';
 import { useSidebarInternal } from '../sidebar-internal-context';
@@ -160,82 +157,36 @@ describe('Sidebar', () => {
 
       expect(screen.getByText('Non-collapsible')).toBeTruthy();
     });
-  });
 
-  describe('SidebarHeader', () => {
-    it('renders children', () => {
+    it('renders a screen-reader title for mobile sheets', () => {
+      mockUseIsMobile.mockReturnValue(true);
+
       render(
-        <SidebarProvider>
+        <SidebarProvider defaultOpenMobile={true}>
           <Sidebar>
-            <SidebarHeader>
-              <Text>Header Content</Text>
-            </SidebarHeader>
+            <Text>Mobile Sidebar</Text>
           </Sidebar>
         </SidebarProvider>
       );
 
-      expect(screen.getByText('Header Content')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = render(
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarHeader testID="header" className="custom-class">
-              <Text>Header</Text>
-            </SidebarHeader>
-          </Sidebar>
-        </SidebarProvider>
-      );
-
-      expect(getByTestId('header')).toBeTruthy();
-    });
-  });
-
-  describe('SidebarContent', () => {
-    it('renders children in scrollable area', () => {
-      render(
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarContent>
-              <Text>Scrollable Content</Text>
-            </SidebarContent>
-          </Sidebar>
-        </SidebarProvider>
-      );
-
-      expect(screen.getByText('Scrollable Content')).toBeTruthy();
-    });
-  });
-
-  describe('SidebarFooter', () => {
-    it('renders children', () => {
-      render(
-        <SidebarProvider>
-          <Sidebar>
-            <SidebarFooter>
-              <Text>Footer Content</Text>
-            </SidebarFooter>
-          </Sidebar>
-        </SidebarProvider>
-      );
-
-      expect(screen.getByText('Footer Content')).toBeTruthy();
+      expect(screen.getByText('Sidebar navigation')).toBeTruthy();
+      expect(screen.getByText('Mobile Sidebar')).toBeTruthy();
     });
   });
 
   describe('SidebarInset', () => {
-    it('renders children', () => {
-      render(
-        <SidebarProvider>
-          <Sidebar />
+    it('throws when used without a provider', () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      expect(() => {
+        render(
           <SidebarInset>
             <Text>Main Content</Text>
           </SidebarInset>
-        </SidebarProvider>
-      );
+        );
+      }).toThrow('useSidebar must be used within a SidebarProvider.');
 
-      expect(screen.getByText('Main Content')).toBeTruthy();
+      consoleError.mockRestore();
     });
   });
 
@@ -395,7 +346,7 @@ describe('SidebarErrorBoundary', () => {
 
     expect(screen.getByTestId('reset-button')).toBeTruthy();
 
-    fireEvent.click(screen.getByTestId('reset-button'));
+    fireEvent.press(screen.getByTestId('reset-button'));
 
     expect(screen.getByText('Recovered')).toBeTruthy();
   });

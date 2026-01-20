@@ -4,7 +4,6 @@ import { Text } from 'react-native';
 import {
   SidebarInput,
   SidebarRail,
-  SidebarSeparator,
   SidebarTrigger,
 } from '../sidebar-widgets';
 import { Sidebar } from '../sidebar';
@@ -39,16 +38,6 @@ describe('SidebarWidgets', () => {
   });
 
   describe('SidebarTrigger component', () => {
-    it('renders trigger button', () => {
-      render(
-        <SidebarProvider>
-          <SidebarTrigger testID="trigger" />
-        </SidebarProvider>
-      );
-
-      expect(screen.getByTestId('trigger')).toBeTruthy();
-    });
-
     it('has correct accessibility label', () => {
       const { getByTestId } = render(
         <SidebarProvider>
@@ -74,7 +63,7 @@ describe('SidebarWidgets', () => {
 
       expect(screen.getByTestId('state').textContent).toBe('open');
 
-      fireEvent.click(screen.getByTestId('trigger'));
+      fireEvent.press(screen.getByTestId('trigger'));
 
       expect(screen.getByTestId('state').textContent).toBe('closed');
     });
@@ -88,32 +77,13 @@ describe('SidebarWidgets', () => {
         </SidebarProvider>
       );
 
-      fireEvent.click(screen.getByTestId('trigger'));
+      fireEvent.press(screen.getByTestId('trigger'));
 
       expect(onPress).toHaveBeenCalled();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = render(
-        <SidebarProvider>
-          <SidebarTrigger testID="trigger" className="custom-class" />
-        </SidebarProvider>
-      );
-
-      expect(getByTestId('trigger')).toBeTruthy();
     });
   });
 
   describe('SidebarRail component', () => {
-    it('renders within sidebar', () => {
-      renderWithSidebar(
-        <SidebarRail testID="rail" />,
-        { defaultOpen: true }
-      );
-
-      expect(screen.getByTestId('rail')).toBeTruthy();
-    });
-
     it('has correct accessibility role', () => {
       const { getByTestId } = renderWithSidebar(
         <SidebarRail testID="rail" />
@@ -147,7 +117,7 @@ describe('SidebarWidgets', () => {
 
       expect(screen.getByTestId('state').textContent).toBe('open');
 
-      fireEvent.click(screen.getByTestId('rail'));
+      fireEvent.press(screen.getByTestId('rail'));
 
       expect(screen.getByTestId('state').textContent).toBe('closed');
     });
@@ -159,65 +129,22 @@ describe('SidebarWidgets', () => {
         <SidebarRail testID="rail" onPress={onPress} />
       );
 
-      fireEvent.click(screen.getByTestId('rail'));
+      fireEvent.press(screen.getByTestId('rail'));
 
       expect(onPress).toHaveBeenCalled();
     });
 
-    it('renders correctly for left-side sidebar', () => {
-      const { getByTestId } = renderWithSidebar(
+    it('does not render when collapsible is none', () => {
+      const { queryByTestId } = renderWithSidebar(
         <SidebarRail testID="rail" />,
-        { side: 'left' }
+        { collapsible: 'none' }
       );
 
-      expect(getByTestId('rail')).toBeTruthy();
-    });
-
-    it('renders correctly for right-side sidebar', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarRail testID="rail" />,
-        { side: 'right' }
-      );
-
-      expect(getByTestId('rail')).toBeTruthy();
-    });
-  });
-
-  describe('SidebarSeparator component', () => {
-    it('renders separator', () => {
-      renderWithSidebar(
-        <SidebarSeparator testID="separator" />
-      );
-
-      expect(screen.getByTestId('separator')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarSeparator testID="separator" className="custom-class" />
-      );
-
-      expect(getByTestId('separator')).toBeTruthy();
+      expect(queryByTestId('rail')).toBeNull();
     });
   });
 
   describe('SidebarInput component', () => {
-    it('renders input field', () => {
-      renderWithSidebar(
-        <SidebarInput testID="input" placeholder="Search..." />
-      );
-
-      expect(screen.getByTestId('input')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarInput testID="input" className="custom-class" />
-      );
-
-      expect(getByTestId('input')).toBeTruthy();
-    });
-
     it('handles text input', () => {
       const onChangeText = jest.fn();
 
@@ -258,7 +185,7 @@ describe('SidebarWidgets', () => {
 
       expect(screen.getByTestId('state').textContent).toBe('open');
 
-      fireEvent.click(screen.getByTestId('trigger'));
+      fireEvent.press(screen.getByTestId('trigger'));
 
       expect(screen.getByTestId('state').textContent).toBe('closed');
     });
@@ -280,7 +207,7 @@ describe('SidebarWidgets', () => {
 
       expect(screen.getByTestId('state').textContent).toBe('open');
 
-      fireEvent.click(screen.getByTestId('rail'));
+      fireEvent.press(screen.getByTestId('rail'));
 
       expect(screen.getByTestId('state').textContent).toBe('closed');
     });

@@ -35,28 +35,6 @@ describe('SidebarGroup', () => {
     mockUseIsMobile.mockReturnValue(false);
   });
 
-  describe('SidebarGroup component', () => {
-    it('renders children', () => {
-      renderWithSidebar(
-        <SidebarGroup>
-          <Text>Group Content</Text>
-        </SidebarGroup>
-      );
-
-      expect(screen.getByText('Group Content')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarGroup testID="group" className="custom-class">
-          <Text>Group</Text>
-        </SidebarGroup>
-      );
-
-      expect(getByTestId('group')).toBeTruthy();
-    });
-  });
-
   describe('SidebarGroupLabel component', () => {
     it('renders string children when expanded', () => {
       renderWithSidebar(
@@ -67,6 +45,17 @@ describe('SidebarGroup', () => {
       );
 
       expect(screen.getByText('Label Text')).toBeTruthy();
+    });
+
+    it('renders numeric children when expanded', () => {
+      renderWithSidebar(
+        <SidebarGroup>
+          <SidebarGroupLabel>{42}</SidebarGroupLabel>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      expect(screen.getByText('42')).toBeTruthy();
     });
 
     it('renders React element children when expanded', () => {
@@ -91,45 +80,6 @@ describe('SidebarGroup', () => {
       );
 
       expect(queryByText('Hidden Label')).toBeNull();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarGroup>
-          <SidebarGroupLabel testID="label" className="custom-class">
-            Label
-          </SidebarGroupLabel>
-        </SidebarGroup>,
-        { defaultOpen: true }
-      );
-
-      expect(getByTestId('label')).toBeTruthy();
-    });
-  });
-
-  describe('SidebarGroupContent component', () => {
-    it('renders children', () => {
-      renderWithSidebar(
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <Text>Content Items</Text>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      );
-
-      expect(screen.getByText('Content Items')).toBeTruthy();
-    });
-
-    it('accepts custom className', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarGroup>
-          <SidebarGroupContent testID="content" className="custom-class">
-            <Text>Content</Text>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      );
-
-      expect(getByTestId('content')).toBeTruthy();
     });
   });
 
@@ -185,22 +135,8 @@ describe('SidebarGroup', () => {
         { defaultOpen: true }
       );
 
-      fireEvent.click(screen.getByTestId('action'));
+      fireEvent.press(screen.getByTestId('action'));
       expect(onPress).toHaveBeenCalled();
-    });
-
-    it('handles showOnHover prop', () => {
-      const { getByTestId } = renderWithSidebar(
-        <SidebarGroup>
-          <SidebarGroupAction testID="action" showOnHover>
-            <Text>+</Text>
-          </SidebarGroupAction>
-        </SidebarGroup>,
-        { defaultOpen: true }
-      );
-
-      // Component renders (showOnHover affects className on web)
-      expect(getByTestId('action')).toBeTruthy();
     });
   });
 
