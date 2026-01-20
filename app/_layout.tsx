@@ -23,6 +23,7 @@ const COMPONENTS: NavItem[] = [
   { label: 'Avatar', href: '/demos/avatar' },
   { label: 'Badge', href: '/demos/badge' },
   { label: 'Button', href: '/demos/button' },
+  { label: 'Button Group', href: '/demos/button-group' },
   { label: 'Checkbox', href: '/demos/checkbox' },
   { label: 'Context Menu', href: '/demos/context-menu' },
   { label: 'Dialog', href: '/demos/dialog' },

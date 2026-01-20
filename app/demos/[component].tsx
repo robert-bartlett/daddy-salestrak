@@ -13,6 +13,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+} from '@/components/ui/button-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   ContextMenu,
@@ -81,6 +86,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   avatar: 'Avatar',
   badge: 'Badge',
   button: 'Button',
+  'button-group': 'Button Group',
   checkbox: 'Checkbox',
   'context-menu': 'Context Menu',
   dialog: 'Dialog',
@@ -332,6 +338,53 @@ function ButtonDemo() {
             <Text>Disabled</Text>
           </Button>
         </View>
+      </DemoSection>
+    </View>
+  );
+}
+
+function ButtonGroupDemo() {
+  return (
+    <View className="gap-6">
+      <DemoSection title="Horizontal Group">
+        <ButtonGroup>
+          <Button variant="outline">Left</Button>
+          <Button variant="outline">Middle</Button>
+          <Button variant="outline">Right</Button>
+        </ButtonGroup>
+      </DemoSection>
+
+      <DemoSection title="With Separator">
+        <ButtonGroup>
+          <Button variant="outline">Save</Button>
+          <ButtonGroupSeparator />
+          <Button variant="outline" size="icon">
+            <Icon as={ChevronDown} />
+          </Button>
+        </ButtonGroup>
+      </DemoSection>
+
+      <DemoSection title="With Text Prefix">
+        <ButtonGroup>
+          <ButtonGroupText>$</ButtonGroupText>
+          <Button variant="outline">100</Button>
+        </ButtonGroup>
+      </DemoSection>
+
+      <DemoSection title="Vertical Group">
+        <ButtonGroup orientation="vertical">
+          <Button variant="outline">Top</Button>
+          <Button variant="outline">Middle</Button>
+          <Button variant="outline">Bottom</Button>
+        </ButtonGroup>
+      </DemoSection>
+
+      <DemoSection title="Mixed Variants">
+        <ButtonGroup>
+          <Button>Primary</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="destructive">Delete</Button>
+        </ButtonGroup>
       </DemoSection>
     </View>
   );
@@ -848,6 +901,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   avatar: AvatarDemo,
   badge: BadgeDemo,
   button: ButtonDemo,
+  'button-group': ButtonGroupDemo,
   checkbox: CheckboxDemo,
   'context-menu': ContextMenuDemo,
   dialog: DialogDemo,
