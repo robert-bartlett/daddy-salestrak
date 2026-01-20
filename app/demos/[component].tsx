@@ -271,7 +271,7 @@ function ButtonDemo() {
   return (
     <View className="gap-6">
       <DemoSection title="Variants">
-        <View className="flex-row flex-wrap gap-2">
+        <View className="flex-row flex-wrap items-center gap-2">
           <Button>
             <Text>Default</Text>
           </Button>
@@ -370,11 +370,11 @@ function ContextMenuDemo() {
 
   return (
     <View className="gap-6">
-      <DemoSection title="Long Press to Open">
+      <DemoSection title="Default">
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <Pressable className="border-border bg-muted/30 flex h-36 w-full items-center justify-center rounded-md border border-dashed">
-              <Text className="text-muted-foreground text-sm">Long press here</Text>
+            <Pressable className="border-border bg-muted/30 flex items-center justify-center rounded-md border border-dashed px-6 py-4">
+              <Text className="text-muted-foreground text-sm">Long press or right click here</Text>
             </Pressable>
           </ContextMenuTrigger>
           <ContextMenuContent>
@@ -662,18 +662,18 @@ function SwitchDemo() {
   const [enabled2, setEnabled2] = React.useState(true);
 
   return (
-    <View className="gap-6">
+    <View className="w-full max-w-sm gap-6">
       <DemoSection title="Default">
         <View className="gap-4">
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between gap-8">
             <Text>Airplane Mode</Text>
             <Switch checked={enabled1} onCheckedChange={setEnabled1} />
           </View>
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between gap-8">
             <Text>Notifications</Text>
             <Switch checked={enabled2} onCheckedChange={setEnabled2} />
           </View>
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center justify-between gap-8">
             <Text className="opacity-50">Disabled</Text>
             <Switch checked={false} onCheckedChange={() => {}} disabled />
           </View>
@@ -750,17 +750,20 @@ function TextareaDemo() {
 }
 
 function ToggleDemo() {
-  const [boldPressed, setBoldPressed] = React.useState(false);
-  const [italicPressed, setItalicPressed] = React.useState(false);
+  const [defaultBold, setDefaultBold] = React.useState(false);
+  const [defaultItalic, setDefaultItalic] = React.useState(false);
+  const [outlineBold, setOutlineBold] = React.useState(false);
+  const [outlineItalic, setOutlineItalic] = React.useState(false);
+  const [withTextBold, setWithTextBold] = React.useState(false);
 
   return (
     <View className="gap-6">
       <DemoSection title="Default">
         <View className="flex-row gap-2">
-          <Toggle pressed={boldPressed} onPressedChange={setBoldPressed}>
+          <Toggle pressed={defaultBold} onPressedChange={setDefaultBold}>
             <ToggleIcon as={Bold} />
           </Toggle>
-          <Toggle pressed={italicPressed} onPressedChange={setItalicPressed}>
+          <Toggle pressed={defaultItalic} onPressedChange={setDefaultItalic}>
             <ToggleIcon as={Italic} />
           </Toggle>
         </View>
@@ -768,10 +771,10 @@ function ToggleDemo() {
 
       <DemoSection title="Outline Variant">
         <View className="flex-row gap-2">
-          <Toggle variant="outline" pressed={boldPressed} onPressedChange={setBoldPressed}>
+          <Toggle variant="outline" pressed={outlineBold} onPressedChange={setOutlineBold}>
             <ToggleIcon as={Bold} />
           </Toggle>
-          <Toggle variant="outline" pressed={italicPressed} onPressedChange={setItalicPressed}>
+          <Toggle variant="outline" pressed={outlineItalic} onPressedChange={setOutlineItalic}>
             <ToggleIcon as={Italic} />
           </Toggle>
         </View>
@@ -779,7 +782,7 @@ function ToggleDemo() {
 
       <DemoSection title="With Text">
         <View className="flex-row gap-2">
-          <Toggle pressed={boldPressed} onPressedChange={setBoldPressed}>
+          <Toggle pressed={withTextBold} onPressedChange={setWithTextBold}>
             <ToggleIcon as={Bold} />
             <Text>Bold</Text>
           </Toggle>

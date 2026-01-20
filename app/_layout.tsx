@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { MenuIcon, MoonStarIcon, SunIcon } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import { useLayoutEffect } from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -102,6 +102,12 @@ export default function RootLayout() {
           headerRight: () => <ThemeToggle />,
           headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
           headerBackButtonDisplayMode: 'minimal',
+          headerLeftContainerStyle: {
+            paddingLeft: Platform.OS === 'web' ? 16 : 0,
+          },
+          headerRightContainerStyle: {
+            paddingRight: Platform.OS === 'web' ? 16 : 0,
+          },
         }}
       />
       <PortalHost />
