@@ -80,7 +80,7 @@ const SidebarRail = React.forwardRef<View, SidebarRailProps>(
         className={cn(
           'absolute right-0 top-0 z-20 h-full w-4 -translate-x-1/2 active:opacity-100',
           Platform.select({
-            web: 'cursor-ew-resize hover:opacity-100',
+            web: 'cursor-ew-resize outline-none hover:opacity-100 focus-visible:opacity-100 focus-visible:after:absolute focus-visible:after:inset-y-0 focus-visible:after:left-1/2 focus-visible:after:w-0.5 focus-visible:after:-translate-x-1/2 focus-visible:after:bg-sidebar-ring',
           }),
           className
         )}

@@ -27,9 +27,18 @@ type SidebarContextValue = {
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 type SidebarProviderProps = {
+  /** Initial open state for desktop (uncontrolled mode) */
   defaultOpen?: boolean;
+  /** Controlled open state for desktop */
   open?: boolean;
+  /** Callback when desktop open state changes */
   onOpenChange?: (open: boolean) => void;
+  /** Initial open state for mobile sheet (uncontrolled mode) */
+  defaultOpenMobile?: boolean;
+  /** Controlled open state for mobile sheet */
+  openMobile?: boolean;
+  /** Callback when mobile sheet open state changes */
+  onOpenMobileChange?: (open: boolean) => void;
   variant?: SidebarVariant;
   children: React.ReactNode;
 };
@@ -47,12 +56,17 @@ function SidebarProvider({
   defaultOpen = true,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
+  defaultOpenMobile = false,
+  openMobile: controlledOpenMobile,
+  onOpenMobileChange: setControlledOpenMobile,
   variant = 'sidebar',
   children,
 }: SidebarProviderProps) {
   const { colorScheme } = useColorScheme();
   const isMobile = useIsMobile();
-  const [openMobile, setOpenMobile] = React.useState(false);
+
+  // Internal state for mobile (uncontrolled mode)
+  const [_openMobile, _setOpenMobile] = React.useState(defaultOpenMobile);
 
   // Internal state for uncontrolled mode
   const [_open, _setOpen] = React.useState(() => {
@@ -88,13 +102,28 @@ function SidebarProvider({
     [open, setControlledOpen]
   );
 
+  // Derive mobile open state (controlled or uncontrolled)
+  const openMobile = controlledOpenMobile ?? _openMobile;
+
+  const setOpenMobile = React.useCallback(
+    (value: boolean | ((prevState: boolean) => boolean)) => {
+      const openState = typeof value === 'function' ? value(openMobile) : value;
+      if (setControlledOpenMobile) {
+        setControlledOpenMobile(openState);
+      } else {
+        _setOpenMobile(openState);
+      }
+    },
+    [openMobile, setControlledOpenMobile]
+  );
+
   const toggleSidebar = React.useCallback(() => {
     if (isMobile) {
       setOpenMobile((prev) => !prev);
     } else {
       setOpen((prev) => !prev);
     }
-  }, [isMobile, setOpen]);
+  }, [isMobile, setOpen, setOpenMobile]);
 
   // Keyboard shortcut for web only
   React.useEffect(() => {
@@ -129,7 +158,7 @@ function SidebarProvider({
       toggleSidebar,
       variant,
     }),
-    [state, open, setOpen, openMobile, isMobile, toggleSidebar, variant]
+    [state, open, setOpen, openMobile, setOpenMobile, isMobile, toggleSidebar, variant]
   );
 
   return (

@@ -2,7 +2,6 @@ import { TextClassContext, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSidebar } from './sidebar-context';
 import { useSidebarInternal } from './sidebar';
 
 type SidebarMenuSubProps = React.ComponentProps<typeof View>;
@@ -16,12 +15,9 @@ type SidebarMenuSubProps = React.ComponentProps<typeof View>;
  */
 const SidebarMenuSub = React.forwardRef<View, SidebarMenuSubProps>(
   ({ className, ...props }, ref) => {
-    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
-    if (isCollapsed) {
+    if (internal?.isCollapsed) {
       return null;
     }
 
@@ -56,7 +52,6 @@ SidebarMenuSubItem.displayName = 'SidebarMenuSubItem';
 type SidebarMenuSubButtonProps = React.ComponentProps<typeof Pressable> & {
   isActive?: boolean;
   size?: 'sm' | 'md';
-  asChild?: boolean;
 };
 
 /**
@@ -67,7 +62,7 @@ type SidebarMenuSubButtonProps = React.ComponentProps<typeof Pressable> & {
  * - Supports active state highlighting
  */
 const SidebarMenuSubButton = React.forwardRef<View, SidebarMenuSubButtonProps>(
-  ({ className, isActive, size = 'md', children, asChild, ...props }, ref) => {
+  ({ className, isActive, size = 'md', children, ...props }, ref) => {
     return (
       <TextClassContext.Provider
         value={cn(
@@ -82,7 +77,7 @@ const SidebarMenuSubButton = React.forwardRef<View, SidebarMenuSubButtonProps>(
             size === 'sm' ? 'h-7' : 'h-8',
             'active:bg-sidebar-accent active:text-sidebar-accent-foreground',
             Platform.select({
-              web: 'cursor-pointer outline-none hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+              web: 'cursor-pointer outline-none ring-offset-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2',
             }),
             isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
             className

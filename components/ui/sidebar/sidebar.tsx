@@ -44,13 +44,21 @@ type SidebarProps = React.ComponentProps<typeof View> & {
 };
 
 /**
- * Internal context for passing sidebar configuration to children
+ * Configuration values passed from Sidebar to child components.
+ * Includes derived `isCollapsed` to avoid repeated calculations in children.
  */
-const SidebarInternalContext = React.createContext<{
+type SidebarInternalContextValue = {
   collapsible: 'offcanvas' | 'icon' | 'none';
   variant: 'sidebar' | 'floating' | 'inset';
   side: 'left' | 'right';
-} | null>(null);
+  /** True when sidebar is in collapsed icon mode on desktop. Always false on mobile. */
+  isCollapsed: boolean;
+};
+
+/**
+ * Internal context for passing sidebar configuration to children
+ */
+const SidebarInternalContext = React.createContext<SidebarInternalContextValue | null>(null);
 
 function useSidebarInternal() {
   return React.useContext(SidebarInternalContext);
@@ -79,34 +87,39 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     const sidebarContext = useSidebar();
     const { isMobile, state, openMobile, setOpenMobile, variant } = sidebarContext;
 
-    const internalContext = React.useMemo(
-      () => ({ collapsible, variant: variant ?? 'sidebar', side: side ?? 'left' }),
-      [collapsible, variant, side]
+    // Compute isCollapsed once here to avoid repeated calculations in child components
+    // On mobile, sidebar always shows expanded in the sheet (isCollapsed = false)
+    const isCollapsed = !isMobile && state === 'collapsed' && collapsible === 'icon';
+
+    const internalContext = React.useMemo<SidebarInternalContextValue>(
+      () => ({ collapsible, variant: variant ?? 'sidebar', side: side ?? 'left', isCollapsed }),
+      [collapsible, variant, side, isCollapsed]
     );
 
     // Mobile: Use Sheet component
-    // We need to re-provide the SidebarContext inside the portal because portal content
-    // renders at the PortalHost location which is outside the original context tree
+    // Portal Context Bridging: SheetContent renders its children via a Portal at the
+    // PortalHost location (typically at the app root), which is outside the original
+    // React context tree. We must re-provide both SidebarContext and SidebarInternalContext
+    // inside the portal so that child components (menu items, groups, etc.) can access
+    // sidebar state and configuration. Without this, useContext calls would return null
+    // or default values instead of the actual sidebar state.
     if (isMobile) {
       return (
-        <SidebarInternalContext.Provider value={internalContext}>
-          <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-            <SheetContent
-              side={side}
-              showCloseButton={false}
-              className={cn(
-                'w-[--sidebar-width-mobile] bg-sidebar-background p-0',
-                className
-              )}
-              style={{ width: SIDEBAR_WIDTH_MOBILE }}>
-              <SidebarContext.Provider value={sidebarContext}>
-                <SidebarInternalContext.Provider value={internalContext}>
-                  <View className="flex h-full flex-col">{children}</View>
-                </SidebarInternalContext.Provider>
-              </SidebarContext.Provider>
-            </SheetContent>
-          </Sheet>
-        </SidebarInternalContext.Provider>
+        <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+          <SheetContent
+            side={side}
+            className={cn(
+              'w-[--sidebar-width-mobile] bg-sidebar-background p-0',
+              className
+            )}
+            style={{ width: SIDEBAR_WIDTH_MOBILE }}>
+            <SidebarContext.Provider value={sidebarContext}>
+              <SidebarInternalContext.Provider value={internalContext}>
+                <View className="flex h-full flex-col">{children}</View>
+              </SidebarInternalContext.Provider>
+            </SidebarContext.Provider>
+          </SheetContent>
+        </Sheet>
       );
     }
 
@@ -126,8 +139,10 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     }
 
     // Desktop collapsible sidebar
-    const isCollapsed = state === 'collapsed';
-    const width = isCollapsed
+    // Note: isCollapsed (from above) is specifically for icon-only mode used by children.
+    // Here we use state directly for layout calculations that apply to any collapsible mode.
+    const isStateCollapsed = state === 'collapsed';
+    const width = isStateCollapsed
       ? collapsible === 'icon'
         ? SIDEBAR_WIDTH_ICON
         : 0
@@ -140,7 +155,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
           className={cn(
             'shrink-0',
             Platform.select({ web: 'transition-[width] duration-200 ease-linear' }),
-            collapsible === 'offcanvas' && isCollapsed && 'hidden'
+            collapsible === 'offcanvas' && isStateCollapsed && 'hidden'
           )}
           style={{ width }}
           {...props}>
@@ -148,9 +163,9 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
             className={cn(
               sidebarVariants({ variant, side }),
               'h-full',
-              collapsible === 'icon' && isCollapsed && 'items-center overflow-hidden'
+              collapsible === 'icon' && isStateCollapsed && 'items-center overflow-hidden'
             )}
-            style={{ width: collapsible === 'icon' && isCollapsed ? SIDEBAR_WIDTH_ICON : SIDEBAR_WIDTH }}>
+            style={{ width: collapsible === 'icon' && isStateCollapsed ? SIDEBAR_WIDTH_ICON : SIDEBAR_WIDTH }}>
             {children}
           </View>
         </View>
@@ -197,4 +212,4 @@ const SidebarInset = React.forwardRef<View, SidebarInsetProps>(
 SidebarInset.displayName = 'SidebarInset';
 
 export { Sidebar, SidebarInset, useSidebarInternal };
-export type { SidebarProps, SidebarInsetProps };
+export type { SidebarInternalContextValue, SidebarInsetProps, SidebarProps };

@@ -79,8 +79,8 @@ const Text = React.forwardRef<RNText, TextProps>(
       <Component
         ref={ref}
         className={cn(textVariants({ variant }), textClass, className)}
-        role={ROLE[variant]}
-        aria-level={ARIA_LEVEL[variant]}
+        role={variant ? ROLE[variant] : undefined}
+        aria-level={variant ? ARIA_LEVEL[variant] : undefined}
         {...props}
       />
     );

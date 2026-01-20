@@ -16,10 +16,12 @@ export type {
 export {
   Sidebar,
   SidebarInset,
+  useSidebarInternal,
 } from './sidebar';
 
 export type {
   SidebarInsetProps,
+  SidebarInternalContextValue,
   SidebarProps,
 } from './sidebar';
 

@@ -50,7 +50,7 @@ const sidebarMenuButtonVariants = cva(
   cn(
     'flex w-full flex-row items-center gap-2 overflow-hidden rounded-md p-2',
     Platform.select({
-      web: 'cursor-pointer outline-none transition-colors',
+      web: 'cursor-pointer outline-none ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2',
     })
   ),
   {
@@ -86,7 +86,6 @@ type SidebarMenuButtonProps = React.ComponentProps<typeof Pressable> &
   VariantProps<typeof sidebarMenuButtonVariants> & {
     isActive?: boolean;
     tooltip?: string | React.ReactNode;
-    asChild?: boolean;
   };
 
 /**
@@ -106,15 +105,13 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
       isActive,
       tooltip,
       children,
-      asChild,
       ...props
     },
     ref
   ) => {
-    const { state, isMobile } = useSidebar();
+    const { isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
+    const isCollapsed = internal?.isCollapsed ?? false;
 
     const button = (
       <TextClassContext.Provider
@@ -126,6 +123,7 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
           ref={ref}
           accessibilityRole="button"
           accessibilityState={{ selected: isActive }}
+          accessibilityLabel={isCollapsed && typeof tooltip === 'string' ? tooltip : undefined}
           className={cn(
             sidebarMenuButtonVariants({ variant, size }),
             isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium',
@@ -149,7 +147,7 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
           <TooltipContent side="right" sideOffset={4}>
-            {typeof tooltip === 'string' ? tooltip : tooltip}
+            {tooltip}
           </TooltipContent>
         </Tooltip>
       );
@@ -174,12 +172,9 @@ type SidebarMenuActionProps = React.ComponentProps<typeof Pressable> & {
  */
 const SidebarMenuAction = React.forwardRef<View, SidebarMenuActionProps>(
   ({ className, showOnHover, ...props }, ref) => {
-    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
-    if (isCollapsed) {
+    if (internal?.isCollapsed) {
       return null;
     }
 
@@ -220,12 +215,9 @@ type SidebarMenuBadgeProps = React.ComponentProps<typeof View> & {
  */
 const SidebarMenuBadge = React.forwardRef<View, SidebarMenuBadgeProps>(
   ({ className, children, ...props }, ref) => {
-    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    // On mobile, sidebar always shows expanded in the sheet
-    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
-    if (isCollapsed) {
+    if (internal?.isCollapsed) {
       return null;
     }
 
@@ -236,7 +228,7 @@ const SidebarMenuBadge = React.forwardRef<View, SidebarMenuBadgeProps>(
           accessibilityRole="text"
           accessibilityLabel={typeof children === 'string' || typeof children === 'number' ? `${children}` : undefined}
           className={cn(
-            'absolute right-1 flex min-h-5 min-w-5 items-center justify-center rounded-md px-1',
+            'absolute right-1 top-1/2 -translate-y-1/2 flex min-h-5 min-w-5 items-center justify-center rounded-md px-1',
             className
           )}
           {...props}>
