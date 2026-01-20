@@ -8,8 +8,8 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarInset,
-  useSidebarInternal,
 } from '../sidebar';
+import { useSidebarInternal } from '../sidebar-internal-context';
 import { SidebarProvider } from '../sidebar-context';
 import { useIsMobile } from '@/hooks/use-is-mobile';
 

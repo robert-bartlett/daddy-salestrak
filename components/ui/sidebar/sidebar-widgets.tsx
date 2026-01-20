@@ -5,9 +5,9 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PanelLeft } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, Pressable, View, type TextInputProps } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useSidebar } from './sidebar-context';
-import { useSidebarInternal } from './sidebar';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarSeparatorProps = React.ComponentProps<typeof Separator>;
 
@@ -79,8 +79,13 @@ const SidebarRail = React.forwardRef<View, SidebarRailProps>(
   ({ className, onPress, ...props }, ref) => {
     const { toggleSidebar, state } = useSidebar();
     const internal = useSidebarInternal();
+    const collapsible = internal?.collapsible ?? 'offcanvas';
     const side = internal?.side ?? 'left';
     const isCollapsed = state === 'collapsed';
+
+    if (collapsible === 'none') {
+      return null;
+    }
 
     // Position rail on the edge of sidebar:
     // - Left sidebar: rail on right edge (right-0, translate-x-1/2 to center on edge)
@@ -121,10 +126,7 @@ const SidebarRail = React.forwardRef<View, SidebarRailProps>(
 
 SidebarRail.displayName = 'SidebarRail';
 
-type SidebarInputProps = TextInputProps & {
-  disabled?: boolean;
-  invalid?: boolean;
-};
+type SidebarInputProps = React.ComponentProps<typeof Input>;
 
 /**
  * Search input styled for the sidebar.

@@ -72,9 +72,13 @@ function SidebarProvider({
   const [_open, _setOpen] = React.useState(() => {
     // Load persisted state on web only
     if (Platform.OS === 'web' && typeof localStorage !== 'undefined') {
-      const persisted = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      if (persisted === 'true') return true;
-      if (persisted === 'false') return false;
+      try {
+        const persisted = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+        if (persisted === 'true') return true;
+        if (persisted === 'false') return false;
+      } catch {
+        // Silently ignore storage errors
+      }
     }
     return defaultOpen;
   });

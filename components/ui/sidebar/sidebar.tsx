@@ -1,4 +1,4 @@
-import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { AlertTriangle } from 'lucide-react-native';
@@ -11,6 +11,10 @@ import {
   SIDEBAR_WIDTH_MOBILE,
 } from './sidebar-constants';
 import { SidebarContext, useSidebar } from './sidebar-context';
+import {
+  SidebarInternalContext,
+  type SidebarInternalContextValue,
+} from './sidebar-internal-context';
 
 // ============================================================================
 // Error Boundary
@@ -138,27 +142,6 @@ type SidebarProps = React.ComponentProps<typeof View> & {
 };
 
 /**
- * Configuration values passed from Sidebar to child components.
- * Includes derived `isCollapsed` to avoid repeated calculations in children.
- */
-type SidebarInternalContextValue = {
-  collapsible: 'offcanvas' | 'icon' | 'none';
-  variant: 'sidebar' | 'floating' | 'inset';
-  side: 'left' | 'right';
-  /** True when sidebar is in collapsed icon mode on desktop. Always false on mobile. */
-  isCollapsed: boolean;
-};
-
-/**
- * Internal context for passing sidebar configuration to children
- */
-const SidebarInternalContext = React.createContext<SidebarInternalContextValue | null>(null);
-
-function useSidebarInternal() {
-  return React.useContext(SidebarInternalContext);
-}
-
-/**
  * Main sidebar container component.
  *
  * @remarks
@@ -173,6 +156,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
       children,
       collapsible = 'offcanvas',
       side = 'left',
+      style,
       ...props
     },
     ref
@@ -186,7 +170,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     const isCollapsed = !isMobile && state === 'collapsed' && collapsible === 'icon';
 
     const internalContext = React.useMemo<SidebarInternalContextValue>(
-      () => ({ collapsible, variant: variant ?? 'sidebar', side: side ?? 'left', isCollapsed }),
+      () => ({ collapsible, variant, side, isCollapsed }),
       [collapsible, variant, side, isCollapsed]
     );
 
@@ -201,9 +185,13 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
       return (
         <Sheet open={openMobile} onOpenChange={setOpenMobile}>
           <SheetContent
+            ref={ref}
             side={side}
             className={cn('bg-sidebar-background p-0', className)}
-            style={{ width: SIDEBAR_WIDTH_MOBILE }}>
+            style={[{ width: SIDEBAR_WIDTH_MOBILE }, style]}
+            {...props}>
+            {/* Dialog content needs a title for screen readers; keep it visually hidden. */}
+            <SheetTitle className="sr-only">Sidebar navigation</SheetTitle>
             <SidebarContext.Provider value={sidebarContext}>
               <SidebarInternalContext.Provider value={internalContext}>
                 <View className="flex h-full flex-col">{children}</View>
@@ -221,7 +209,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
           <View
             ref={ref}
             className={cn(sidebarVariants({ variant, side }), className)}
-            style={{ width: SIDEBAR_WIDTH }}
+            style={[{ width: SIDEBAR_WIDTH }, style]}
             {...props}>
             {children}
           </View>
@@ -233,11 +221,8 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
     // Note: isCollapsed (from above) is specifically for icon-only mode used by children.
     // Here we use state directly for layout calculations that apply to any collapsible mode.
     const isStateCollapsed = state === 'collapsed';
-    const width = isStateCollapsed
-      ? collapsible === 'icon'
-        ? SIDEBAR_WIDTH_ICON
-        : 0
-      : SIDEBAR_WIDTH;
+    const collapsedWidth = collapsible === 'icon' ? SIDEBAR_WIDTH_ICON : 0;
+    const width = isStateCollapsed ? collapsedWidth : SIDEBAR_WIDTH;
 
     return (
       <SidebarInternalContext.Provider value={internalContext}>
@@ -248,7 +233,7 @@ const Sidebar = React.forwardRef<View, SidebarProps>(
             Platform.select({ web: 'transition-[width] duration-200 ease-linear motion-reduce:transition-none', default: '' }),
             collapsible === 'offcanvas' && isStateCollapsed && 'hidden'
           )}
-          style={{ width }}
+          style={[{ width }, style]}
           {...props}>
           <View
             className={cn(
@@ -384,21 +369,12 @@ const SidebarFooter = React.forwardRef<View, SidebarFooterProps>(
 
 SidebarFooter.displayName = 'SidebarFooter';
 
-export {
-  Sidebar,
-  SidebarContent,
-  SidebarErrorBoundary,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  useSidebarInternal,
-};
+export { Sidebar, SidebarContent, SidebarErrorBoundary, SidebarFooter, SidebarHeader, SidebarInset };
 export type {
   SidebarContentProps,
   SidebarErrorBoundaryProps,
   SidebarFooterProps,
   SidebarHeaderProps,
-  SidebarInternalContextValue,
   SidebarInsetProps,
   SidebarProps,
 };

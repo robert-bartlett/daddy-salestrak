@@ -2,7 +2,7 @@ import { Text, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSidebarInternal } from './sidebar';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarGroupProps = React.ComponentProps<typeof View>;
 
@@ -107,7 +107,7 @@ const SidebarGroupAction = React.forwardRef<View, SidebarGroupActionProps>(
         ref={ref}
         accessibilityRole="button"
         className={cn(
-          'absolute right-2 top-2 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
+          'absolute end-2 top-2 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
           Platform.select({
             web: cn(
               'hover:opacity-100 focus-visible:opacity-100',

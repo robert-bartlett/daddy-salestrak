@@ -18,14 +18,25 @@ jest.mock('@/hooks/use-is-mobile', () => ({
 }));
 
 // Mock @rn-primitives/dialog
-jest.mock('@rn-primitives/dialog', () => ({
-  Root: ({ children }) => children,
-  Trigger: ({ children }) => children,
-  Portal: ({ children }) => children,
-  Overlay: ({ children }) => children,
-  Content: ({ children }) => children,
-  Close: ({ children }) => children,
-}));
+jest.mock('@rn-primitives/dialog', () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+
+  return {
+    Root: ({ children }) => children,
+    Trigger: ({ children }) => children,
+    Portal: ({ children }) => children,
+    Overlay: ({ children }) => children,
+    Content: ({ children }) => children,
+    Close: ({ children }) => children,
+    Title: React.forwardRef(({ children, ...props }, ref) =>
+      React.createElement(Text, { ...props, ref }, children)
+    ),
+    Description: React.forwardRef(({ children, ...props }, ref) =>
+      React.createElement(Text, { ...props, ref }, children)
+    ),
+  };
+});
 
 // Mock @rn-primitives/portal
 jest.mock('@rn-primitives/portal', () => ({

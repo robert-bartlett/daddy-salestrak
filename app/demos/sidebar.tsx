@@ -53,18 +53,22 @@ const PROJECTS = [
   { name: 'Mobile App', color: '#22c55e' },
 ];
 
+type FocusablePressableRef = React.ElementRef<typeof Pressable> & {
+  focus?: () => void;
+};
+
 function NavUser() {
   const [isOpen, setIsOpen] = React.useState(false);
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
-  const triggerRef = React.useRef<View>(null);
+  const triggerRef = React.useRef<FocusablePressableRef | null>(null);
 
   // Close the menu and return focus to trigger (web only)
   const closeMenu = React.useCallback(() => {
     setIsOpen(false);
     if (Platform.OS === 'web') {
       requestAnimationFrame(() => {
-        (triggerRef.current as any)?.focus?.();
+        triggerRef.current?.focus?.();
       });
     }
   }, []);
@@ -178,9 +182,7 @@ function AppSidebar() {
                     <Icon as={item.icon} className="text-sidebar-foreground" size={20} />
                     <Text>{item.label}</Text>
                   </SidebarMenuButton>
-                  {item.badge && !isCollapsed && (
-                    <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>
-                  )}
+                  {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

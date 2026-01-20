@@ -1,24 +1,17 @@
-# Sidebar Plan
-
-- [x] 1. Fix mobile state logic: on mobile, state remains "collapsed" from desktop, causing isCollapsed checks to hide labels/badges inside the sheet. Gate collapse checks with !isMobile or derive state differently on mobile. Files: components/ui/sidebar/sidebar-context.tsx, components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-group.tsx, components/ui/sidebar/sidebar-submenu.tsx.
-- [x] 2. Add accessibility metadata to all interactive elements (Pressable/Button/Badge): roles, labels, and status semantics where appropriate. Files: components/ui/sidebar/sidebar-menu.tsx (SidebarMenuAction, SidebarMenuBadge, SidebarMenuButton), components/ui/sidebar/sidebar-group.tsx (SidebarGroupAction), components/ui/sidebar/sidebar-utils.tsx (SidebarRail, SidebarTrigger), app/demos/sidebar.tsx (NavUser trigger).
-- [x] 3. Implement keyboard disclosure behavior for the demo NavUser menu (Enter/Space toggle, Escape close, focus management) or replace with an accessible menu component. File: app/demos/sidebar.tsx.
-- [x] 4. Make showOnHover work across platforms: only hide on web with group-hover/focus-visible, and keep visible on native. Files: components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-group.tsx.
-- [x] 5. Restore focus-visible affordances for interactive elements where outline is removed, and ensure icon-only collapsed buttons have accessible labels. Files: components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-submenu.tsx, components/ui/sidebar/sidebar-utils.tsx.
-- [x] 6. Re-enable a way to close the mobile sheet (restore close button or add an accessible close action in the sidebar header). File: components/ui/sidebar/sidebar.tsx.
-- [x] 7. Fix badge positioning so it aligns vertically with the menu item (add top/inset-y alignment or change layout to non-absolute). File: components/ui/sidebar/sidebar-menu.tsx.
-- [x] 8. Remove AI artifacts and dead code: useless tooltip ternary, unused asChild props (or implement Slot pattern), dead demo skeleton block. Files: components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-submenu.tsx, components/ui/sidebar/sidebar-group.tsx, app/demos/sidebar.tsx.
-- [x] 9. Export useSidebarInternal from the barrel or hide it and replace with a single public hook to avoid hidden coupling. Files: components/ui/sidebar/sidebar.tsx, components/ui/sidebar/index.ts.
-- [x] 10. Consolidate redundant providers in the mobile sheet, or document why portal semantics require duplication to avoid confusion. File: components/ui/sidebar/sidebar.tsx.
-- [x] 11. Reduce split-context repetition (state + internal) by unifying collapse data in one hook or passing derived state. Files: components/ui/sidebar/sidebar-context.tsx, components/ui/sidebar/sidebar.tsx, components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-group.tsx, components/ui/sidebar/sidebar-submenu.tsx.
-- [x] 12. Align controlled/uncontrolled API: add mobile controlled props (openMobile/onOpenMobileChange) or remove controlled desktop props for consistency. File: components/ui/sidebar/sidebar-context.tsx.
-- [x] 13. Simplify SidebarMenuSkeleton width typing; avoid double assertions by using a number and style width or a typed helper. File: components/ui/sidebar/sidebar-menu.tsx.
-- [x] 14. Replace magic numbers for widths with shared constants or CSS variables and ensure a single source of truth between JS and CSS. File: components/ui/sidebar/sidebar.tsx (and corresponding styles).
-- [x] 15. Validate SidebarRail positioning math; adjust transform/position so the rail sits where intended across layouts. File: components/ui/sidebar/sidebar-utils.tsx.
-- [x] 16. Evaluate Sheet mount delay behavior and remove render-cycle gating if it causes visible flash or interaction lag. File: components/ui/sheet.tsx.
-- [x] 17. Guard Platform.select usage to avoid undefined class fragments if desired (type safety and clarity). Files: components/ui/sidebar/sidebar.tsx, components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-submenu.tsx, components/ui/sidebar/sidebar-utils.tsx.
-- [x] 18. Reassess file/module fragmentation: consider merging trivial wrappers and renaming sidebar-utils.tsx to reflect it contains real UI components. Files: components/ui/sidebar/sidebar-layout.tsx, components/ui/sidebar/sidebar-submenu.tsx, components/ui/sidebar/sidebar-utils.tsx.
-- [x] 19. Add error boundary coverage around the sidebar layout/portal tree if this is intended for production use. Files: components/ui/sidebar/sidebar.tsx, components/ui/sidebar/sidebar-context.tsx.
-- [x] 20. Add RTL support (respect I18nManager or direction-aware styles; avoid hard-coded left/right). Files: components/ui/sidebar/sidebar.tsx, components/ui/sidebar/sidebar-menu.tsx, components/ui/sidebar/sidebar-submenu.tsx, components/ui/sidebar/sidebar-utils.tsx.
-- [x] 21. Add reduced-motion handling for width transitions, sheet animations, and hover/focus transitions. Files: components/ui/sidebar/sidebar.tsx, components/ui/sheet.tsx.
-- [~] 22. Add missing unit tests for sidebar components to meet repo standards. Files: components/ui/sidebar/__tests__ or *.test.tsx. **BLOCKED:** Test files written but Jest configuration blocked by Expo 54 winter runtime + NativeWind compatibility issues. See progress log for details.
+1. [x] Fix RTL positioning by replacing `right-2` with logical `end-2` in `components/ui/sidebar/sidebar-group.tsx:110`.
+2. [x] Fix tooltip side logic to account for sidebar `side` (right sidebar should tooltip left, and vice versa) in `components/ui/sidebar/sidebar-menu.tsx:149`.
+3. [x] Remove redundant `!isCollapsed` guard around `SidebarMenuBadge` usage in `app/demos/sidebar.tsx:181` (component already returns null when collapsed).
+4. [x] Add `accessibilityRole="button"` to submenu buttons in `components/ui/sidebar/sidebar-submenu.tsx:74`.
+5. [x] Add `accessibilityState={{ selected: isActive }}` to submenu buttons in `components/ui/sidebar/sidebar-submenu.tsx:74`.
+6. [x] Simplify nested ternary width calculation for readability in `components/ui/sidebar/sidebar.tsx:235`.
+7. [x] Remove redundant nullish coalescing for `variant` and `side` in `components/ui/sidebar/sidebar.tsx:189`.
+8. [x] Remove or implement `disabled`/`invalid` props in `SidebarInputProps` in `components/ui/sidebar/sidebar-widgets.tsx:124`.
+9. [x] Replace `(triggerRef.current as any)?.focus?.()` with a typed ref that exposes `focus` in `app/demos/sidebar.tsx:67`.
+10. [x] Break the circular import by moving `SidebarInternalContext`/`useSidebarInternal` out of `components/ui/sidebar/sidebar.tsx` into a shared context module.
+11. [x] Fix active state text color so it switches to `text-sidebar-accent-foreground` instead of being locked to `text-sidebar-foreground` in `components/ui/sidebar/sidebar-menu.tsx:120` and `components/ui/sidebar/sidebar-submenu.tsx:68`.
+12. [x] Forward `ref` and `...props` through the mobile `SheetContent` path to avoid dropping `testID`, accessibility, and style props in `components/ui/sidebar/sidebar.tsx:200`.
+13. [x] Guard `SidebarRail` so it does not toggle when `collapsible="none"` (or ensure it is never rendered in that mode) in `components/ui/sidebar/sidebar-widgets.tsx:80`.
+14. [x] Wrap the `localStorage.getItem` read in a try/catch to prevent Safari private-mode crashes in `components/ui/sidebar/sidebar-context.tsx:72`.
+15. [x] Ensure collapsed `SidebarMenuButton` still wraps raw string/number children in `Text` to avoid RN "text strings must be rendered within a Text component" errors in `components/ui/sidebar/sidebar-menu.tsx:37`.
+16. [ ] Reduce low-signal "renders/accepts className" tests and replace with behavior-driven assertions in `components/ui/sidebar/__tests__/*.test.tsx`.
+17. [ ] Prefer `fireEvent.press` over `fireEvent.click` for `Pressable` in React Native tests in `components/ui/sidebar/__tests__/*.test.tsx`.

@@ -6,7 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 import { I18nManager, Platform, Pressable, View } from 'react-native';
 import { useSidebar } from './sidebar-context';
-import { useSidebarInternal } from './sidebar';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarMenuProps = React.ComponentProps<typeof View>;
 
@@ -119,7 +119,8 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
     const button = (
       <TextClassContext.Provider
         value={cn(
-          'text-sm text-sidebar-foreground',
+          'text-sm',
+          isActive ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground',
           isActive && 'font-medium'
         )}>
         <Pressable
@@ -137,8 +138,9 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
           {typeof children === 'function'
             ? children
             : isCollapsed
-            ? // In collapsed mode, only show the first child (icon)
-              React.Children.toArray(children)[0]
+            ? // In collapsed mode, only show the first child (icon).
+              // Wrap raw text to avoid RN "text strings" errors.
+              wrapTextChildren(React.Children.toArray(children)[0])
             : wrapTextChildren(children)}
         </Pressable>
       </TextClassContext.Provider>
@@ -147,7 +149,14 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
     // Show tooltip in collapsed mode (desktop only)
     // Tooltip appears on opposite side of sidebar (end side, accounting for RTL)
     if (isCollapsed && tooltip && !isMobile) {
-      const tooltipSide = I18nManager.isRTL ? 'left' : 'right';
+      const sidebarSide = internal?.side ?? 'left';
+      const tooltipSide = I18nManager.isRTL
+        ? sidebarSide === 'right'
+          ? 'right'
+          : 'left'
+        : sidebarSide === 'right'
+        ? 'left'
+        : 'right';
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{button}</TooltipTrigger>

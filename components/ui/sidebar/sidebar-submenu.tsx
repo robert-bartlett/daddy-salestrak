@@ -2,7 +2,7 @@ import { TextClassContext, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
-import { useSidebarInternal } from './sidebar';
+import { useSidebarInternal } from './sidebar-internal-context';
 
 type SidebarMenuSubProps = React.ComponentProps<typeof View>;
 
@@ -67,12 +67,14 @@ const SidebarMenuSubButton = React.forwardRef<View, SidebarMenuSubButtonProps>(
     return (
       <TextClassContext.Provider
         value={cn(
-          'text-sidebar-foreground',
           size === 'sm' ? 'text-xs' : 'text-sm',
+          isActive ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground',
           isActive && 'font-medium'
         )}>
         <Pressable
           ref={ref}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isActive }}
           className={cn(
             'flex w-full flex-row items-center gap-2 overflow-hidden rounded-md px-2',
             size === 'sm' ? 'h-7' : 'h-8',

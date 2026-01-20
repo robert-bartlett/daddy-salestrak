@@ -20,7 +20,6 @@ export {
   SidebarFooter,
   SidebarHeader,
   SidebarInset,
-  useSidebarInternal,
 } from './sidebar';
 
 export type {
@@ -29,9 +28,12 @@ export type {
   SidebarFooterProps,
   SidebarHeaderProps,
   SidebarInsetProps,
-  SidebarInternalContextValue,
   SidebarProps,
 } from './sidebar';
+
+export { useSidebarInternal } from './sidebar-internal-context';
+
+export type { SidebarInternalContextValue } from './sidebar-internal-context';
 
 // Group Components
 export {
