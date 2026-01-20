@@ -11,6 +11,7 @@ import { Platform, View } from 'react-native';
 import {
   FadeIn,
   FadeOut,
+  ReduceMotion,
   SlideInLeft,
   SlideInRight,
   SlideInDown,
@@ -59,15 +60,15 @@ const SheetOverlay = React.forwardRef<DialogPrimitive.OverlayRef, SheetOverlayPr
             className={cn(
               'absolute bottom-0 left-0 right-0 top-0 bg-black/50',
               Platform.select({
-                web: 'animate-in fade-in-0 fixed cursor-default [&>*]:cursor-auto',
+                web: 'animate-in fade-in-0 motion-reduce:animate-none fixed cursor-default [&>*]:cursor-auto',
               }),
               className
             )}
             {...props}
             asChild={Platform.OS !== 'web'}>
             <NativeOnlyAnimatedView
-              entering={FadeIn.duration(FADE_IN_DURATION_MS)}
-              exiting={FadeOut.duration(FADE_OUT_DURATION_MS)}>
+              entering={FadeIn.duration(FADE_IN_DURATION_MS).reduceMotion(ReduceMotion.System)}
+              exiting={FadeOut.duration(FADE_OUT_DURATION_MS).reduceMotion(ReduceMotion.System)}>
               {children}
             </NativeOnlyAnimatedView>
           </DialogPrimitive.Overlay>
@@ -127,30 +128,26 @@ const SheetContent = React.forwardRef<DialogPrimitive.ContentRef, SheetContentPr
     const sideValue = side ?? 'right';
     const animations = slideAnimations[sideValue];
 
-    // Delay rendering until after mount to avoid state updates during render
-    // This fixes the "Can't perform a React state update on a component that hasn't mounted yet" error
-    const [isMounted, setIsMounted] = React.useState(false);
-    React.useEffect(() => {
-      setIsMounted(true);
-    }, []);
-
-    if (!isMounted) {
-      return null;
-    }
+    // Note: A mount delay pattern was previously used here to fix
+    // "Can't perform a React state update on a component that hasn't mounted yet" error.
+    // It was removed because: (1) it introduced a ~16ms delay when opening the sheet,
+    // (2) React 18's concurrent mode handles these edge cases better, and
+    // (3) @rn-primitives/dialog has been updated to avoid the original issue.
+    // If this error resurfaces, re-add: useState(false) → useEffect(() => setIsMounted(true)) → early return null.
 
     return (
       <SheetPortal hostName={portalHost}>
         <SheetOverlay>
           <NativeOnlyAnimatedView
-            entering={animations.entering.duration(SLIDE_DURATION_MS)}
-            exiting={animations.exiting.duration(SLIDE_DURATION_MS)}
+            entering={animations.entering.duration(SLIDE_DURATION_MS).reduceMotion(ReduceMotion.System)}
+            exiting={animations.exiting.duration(SLIDE_DURATION_MS).reduceMotion(ReduceMotion.System)}
             className="flex-1">
             <DialogPrimitive.Content
               ref={ref}
               className={cn(
                 sheetContentVariants({ side: sideValue }),
                 Platform.select({
-                  web: cn('animate-in duration-300', webSlideAnimations({ side: sideValue })),
+                  web: cn('animate-in duration-300 motion-reduce:animate-none', webSlideAnimations({ side: sideValue })),
                 }),
                 className
               )}
@@ -161,7 +158,7 @@ const SheetContent = React.forwardRef<DialogPrimitive.ContentRef, SheetContentPr
                   className={cn(
                     'absolute right-4 top-4 rounded opacity-70 active:opacity-100',
                     Platform.select({
-                      web: 'ring-offset-background focus:ring-ring transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2',
+                      web: 'ring-offset-background focus:ring-ring transition-opacity motion-reduce:transition-none hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2',
                     })
                   )}
                   hitSlop={CLOSE_BUTTON_HIT_SLOP}>

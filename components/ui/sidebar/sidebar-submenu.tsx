@@ -25,7 +25,8 @@ const SidebarMenuSub = React.forwardRef<View, SidebarMenuSubProps>(
       <View
         ref={ref}
         className={cn(
-          'mx-3.5 flex flex-col gap-1 border-l border-sidebar-border px-2.5 py-1',
+          // border-s = start border (left in LTR, right in RTL)
+          'mx-3.5 flex flex-col gap-1 border-s border-sidebar-border px-2.5 py-1',
           className
         )}
         {...props}
@@ -78,6 +79,7 @@ const SidebarMenuSubButton = React.forwardRef<View, SidebarMenuSubButtonProps>(
             'active:bg-sidebar-accent active:text-sidebar-accent-foreground',
             Platform.select({
               web: 'cursor-pointer outline-none ring-offset-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2',
+              default: '',
             }),
             isActive && 'bg-sidebar-accent text-sidebar-accent-foreground',
             className

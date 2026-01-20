@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { I18nManager, Platform, Pressable, View } from 'react-native';
 import { useSidebar } from './sidebar-context';
 import { useSidebarInternal } from './sidebar';
 
@@ -50,7 +50,8 @@ const sidebarMenuButtonVariants = cva(
   cn(
     'flex w-full flex-row items-center gap-2 overflow-hidden rounded-md p-2',
     Platform.select({
-      web: 'cursor-pointer outline-none ring-offset-background transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2',
+      web: 'cursor-pointer outline-none ring-offset-background transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2',
+      default: '',
     })
   ),
   {
@@ -60,12 +61,14 @@ const sidebarMenuButtonVariants = cva(
           'active:bg-sidebar-accent active:text-sidebar-accent-foreground',
           Platform.select({
             web: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            default: '',
           })
         ),
         outline: cn(
           'border border-sidebar-border bg-transparent shadow-sm active:bg-sidebar-accent active:text-sidebar-accent-foreground',
           Platform.select({
             web: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            default: '',
           })
         ),
       },
@@ -142,11 +145,13 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
     );
 
     // Show tooltip in collapsed mode (desktop only)
+    // Tooltip appears on opposite side of sidebar (end side, accounting for RTL)
     if (isCollapsed && tooltip && !isMobile) {
+      const tooltipSide = I18nManager.isRTL ? 'left' : 'right';
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>{button}</TooltipTrigger>
-          <TooltipContent side="right" sideOffset={4}>
+          <TooltipContent side={tooltipSide} sideOffset={4}>
             {tooltip}
           </TooltipContent>
         </Tooltip>
@@ -183,13 +188,15 @@ const SidebarMenuAction = React.forwardRef<View, SidebarMenuActionProps>(
         ref={ref}
         accessibilityRole="button"
         className={cn(
-          'absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
+          // end-1 = position from end edge (right in LTR, left in RTL)
+          'absolute end-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
           Platform.select({
             web: cn(
               'hover:opacity-100 focus-visible:opacity-100',
               // showOnHover: hide by default, reveal on parent hover/focus (web only)
               showOnHover && 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
             ),
+            default: '',
           }),
           // On native, showOnHover is ignored - actions are always visible since there's no hover
           className
@@ -228,7 +235,8 @@ const SidebarMenuBadge = React.forwardRef<View, SidebarMenuBadgeProps>(
           accessibilityRole="text"
           accessibilityLabel={typeof children === 'string' || typeof children === 'number' ? `${children}` : undefined}
           className={cn(
-            'absolute right-1 top-1/2 -translate-y-1/2 flex min-h-5 min-w-5 items-center justify-center rounded-md px-1',
+            // end-1 = position from end edge (right in LTR, left in RTL)
+            'absolute end-1 top-1/2 -translate-y-1/2 flex min-h-5 min-w-5 items-center justify-center rounded-md px-1',
             className
           )}
           {...props}>
@@ -248,13 +256,15 @@ type SidebarMenuSkeletonProps = React.ComponentProps<typeof View> & {
 /**
  * Loading placeholder for menu items.
  */
+/** Returns a random percentage width between 50% and 90% as a typed DimensionValue. */
+function getRandomSkeletonWidth(): `${number}%` {
+  const percent = Math.floor(Math.random() * 40) + 50;
+  return `${percent}%` as `${number}%`;
+}
+
 const SidebarMenuSkeleton = React.forwardRef<View, SidebarMenuSkeletonProps>(
   ({ className, showIcon = false, ...props }, ref) => {
-    // Random width between 50% and 90% for visual variety
-    const width = React.useMemo(
-      () => `${Math.floor(Math.random() * 40) + 50}%` as const,
-      []
-    );
+    const width = React.useMemo(getRandomSkeletonWidth, []);
 
     return (
       <View
@@ -264,7 +274,7 @@ const SidebarMenuSkeleton = React.forwardRef<View, SidebarMenuSkeletonProps>(
         {showIcon && <Skeleton className="size-4 rounded-md" />}
         <Skeleton
           className="h-4 max-w-40 flex-1"
-          style={{ width: width as `${number}%` }}
+          style={{ width }}
         />
       </View>
     );

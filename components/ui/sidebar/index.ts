@@ -12,31 +12,26 @@ export type {
   SidebarVariant,
 } from './sidebar-context';
 
-// Main Sidebar Components
+// Main Sidebar and Layout Components
 export {
   Sidebar,
+  SidebarContent,
+  SidebarErrorBoundary,
+  SidebarFooter,
+  SidebarHeader,
   SidebarInset,
   useSidebarInternal,
 } from './sidebar';
 
 export type {
+  SidebarContentProps,
+  SidebarErrorBoundaryProps,
+  SidebarFooterProps,
+  SidebarHeaderProps,
   SidebarInsetProps,
   SidebarInternalContextValue,
   SidebarProps,
 } from './sidebar';
-
-// Layout Components
-export {
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from './sidebar-layout';
-
-export type {
-  SidebarContentProps,
-  SidebarFooterProps,
-  SidebarHeaderProps,
-} from './sidebar-layout';
 
 // Group Components
 export {
@@ -86,17 +81,27 @@ export type {
   SidebarMenuSubProps,
 } from './sidebar-submenu';
 
-// Utility Components
+// Widget Components (trigger, rail, input, separator)
 export {
   SidebarInput,
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
-} from './sidebar-utils';
+} from './sidebar-widgets';
 
 export type {
   SidebarInputProps,
   SidebarRailProps,
   SidebarSeparatorProps,
   SidebarTriggerProps,
-} from './sidebar-utils';
+} from './sidebar-widgets';
+
+// Constants
+export {
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_ICON,
+  SIDEBAR_WIDTH_MOBILE,
+  SIDEBAR_WIDTH_REM,
+  SIDEBAR_WIDTH_ICON_REM,
+  SIDEBAR_WIDTH_MOBILE_REM,
+} from './sidebar-constants';
