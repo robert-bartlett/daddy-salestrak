@@ -1,5 +1,5 @@
 import { NativeOnlyAnimatedView } from '@/components/ui/native-only-animated-view';
-import { TextClassContext } from '@/components/ui/text';
+import { TextClassContext, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as TooltipPrimitive from '@rn-primitives/tooltip';
 import * as React from 'react';
@@ -26,7 +26,17 @@ type TooltipContentProps = TooltipPrimitive.ContentProps & {
 };
 
 const TooltipContent = React.forwardRef<TooltipPrimitive.ContentRef, TooltipContentProps>(
-  ({ className, sideOffset = DEFAULT_SIDE_OFFSET, portalHost, side = 'top', ...props }, ref) => {
+  (
+    {
+      className,
+      sideOffset = DEFAULT_SIDE_OFFSET,
+      portalHost,
+      side = 'top',
+      children,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <TooltipPrimitive.Portal hostName={portalHost}>
         <FullWindowOverlay>
@@ -46,8 +56,9 @@ const TooltipContent = React.forwardRef<TooltipPrimitive.ContentRef, TooltipCont
                     className
                   )}
                   side={side}
-                  {...props}
-                />
+                  {...props}>
+                  {wrapTextChildren(children)}
+                </TooltipPrimitive.Content>
               </TextClassContext.Provider>
             </NativeOnlyAnimatedView>
           </TooltipPrimitive.Overlay>

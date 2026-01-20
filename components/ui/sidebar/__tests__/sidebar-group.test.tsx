@@ -6,6 +6,7 @@ import {
   SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
+  useSidebarGroup,
 } from '../sidebar-group';
 import { Sidebar } from '../sidebar';
 import { SidebarProvider } from '../sidebar-context';
@@ -179,6 +180,132 @@ describe('SidebarGroup', () => {
       expect(queryByText('Navigation')).toBeNull();
       expect(queryByTestId('add-action')).toBeNull();
       expect(getByText('Item 1')).toBeTruthy();
+    });
+  });
+
+  describe('collapsible SidebarGroup', () => {
+    it('renders content when collapsible and open by default', () => {
+      renderWithSidebar(
+        <SidebarGroup collapsible>
+          <SidebarGroupLabel>Collapsible Group</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Text>Content Here</Text>
+          </SidebarGroupContent>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      expect(screen.getByText('Collapsible Group')).toBeTruthy();
+      expect(screen.getByText('Content Here')).toBeTruthy();
+    });
+
+    it('hides content when collapsible and defaultOpen is false', () => {
+      const { queryByText } = renderWithSidebar(
+        <SidebarGroup collapsible defaultOpen={false}>
+          <SidebarGroupLabel>Collapsible Group</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Text>Hidden Content</Text>
+          </SidebarGroupContent>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      expect(screen.getByText('Collapsible Group')).toBeTruthy();
+      expect(queryByText('Hidden Content')).toBeNull();
+    });
+
+    it('toggles content visibility when label is clicked', () => {
+      const { queryByText, getByRole } = renderWithSidebar(
+        <SidebarGroup collapsible>
+          <SidebarGroupLabel>Toggle Me</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Text>Toggleable Content</Text>
+          </SidebarGroupContent>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      // Content should be visible initially
+      expect(screen.getByText('Toggleable Content')).toBeTruthy();
+
+      // Click the label to collapse
+      const labelButton = getByRole('button');
+      fireEvent.press(labelButton);
+
+      // Content should now be hidden
+      expect(queryByText('Toggleable Content')).toBeNull();
+
+      // Click again to expand
+      fireEvent.press(labelButton);
+
+      // Content should be visible again
+      expect(screen.getByText('Toggleable Content')).toBeTruthy();
+    });
+
+    it('renders label as button when collapsible', () => {
+      const { getByRole } = renderWithSidebar(
+        <SidebarGroup collapsible>
+          <SidebarGroupLabel>Accessible Label</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Text>Content</Text>
+          </SidebarGroupContent>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      const labelButton = getByRole('button');
+      expect(labelButton).toBeTruthy();
+      expect(screen.getByText('Accessible Label')).toBeTruthy();
+    });
+
+    it('renders label as static view when not collapsible', () => {
+      const { queryByRole } = renderWithSidebar(
+        <SidebarGroup>
+          <SidebarGroupLabel>Static Label</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <Text>Content</Text>
+          </SidebarGroupContent>
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      // Label should not be a button when group is not collapsible
+      expect(queryByRole('button')).toBeNull();
+      expect(screen.getByText('Static Label')).toBeTruthy();
+    });
+  });
+
+  describe('useSidebarGroup hook', () => {
+    it('returns null when used outside SidebarGroup', () => {
+      function TestComponent() {
+        const context = useSidebarGroup();
+        return <Text testID="result">{context === null ? 'null' : 'has context'}</Text>;
+      }
+
+      render(<TestComponent />);
+      expect(screen.getByTestId('result').textContent).toBe('null');
+    });
+
+    it('returns context with correct values inside SidebarGroup', () => {
+      function TestComponent() {
+        const context = useSidebarGroup();
+        return (
+          <Text testID="result">
+            {context
+              ? `collapsible:${context.collapsible},open:${context.isOpen}`
+              : 'null'}
+          </Text>
+        );
+      }
+
+      renderWithSidebar(
+        <SidebarGroup collapsible defaultOpen={false}>
+          <TestComponent />
+        </SidebarGroup>,
+        { defaultOpen: true }
+      );
+
+      expect(screen.getByTestId('result').textContent).toBe('collapsible:true,open:false');
     });
   });
 });

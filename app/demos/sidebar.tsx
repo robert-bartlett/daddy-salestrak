@@ -154,7 +154,7 @@ function AppSidebar() {
   const isCollapsed = state === 'collapsed';
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="none">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -191,7 +191,7 @@ function AppSidebar() {
 
         <SidebarSeparator />
 
-        <SidebarGroup>
+        <SidebarGroup collapsible>
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -212,7 +212,7 @@ function AppSidebar() {
 
         <SidebarSeparator />
 
-        <SidebarGroup>
+        <SidebarGroup collapsible defaultOpen={false}>
           <SidebarGroupLabel>Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -240,10 +240,14 @@ function MainContent() {
 
   return (
     <SidebarInset>
-      {/* Header with trigger */}
+      {/* Header with trigger (mobile only) */}
       <View className="flex flex-row items-center gap-2 border-b border-border p-4">
-        <SidebarTrigger />
-        <View className="h-4 w-px bg-border" />
+        {isMobile && (
+          <>
+            <SidebarTrigger />
+            <View className="h-4 w-px bg-border" />
+          </>
+        )}
         <Text className="font-medium text-foreground">Dashboard</Text>
       </View>
 
@@ -260,21 +264,20 @@ function MainContent() {
           <View className="gap-4">
             <Text className="font-semibold text-foreground">How to use:</Text>
             <View className="gap-2">
-              <Text className="text-muted-foreground">
-                • Click the <Text className="font-medium text-foreground">panel icon</Text> in the header to toggle the sidebar
-              </Text>
-              {Platform.OS === 'web' && (
+              {isMobile ? (
+                <>
+                  <Text className="text-muted-foreground">
+                    • Tap the <Text className="font-medium text-foreground">panel icon</Text> in the header to open the sidebar
+                  </Text>
+                  <Text className="text-muted-foreground">
+                    • The sidebar appears as a slide-out sheet
+                  </Text>
+                </>
+              ) : (
                 <Text className="text-muted-foreground">
-                  • Use <Text className="font-medium text-foreground">Cmd+B</Text> (Mac) or{' '}
-                  <Text className="font-medium text-foreground">Ctrl+B</Text> (Windows) to toggle
+                  • The sidebar is always visible on desktop
                 </Text>
               )}
-              <Text className="text-muted-foreground">
-                • On mobile, the sidebar appears as a slide-out sheet
-              </Text>
-              <Text className="text-muted-foreground">
-                • When collapsed, hover over icons to see tooltips (web)
-              </Text>
             </View>
           </View>
 
