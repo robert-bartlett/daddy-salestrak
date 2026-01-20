@@ -191,7 +191,7 @@ function AppSidebar() {
 
         <SidebarSeparator />
 
-        <SidebarGroup>
+        <SidebarGroup collapsible>
           <SidebarGroupLabel>Projects</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -212,7 +212,7 @@ function AppSidebar() {
 
         <SidebarSeparator />
 
-        <SidebarGroup>
+        <SidebarGroup collapsible defaultOpen={false}>
           <SidebarGroupLabel>Team</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

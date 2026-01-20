@@ -40,12 +40,15 @@ export {
   SidebarGroup,
   SidebarGroupAction,
   SidebarGroupContent,
+  SidebarGroupContext,
   SidebarGroupLabel,
+  useSidebarGroup,
 } from './sidebar-group';
 
 export type {
   SidebarGroupActionProps,
   SidebarGroupContentProps,
+  SidebarGroupContextValue,
   SidebarGroupLabelProps,
   SidebarGroupProps,
 } from './sidebar-group';
