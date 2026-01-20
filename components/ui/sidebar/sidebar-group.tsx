@@ -1,7 +1,7 @@
 import { Icon } from '@/components/ui/icon';
 import { Text, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
-import { ChevronDown } from 'lucide-react-native';
+import { ChevronRight } from 'lucide-react-native';
 import * as React from 'react';
 import { Platform, Pressable, View } from 'react-native';
 import Animated, {
@@ -85,7 +85,7 @@ const SidebarGroupLabel = React.forwardRef<View, SidebarGroupLabelProps>(
     const internal = useSidebarInternal();
     const groupContext = useSidebarGroup();
 
-    // Chevron rotation animation (matches accordion: 0→180°, 250ms expand, 200ms collapse)
+    // Chevron rotation animation: 0° (right/closed) → 90° (down/open)
     const isOpen = groupContext?.isOpen ?? true;
     const progress = useDerivedValue(
       () => (isOpen ? withTiming(1, { duration: 250 }) : withTiming(0, { duration: 200 })),
@@ -93,7 +93,7 @@ const SidebarGroupLabel = React.forwardRef<View, SidebarGroupLabelProps>(
     );
     const chevronStyle = useAnimatedStyle(
       () => ({
-        transform: [{ rotate: `${progress.value * 180}deg` }],
+        transform: [{ rotate: `${progress.value * 90}deg` }],
       }),
       [progress]
     );
@@ -139,7 +139,7 @@ const SidebarGroupLabel = React.forwardRef<View, SidebarGroupLabelProps>(
         {...props}>
         {labelContent}
         <Animated.View style={chevronStyle}>
-          <Icon as={ChevronDown} size={14} className="text-sidebar-foreground/50" />
+          <Icon as={ChevronRight} size={14} className="text-sidebar-foreground/50" />
         </Animated.View>
       </Pressable>
     );
