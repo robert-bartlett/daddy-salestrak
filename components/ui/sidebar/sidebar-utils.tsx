@@ -45,6 +45,7 @@ const SidebarTrigger = React.forwardRef<View, SidebarTriggerProps>(
         ref={ref}
         variant="ghost"
         size="icon"
+        accessibilityLabel="Toggle sidebar"
         className={cn('size-8', className)}
         onPress={(e) => {
           onPress?.(e);

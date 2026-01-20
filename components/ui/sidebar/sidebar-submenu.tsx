@@ -16,9 +16,10 @@ type SidebarMenuSubProps = React.ComponentProps<typeof View>;
  */
 const SidebarMenuSub = React.forwardRef<View, SidebarMenuSubProps>(
   ({ className, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     if (isCollapsed) {
       return null;

@@ -1,7 +1,7 @@
 import { Text, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { Pressable, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { useSidebar } from './sidebar-context';
 import { useSidebarInternal } from './sidebar';
 
@@ -19,7 +19,7 @@ const SidebarGroup = React.forwardRef<View, SidebarGroupProps>(
     return (
       <View
         ref={ref}
-        className={cn('relative flex w-full flex-col gap-1', className)}
+        className={cn('group relative flex w-full flex-col gap-1', className)}
         {...props}
       />
     );
@@ -42,9 +42,10 @@ type SidebarGroupLabelProps = React.ComponentProps<typeof View> & {
  */
 const SidebarGroupLabel = React.forwardRef<View, SidebarGroupLabelProps>(
   ({ className, asChild, children, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     if (isCollapsed) {
       return null;
@@ -100,9 +101,10 @@ type SidebarGroupActionProps = React.ComponentProps<typeof Pressable> & {
  */
 const SidebarGroupAction = React.forwardRef<View, SidebarGroupActionProps>(
   ({ className, showOnHover, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     if (isCollapsed) {
       return null;
@@ -111,9 +113,17 @@ const SidebarGroupAction = React.forwardRef<View, SidebarGroupActionProps>(
     return (
       <Pressable
         ref={ref}
+        accessibilityRole="button"
         className={cn(
           'absolute right-2 top-2 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
-          showOnHover && 'opacity-0',
+          Platform.select({
+            web: cn(
+              'hover:opacity-100 focus-visible:opacity-100',
+              // showOnHover: hide by default, reveal on parent hover/focus (web only)
+              showOnHover && 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+            ),
+          }),
+          // On native, showOnHover is ignored - actions are always visible since there's no hover
           className
         )}
         {...props}

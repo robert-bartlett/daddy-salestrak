@@ -37,7 +37,7 @@ const SidebarMenuItem = React.forwardRef<View, SidebarMenuItemProps>(
     return (
       <View
         ref={ref}
-        className={cn('relative', className)}
+        className={cn('group relative', className)}
         {...props}
       />
     );
@@ -113,7 +113,8 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
   ) => {
     const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     const button = (
       <TextClassContext.Provider
@@ -123,6 +124,8 @@ const SidebarMenuButton = React.forwardRef<View, SidebarMenuButtonProps>(
         )}>
         <Pressable
           ref={ref}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isActive }}
           className={cn(
             sidebarMenuButtonVariants({ variant, size }),
             isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium',
@@ -171,9 +174,10 @@ type SidebarMenuActionProps = React.ComponentProps<typeof Pressable> & {
  */
 const SidebarMenuAction = React.forwardRef<View, SidebarMenuActionProps>(
   ({ className, showOnHover, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     if (isCollapsed) {
       return null;
@@ -182,12 +186,17 @@ const SidebarMenuAction = React.forwardRef<View, SidebarMenuActionProps>(
     return (
       <Pressable
         ref={ref}
+        accessibilityRole="button"
         className={cn(
           'absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground opacity-70 active:opacity-100',
           Platform.select({
-            web: 'hover:opacity-100 focus-visible:opacity-100',
+            web: cn(
+              'hover:opacity-100 focus-visible:opacity-100',
+              // showOnHover: hide by default, reveal on parent hover/focus (web only)
+              showOnHover && 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+            ),
           }),
-          showOnHover && 'opacity-0',
+          // On native, showOnHover is ignored - actions are always visible since there's no hover
           className
         )}
         {...props}
@@ -211,9 +220,10 @@ type SidebarMenuBadgeProps = React.ComponentProps<typeof View> & {
  */
 const SidebarMenuBadge = React.forwardRef<View, SidebarMenuBadgeProps>(
   ({ className, children, ...props }, ref) => {
-    const { state } = useSidebar();
+    const { state, isMobile } = useSidebar();
     const internal = useSidebarInternal();
-    const isCollapsed = state === 'collapsed' && internal?.collapsible === 'icon';
+    // On mobile, sidebar always shows expanded in the sheet
+    const isCollapsed = !isMobile && state === 'collapsed' && internal?.collapsible === 'icon';
 
     if (isCollapsed) {
       return null;
@@ -223,6 +233,8 @@ const SidebarMenuBadge = React.forwardRef<View, SidebarMenuBadgeProps>(
       <TextClassContext.Provider value="text-xs text-sidebar-foreground tabular-nums">
         <View
           ref={ref}
+          accessibilityRole="text"
+          accessibilityLabel={typeof children === 'string' || typeof children === 'number' ? `${children}` : undefined}
           className={cn(
             'absolute right-1 flex min-h-5 min-w-5 items-center justify-center rounded-md px-1',
             className

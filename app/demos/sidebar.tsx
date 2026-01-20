@@ -58,55 +58,89 @@ function NavUser() {
   const [isOpen, setIsOpen] = React.useState(false);
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const triggerRef = React.useRef<View>(null);
+
+  // Close the menu and return focus to trigger (web only)
+  const closeMenu = React.useCallback(() => {
+    setIsOpen(false);
+    if (Platform.OS === 'web') {
+      requestAnimationFrame(() => {
+        (triggerRef.current as any)?.focus?.();
+      });
+    }
+  }, []);
+
+  // Handle Escape key to close the menu (web only)
+  // Enter/Space toggle is already handled natively by Pressable
+  const handleKeyDown = React.useCallback(
+    (event: any) => {
+      if (event.key === 'Escape' && isOpen) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeMenu();
+      }
+    },
+    [isOpen, closeMenu]
+  );
+
+  // Web-specific keyboard props for the container to capture Escape from submenu items
+  const webKeyboardProps =
+    Platform.OS === 'web' ? ({ onKeyDown: handleKeyDown } as any) : {};
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <Pressable
-          onPress={() => setIsOpen(!isOpen)}
-          className="flex w-full flex-row items-center gap-2 rounded-md p-2 active:bg-sidebar-accent">
-          <Avatar alt="User avatar" className="size-8">
-            <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
-            <AvatarFallback>
-              <Text className="text-xs">CN</Text>
-            </AvatarFallback>
-          </Avatar>
-          {!isCollapsed && (
-            <>
-              <View className="flex-1">
-                <Text className="text-sm font-medium text-sidebar-foreground">shadcn</Text>
-                <Text className="text-xs text-sidebar-foreground/60">m@example.com</Text>
-              </View>
-              <Icon
-                as={isOpen ? ChevronUp : ChevronDown}
-                className="text-sidebar-foreground/60"
-                size={16}
-              />
-            </>
+        <View {...webKeyboardProps}>
+          <Pressable
+            ref={triggerRef}
+            onPress={() => setIsOpen(!isOpen)}
+            accessibilityRole="button"
+            accessibilityLabel="User menu"
+            accessibilityState={{ expanded: isOpen }}
+            className="flex w-full flex-row items-center gap-2 rounded-md p-2 active:bg-sidebar-accent">
+            <Avatar alt="User avatar" className="size-8">
+              <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
+              <AvatarFallback>
+                <Text className="text-xs">CN</Text>
+              </AvatarFallback>
+            </Avatar>
+            {!isCollapsed && (
+              <>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium text-sidebar-foreground">shadcn</Text>
+                  <Text className="text-xs text-sidebar-foreground/60">m@example.com</Text>
+                </View>
+                <Icon
+                  as={isOpen ? ChevronUp : ChevronDown}
+                  className="text-sidebar-foreground/60"
+                  size={16}
+                />
+              </>
+            )}
+          </Pressable>
+          {isOpen && !isCollapsed && (
+            <SidebarMenuSub>
+              <SidebarMenuSubItem>
+                <SidebarMenuSubButton>
+                  <Icon as={User} className="text-sidebar-foreground" size={16} />
+                  <Text>Profile</Text>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+              <SidebarMenuSubItem>
+                <SidebarMenuSubButton>
+                  <Icon as={Settings} className="text-sidebar-foreground" size={16} />
+                  <Text>Settings</Text>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+              <SidebarMenuSubItem>
+                <SidebarMenuSubButton>
+                  <Icon as={LogOut} className="text-sidebar-foreground" size={16} />
+                  <Text>Log out</Text>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            </SidebarMenuSub>
           )}
-        </Pressable>
-        {isOpen && !isCollapsed && (
-          <SidebarMenuSub>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton>
-                <Icon as={User} className="text-sidebar-foreground" size={16} />
-                <Text>Profile</Text>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton>
-                <Icon as={Settings} className="text-sidebar-foreground" size={16} />
-                <Text>Settings</Text>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-            <SidebarMenuSubItem>
-              <SidebarMenuSubButton>
-                <Icon as={LogOut} className="text-sidebar-foreground" size={16} />
-                <Text>Log out</Text>
-              </SidebarMenuSubButton>
-            </SidebarMenuSubItem>
-          </SidebarMenuSub>
-        )}
+        </View>
       </SidebarMenuItem>
     </SidebarMenu>
   );
