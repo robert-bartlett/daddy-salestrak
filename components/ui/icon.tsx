@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import type { LucideIcon, LucideProps } from 'lucide-react-native';
 import * as React from 'react';
 import { cssInterop } from 'nativewind';
-import type { View } from 'react-native';
 
 // Default icon size matching the design system
 const DEFAULT_ICON_SIZE = 14;
@@ -37,7 +36,8 @@ cssInterop(IconImpl, {
  * When placed inside a Button or other component that provides TextClassContext,
  * the icon will automatically inherit the appropriate text color.
  *
- * @ref Accepts a ref for API consistency (not forwarded due to Lucide type limitations).
+ * Note: This component does not forward refs as Lucide icons don't expose refs
+ * in their type definitions.
  *
  * @component
  * @example
@@ -53,21 +53,17 @@ cssInterop(IconImpl, {
  * @param {number} size - Icon size (defaults to 14).
  * @param {...LucideProps} ...props - Additional Lucide icon props passed to the "as" icon.
  */
-const Icon = React.forwardRef<View, IconProps>(
-  // Note: ref is accepted for API consistency but not forwarded since Lucide
-  // icons don't expose refs in their type definitions
-  ({ as: IconComponent, className, size = DEFAULT_ICON_SIZE, ...props }, _ref) => {
-    const textClass = React.useContext(TextClassContext);
-    return (
-      <IconImpl
-        as={IconComponent}
-        className={cn(textClass || 'text-foreground', className)}
-        size={size}
-        {...props}
-      />
-    );
-  }
-);
+function Icon({ as: IconComponent, className, size = DEFAULT_ICON_SIZE, ...props }: IconProps) {
+  const textClass = React.useContext(TextClassContext);
+  return (
+    <IconImpl
+      as={IconComponent}
+      className={cn(textClass || 'text-foreground', className)}
+      size={size}
+      {...props}
+    />
+  );
+}
 
 Icon.displayName = 'Icon';
 

@@ -36,7 +36,7 @@ const AlertDialogOverlay = React.forwardRef<
         className={cn(
           'absolute bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center bg-black/50 p-2',
           Platform.select({
-            web: 'animate-in fade-in-0 fixed',
+            web: 'fixed animate-in fade-in-0',
           }),
           className
         )}
@@ -67,9 +67,9 @@ const AlertDialogContent = React.forwardRef<
         <AlertDialogPrimitive.Content
           ref={ref}
           className={cn(
-            'bg-background border-border z-50 flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border p-6 shadow-lg shadow-black/5 sm:max-w-lg',
+            'z-50 flex w-full max-w-[calc(100%-2rem)] flex-col gap-4 rounded-lg border border-border bg-background p-6 shadow-lg shadow-black/5 sm:max-w-lg',
             Platform.select({
-              web: 'animate-in fade-in-0 zoom-in-95 duration-200',
+              web: 'duration-200 animate-in fade-in-0 zoom-in-95',
             }),
             className
           )}
@@ -119,7 +119,7 @@ const AlertDialogTitle = React.forwardRef<AlertDialogPrimitive.TitleRef, AlertDi
     return (
       <AlertDialogPrimitive.Title
         ref={ref}
-        className={cn('text-foreground text-lg font-semibold', className)}
+        className={cn('text-lg font-semibold text-foreground', className)}
         {...props}
       />
     );
@@ -137,7 +137,7 @@ const AlertDialogDescription = React.forwardRef<
   return (
     <AlertDialogPrimitive.Description
       ref={ref}
-      className={cn('text-muted-foreground text-sm', className)}
+      className={cn('text-sm text-muted-foreground', className)}
       {...props}
     />
   );

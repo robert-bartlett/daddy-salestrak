@@ -19,15 +19,12 @@ const Select = SelectPrimitive.Root;
 
 const SelectGroup = SelectPrimitive.Group;
 
-function SelectValue({
-  ref,
-  className,
-  placeholder,
-  ...props
-}: SelectPrimitive.ValueProps &
-  React.RefAttributes<SelectPrimitive.ValueRef> & {
+const SelectValue = React.forwardRef<
+  SelectPrimitive.ValueRef,
+  SelectPrimitive.ValueProps & {
     className?: string;
-  }) {
+  }
+>(function SelectValue({ className, placeholder, ...props }, ref) {
   const { value } = SelectPrimitive.useRootContext();
   return (
     <Text
@@ -41,19 +38,17 @@ function SelectValue({
       {value?.label ?? placeholder}
     </Text>
   );
-}
+});
 
-function SelectTrigger({
-  ref,
-  className,
-  children,
-  size = 'default',
-  ...props
-}: SelectPrimitive.TriggerProps &
-  React.RefAttributes<SelectPrimitive.TriggerRef> & {
+SelectValue.displayName = 'SelectValue';
+
+const SelectTrigger = React.forwardRef<
+  SelectPrimitive.TriggerRef,
+  SelectPrimitive.TriggerProps & {
     children?: React.ReactNode;
     size?: 'default' | 'sm';
-  }) {
+  }
+>(function SelectTrigger({ className, children, size = 'default', ...props }, ref) {
   return (
     <SelectPrimitive.Trigger
       ref={ref}
@@ -71,7 +66,9 @@ function SelectTrigger({
       <Icon as={ChevronDown} aria-hidden={true} className="size-4 text-muted-foreground" />
     </SelectPrimitive.Trigger>
   );
-}
+});
+
+SelectTrigger.displayName = 'SelectTrigger';
 
 const FullWindowOverlay = Platform.OS === 'ios' ? RNFullWindowOverlay : React.Fragment;
 
@@ -247,10 +244,7 @@ function NativeSelectScrollView({
     return <>{children}</>;
   }
   return (
-    <ScrollArea
-      maxHeight={NATIVE_SCROLL_MAX_HEIGHT}
-      scrollbarSize="thin"
-      className={className}>
+    <ScrollArea maxHeight={NATIVE_SCROLL_MAX_HEIGHT} scrollbarSize="thin" className={className}>
       {children}
     </ScrollArea>
   );
