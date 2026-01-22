@@ -238,6 +238,22 @@ function AvatarDemo() {
 }
 
 function BadgeDemo() {
+  // State for dismissible demo
+  const [dismissibleTags, setDismissibleTags] = React.useState([
+    'React',
+    'TypeScript',
+    'Tailwind',
+    'Expo',
+  ]);
+
+  const handleDismiss = (tag: string) => {
+    setDismissibleTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const resetTags = () => {
+    setDismissibleTags(['React', 'TypeScript', 'Tailwind', 'Expo']);
+  };
+
   return (
     <View className="gap-6">
       <DemoSection title="Variants">
@@ -257,15 +273,142 @@ function BadgeDemo() {
         </View>
       </DemoSection>
 
-      <DemoSection title="With Icon">
-        <View className="flex-row flex-wrap gap-2">
-          <Badge>
-            <Icon as={PlusCircle} size={12} className="text-primary-foreground" />
+      <DemoSection title="Sizes">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="sm">
+            <Text>Small</Text>
+          </Badge>
+          <Badge size="default">
+            <Text>Default</Text>
+          </Badge>
+          <Badge size="lg">
+            <Text>Large</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="With Icon Prop">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={PlusCircle} size="sm">
             <Text>New</Text>
           </Badge>
-          <Badge variant="secondary">
-            <Icon as={Mail} size={12} className="text-secondary-foreground" />
+          <Badge icon={Mail} variant="secondary">
             <Text>3 messages</Text>
+          </Badge>
+          <Badge icon={User} variant="outline" size="lg">
+            <Text>Profile</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Sizes with Icons">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={PlusCircle} size="sm" variant="secondary">
+            <Text>Small</Text>
+          </Badge>
+          <Badge icon={PlusCircle} size="default" variant="secondary">
+            <Text>Default</Text>
+          </Badge>
+          <Badge icon={PlusCircle} size="lg" variant="secondary">
+            <Text>Large</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Color Variants">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="lg" variant="color" color="grey" icon={PlusCircle}>
+            <Text>Grey</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="red" icon={PlusCircle}>
+            <Text>Red</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="orange" icon={PlusCircle}>
+            <Text>Orange</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="yellow" icon={PlusCircle}>
+            <Text>Yellow</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-green" icon={PlusCircle}>
+            <Text>Light Green</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="green" icon={PlusCircle}>
+            <Text>Green</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="teal" icon={PlusCircle}>
+            <Text>Teal</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="cyan" icon={PlusCircle}>
+            <Text>Cyan</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-blue" icon={PlusCircle}>
+            <Text>Light Blue</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="blue" icon={PlusCircle}>
+            <Text>Blue</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="purple" icon={PlusCircle}>
+            <Text>Purple</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-purple" icon={PlusCircle}>
+            <Text>Light Purple</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="violet" icon={PlusCircle}>
+            <Text>Violet</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="magenta" icon={PlusCircle}>
+            <Text>Magenta</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="pink" icon={PlusCircle}>
+            <Text>Pink</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible">
+        <View className="gap-3">
+          <View className="flex-row flex-wrap items-center gap-2">
+            {dismissibleTags.map((tag) => (
+              <Badge key={tag} onDismiss={() => handleDismiss(tag)}>
+                <Text>{tag}</Text>
+              </Badge>
+            ))}
+            {dismissibleTags.length === 0 && (
+              <Text className="text-muted-foreground text-sm">All tags dismissed!</Text>
+            )}
+          </View>
+          {dismissibleTags.length < 4 && (
+            <Pressable onPress={resetTags}>
+              <Text className="text-primary text-sm">Reset tags</Text>
+            </Pressable>
+          )}
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible Sizes">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="sm" onDismiss={() => {}}>
+            <Text>Small</Text>
+          </Badge>
+          <Badge size="default" onDismiss={() => {}}>
+            <Text>Default</Text>
+          </Badge>
+          <Badge size="lg" onDismiss={() => {}}>
+            <Text>Large</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible with Icons">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={User} onDismiss={() => {}}>
+            <Text>John Doe</Text>
+          </Badge>
+          <Badge icon={Mail} onDismiss={() => {}}>
+            <Text>Inbox</Text>
+          </Badge>
+          <Badge icon={Settings} size="lg" onDismiss={() => {}}>
+            <Text>Settings</Text>
           </Badge>
         </View>
       </DemoSection>
