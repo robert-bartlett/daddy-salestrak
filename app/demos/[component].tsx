@@ -1,5 +1,14 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import {
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -68,6 +77,9 @@ import {
   Bold,
   ChevronDown,
   Copy,
+  FileText,
+  Folder,
+  Home,
   Italic,
   LogOut,
   Mail,
@@ -86,6 +98,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   'alert-dialog': 'Alert Dialog',
   avatar: 'Avatar',
   badge: 'Badge',
+  breadcrumb: 'Breadcrumb',
   button: 'Button',
   'button-group': 'Button Group',
   checkbox: 'Checkbox',
@@ -413,6 +426,157 @@ function BadgeDemo() {
             <Text>Settings</Text>
           </Badge>
         </View>
+      </DemoSection>
+    </View>
+  );
+}
+
+function BreadcrumbDemo() {
+  return (
+    <View className="gap-6">
+      <DemoSection title="Basic">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => console.log('Home pressed')}>
+                <Text>Home</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => console.log('Products pressed')}>
+                <Text>Products</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Text>Current Page</Text>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </DemoSection>
+
+      <DemoSection title="With Icons">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink icon={Home} onPress={() => {}}>
+                <Text>Home</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink icon={Folder} onPress={() => {}}>
+                <Text>Documents</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage icon={FileText}>
+                <Text>Report.pdf</Text>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </DemoSection>
+
+      <DemoSection title="Custom Separator">
+        <Breadcrumb separator={<Text className="text-muted-foreground">/</Text>}>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Home</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Library</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Text>Data</Text>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </DemoSection>
+
+      <DemoSection title="With Ellipsis (Manual)">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Home</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbEllipsis onPress={() => {}} />
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Components</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Text>Breadcrumb</Text>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </DemoSection>
+
+      <DemoSection title="Auto-Collapse (maxItems=4)">
+        <Breadcrumb>
+          <BreadcrumbList
+            maxItems={4}
+            ellipsisProps={{ onPress: () => console.log('Ellipsis pressed') }}
+          >
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Home</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Documents</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Projects</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>2024</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink onPress={() => {}}>
+                <Text>Q4</Text>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>
+                <Text>Report.pdf</Text>
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
       </DemoSection>
     </View>
   );
@@ -1126,6 +1290,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   'alert-dialog': AlertDialogDemo,
   avatar: AvatarDemo,
   badge: BadgeDemo,
+  breadcrumb: BreadcrumbDemo,
   button: ButtonDemo,
   'button-group': ButtonGroupDemo,
   checkbox: CheckboxDemo,
