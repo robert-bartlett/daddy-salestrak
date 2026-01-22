@@ -60,14 +60,16 @@ const sidebarMenuButtonVariants = cva(
         default: cn(
           'active:bg-sidebar-accent active:text-sidebar-accent-foreground',
           Platform.select({
-            web: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            // TEMPORARILY DISABLED: hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+            web: '',
             default: '',
           })
         ),
         outline: cn(
           'border border-sidebar-border bg-transparent shadow-sm active:bg-sidebar-accent active:text-sidebar-accent-foreground',
           Platform.select({
-            web: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+            // TEMPORARILY DISABLED: hover:bg-sidebar-accent hover:text-sidebar-accent-foreground
+            web: '',
             default: '',
           })
         ),
