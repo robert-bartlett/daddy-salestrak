@@ -56,6 +56,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Text } from '@/components/ui/text';
@@ -96,6 +97,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   'radio-group': 'Radio Group',
   select: 'Select',
   separator: 'Separator',
+  spinner: 'Spinner',
   switch: 'Switch',
   tabs: 'Tabs',
   textarea: 'Textarea',
@@ -1037,6 +1039,87 @@ function TooltipDemo() {
   );
 }
 
+function SpinnerDemo() {
+  return (
+    <View className="gap-6">
+      <DemoSection title="Default">
+        <Spinner />
+      </DemoSection>
+
+      <DemoSection title="Sizes">
+        <View className="flex-row items-center gap-4">
+          <View className="items-center gap-1">
+            <Spinner size={12} />
+            <Text className="text-muted-foreground text-xs">12px</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner size={16} />
+            <Text className="text-muted-foreground text-xs">16px</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner size={20} />
+            <Text className="text-muted-foreground text-xs">20px</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner size={24} />
+            <Text className="text-muted-foreground text-xs">24px</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner size={32} />
+            <Text className="text-muted-foreground text-xs">32px</Text>
+          </View>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Colors">
+        <View className="flex-row flex-wrap items-center gap-4">
+          <View className="items-center gap-1">
+            <Spinner color="#3b82f6" />
+            <Text className="text-muted-foreground text-xs">Blue</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner iconClassName="text-destructive" />
+            <Text className="text-muted-foreground text-xs">Red</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner color="#10b981" />
+            <Text className="text-muted-foreground text-xs">Green</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner color="#f59e0b" />
+            <Text className="text-muted-foreground text-xs">Amber</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner color="#8b5cf6" />
+            <Text className="text-muted-foreground text-xs">Purple</Text>
+          </View>
+          <View className="items-center gap-1">
+            <Spinner iconClassName="text-muted-foreground" />
+            <Text className="text-muted-foreground text-xs">Muted</Text>
+          </View>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="In Context">
+        <View className="flex-row flex-wrap gap-3">
+          <Button disabled>
+            <Spinner size={14} iconClassName="text-primary-foreground" />
+            <Text>Loading...</Text>
+          </Button>
+          <Button variant="outline" disabled>
+            <Spinner size={14} />
+            <Text>Please wait</Text>
+          </Button>
+          <Button variant="secondary" disabled>
+            <Spinner size={14} />
+            <Text>Submitting</Text>
+          </Button>
+        </View>
+      </DemoSection>
+    </View>
+  );
+}
+
 // Map component names to their demo components
 const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   accordion: AccordionDemo,
@@ -1054,6 +1137,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   'radio-group': RadioGroupDemo,
   select: SelectDemo,
   separator: SeparatorDemo,
+  spinner: SpinnerDemo,
   switch: SwitchDemo,
   tabs: TabsDemo,
   textarea: TextareaDemo,

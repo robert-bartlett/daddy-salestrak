@@ -9,6 +9,7 @@ module.exports = {
     '^react-native-css-interop$': '<rootDir>/__mocks__/react-native-css-interop.js',
     '^nativewind$': '<rootDir>/__mocks__/nativewind.js',
     '^react-native-reanimated$': '<rootDir>/__mocks__/react-native-reanimated.js',
+    '^lucide-react-native$': '<rootDir>/__mocks__/lucide-react-native.js',
   },
   testMatch: ['**/__tests__/**/*.(test|spec).[jt]s?(x)', '**/*.(test|spec).[jt]s?(x)'],
   testEnvironment: 'jsdom',

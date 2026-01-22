@@ -33,6 +33,7 @@ const COMPONENTS: NavItem[] = [
   { label: 'Radio Group', href: '/demos/radio-group' },
   { label: 'Select', href: '/demos/select' },
   { label: 'Separator', href: '/demos/separator' },
+  { label: 'Spinner', href: '/demos/spinner' },
   { label: 'Sheet', href: '/demos/sheet' },
   { label: 'Sidebar', href: '/demos/sidebar' },
   { label: 'Skeleton', href: '/demos/skeleton' },

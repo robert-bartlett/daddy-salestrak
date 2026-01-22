@@ -39,9 +39,11 @@ module.exports = {
   // Animation functions
   withTiming: jest.fn((val) => val),
   withSpring: jest.fn((val) => val),
+  withRepeat: jest.fn((animation) => animation),
   // Easing
   Easing: {
     bezier: jest.fn(() => jest.fn()),
     ease: jest.fn(),
+    linear: jest.fn(),
   },
 };
