@@ -66,13 +66,15 @@ DialogOverlay.displayName = 'DialogOverlay';
 type DialogContentProps = DialogPrimitive.ContentProps & {
   portalHost?: string;
   showCloseButton?: boolean;
+  /** Custom className for the overlay (use to change positioning, e.g., items-start for top alignment) */
+  overlayClassName?: string;
 };
 
 const DialogContent = React.forwardRef<DialogPrimitive.ContentRef, DialogContentProps>(
-  ({ className, portalHost, children, showCloseButton = true, ...props }, ref) => {
+  ({ className, portalHost, children, showCloseButton = true, overlayClassName, ...props }, ref) => {
     return (
       <DialogPortal hostName={portalHost}>
-        <DialogOverlay>
+        <DialogOverlay className={overlayClassName}>
           <DialogPrimitive.Content
             ref={ref}
             className={cn(

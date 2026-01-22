@@ -19,6 +19,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from '@/components/ui/command';
+import { filterWhitespaceChildren } from '@/components/ui/command/command-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -75,8 +86,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useLocalSearchParams } from 'expo-router';
 import {
   Bold,
+  Calculator,
+  Calendar,
   ChevronDown,
   Copy,
+  CreditCard,
   FileText,
   Folder,
   Home,
@@ -86,6 +100,7 @@ import {
   MoreHorizontal,
   PlusCircle,
   Settings,
+  Smile,
   Trash2,
   User,
 } from 'lucide-react-native';
@@ -102,6 +117,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   button: 'Button',
   'button-group': 'Button Group',
   checkbox: 'Checkbox',
+  command: 'Command',
   'context-menu': 'Context Menu',
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
@@ -120,11 +136,12 @@ const COMPONENT_NAMES: Record<string, string> = {
 
 // Demo section wrapper for consistent styling
 function DemoSection({ title, children }: { title: string; children: React.ReactNode }) {
+  const filteredChildren = filterWhitespaceChildren(children);
   return (
-    <View className="gap-3">
-      <Text className="text-muted-foreground text-sm font-medium">{title}</Text>
-      {children}
-    </View>
+    <View className="gap-3">{[
+      <Text key="title" className="text-muted-foreground text-sm font-medium">{title}</Text>,
+      ...filteredChildren,
+    ]}</View>
   );
 }
 
@@ -726,6 +743,99 @@ function CheckboxDemo() {
   );
 }
 
+function CommandDemo() {
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [selectedValue, setSelectedValue] = React.useState('');
+
+  // Keyboard shortcut to open dialog (Cmd+K)
+  React.useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        setDialogOpen(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleSelect = (value: string) => {
+    setSelectedValue(value);
+    setDialogOpen(false);
+  };
+
+  return (
+    <View className="gap-4 items-center">
+      <Button variant="outline" onPress={() => setDialogOpen(true)}>
+        <Text>Open Command Palette</Text>
+        <Text className="text-muted-foreground ml-2 text-xs">⌘K</Text>
+      </Button>
+      {selectedValue && (
+        <Text className="text-muted-foreground text-sm">
+          Selected: {selectedValue}
+        </Text>
+      )}
+      <CommandDialog open={dialogOpen} onOpenChange={setDialogOpen} loop>
+        <CommandInput placeholder="Type a command or search..." autoFocus />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Suggestions">
+            <CommandItem value="calendar" onSelect={handleSelect}>
+              <Icon as={Calendar} className="text-muted-foreground" />
+              <Text>Calendar</Text>
+            </CommandItem>
+            <CommandItem value="search-emoji" keywords={['emoji', 'emoticon', 'face']} onSelect={handleSelect}>
+              <Icon as={Smile} className="text-muted-foreground" />
+              <Text>Search Emoji</Text>
+            </CommandItem>
+            <CommandItem value="calculator" onSelect={handleSelect}>
+              <Icon as={Calculator} className="text-muted-foreground" />
+              <Text>Calculator</Text>
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="Actions">
+            <CommandItem value="new-file" onSelect={handleSelect}>
+              <Icon as={FileText} className="text-muted-foreground" />
+              <Text>New File</Text>
+            </CommandItem>
+            <CommandItem value="new-folder" onSelect={handleSelect}>
+              <Icon as={Folder} className="text-muted-foreground" />
+              <Text>New Folder</Text>
+            </CommandItem>
+            <CommandItem value="copy" keywords={['clipboard', 'duplicate']} onSelect={handleSelect}>
+              <Icon as={Copy} className="text-muted-foreground" />
+              <Text>Copy</Text>
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="Settings">
+            <CommandItem value="profile" keywords={['account', 'user']} onSelect={handleSelect}>
+              <Icon as={User} className="text-muted-foreground" />
+              <Text>Profile</Text>
+            </CommandItem>
+            <CommandItem value="billing" keywords={['payment', 'subscription']} onSelect={handleSelect}>
+              <Icon as={CreditCard} className="text-muted-foreground" />
+              <Text>Billing</Text>
+            </CommandItem>
+            <CommandItem value="settings" keywords={['preferences', 'config']} onSelect={handleSelect}>
+              <Icon as={Settings} className="text-muted-foreground" />
+              <Text>Settings</Text>
+            </CommandItem>
+            <CommandItem value="logout" disabled onSelect={handleSelect}>
+              <Icon as={LogOut} className="text-muted-foreground" />
+              <Text>Log out</Text>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
+    </View>
+  );
+}
+
 function ContextMenuDemo() {
   const [bookmarked, setBookmarked] = React.useState(true);
   const [person, setPerson] = React.useState('pedro');
@@ -1294,6 +1404,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   button: ButtonDemo,
   'button-group': ButtonGroupDemo,
   checkbox: CheckboxDemo,
+  command: CommandDemo,
   'context-menu': ContextMenuDemo,
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,

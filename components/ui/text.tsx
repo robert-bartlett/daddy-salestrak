@@ -89,9 +89,18 @@ const Text = React.forwardRef<RNText, TextProps>(
 
 Text.displayName = 'Text';
 
+const WHITESPACE_WITH_LINE_BREAKS = /[\n\r\t]/;
+
 function wrapTextChildren(children: React.ReactNode) {
   return React.Children.map(children, (child) => {
-    if (typeof child === 'string' || typeof child === 'number') {
+    if (typeof child === 'string') {
+      // Drop newline/tab-only formatting artifacts but preserve explicit spaces.
+      if (child.trim() === '' && WHITESPACE_WITH_LINE_BREAKS.test(child)) {
+        return null;
+      }
+      return <Text>{child}</Text>;
+    }
+    if (typeof child === 'number') {
       return <Text>{child}</Text>;
     }
     return child;
