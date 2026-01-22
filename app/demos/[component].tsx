@@ -257,15 +257,61 @@ function BadgeDemo() {
         </View>
       </DemoSection>
 
-      <DemoSection title="With Icon">
-        <View className="flex-row flex-wrap gap-2">
-          <Badge>
-            <Icon as={PlusCircle} size={12} className="text-primary-foreground" />
+      <DemoSection title="Icon Colors">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={PlusCircle}>
+            <Text>Default</Text>
+          </Badge>
+          <Badge icon={Mail} variant="secondary">
+            <Text>Secondary</Text>
+          </Badge>
+          <Badge icon={PlusCircle} variant="destructive">
+            <Text>Destructive</Text>
+          </Badge>
+          <Badge icon={User} variant="outline">
+            <Text>Outline</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Sizes">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="sm">
+            <Text>Small</Text>
+          </Badge>
+          <Badge size="default">
+            <Text>Default</Text>
+          </Badge>
+          <Badge size="lg">
+            <Text>Large</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="With Icon Prop">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={PlusCircle} size="sm">
             <Text>New</Text>
           </Badge>
-          <Badge variant="secondary">
-            <Icon as={Mail} size={12} className="text-secondary-foreground" />
+          <Badge icon={Mail} variant="secondary">
             <Text>3 messages</Text>
+          </Badge>
+          <Badge icon={User} variant="outline" size="lg">
+            <Text>Profile</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Sizes with Icons">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={PlusCircle} size="sm" variant="secondary">
+            <Text>Small</Text>
+          </Badge>
+          <Badge icon={PlusCircle} size="default" variant="secondary">
+            <Text>Default</Text>
+          </Badge>
+          <Badge icon={PlusCircle} size="lg" variant="secondary">
+            <Text>Large</Text>
           </Badge>
         </View>
       </DemoSection>
