@@ -35,7 +35,7 @@ const POSITION_STYLES = {
     first: 'rounded-r-none',
     middle: 'rounded-none border-l-0',
     last: 'rounded-l-none border-l-0',
-    only: '', // Single child keeps all styles
+    only: '',
   },
   vertical: {
     first: 'rounded-b-none',
@@ -45,8 +45,24 @@ const POSITION_STYLES = {
   },
 } as const;
 
+type Position = 'first' | 'middle' | 'last' | 'only';
+
+/**
+ * Determines a child's position within a group for styling purposes.
+ */
+function getChildPosition(index: number, total: number): Position {
+  if (total === 1) return 'only';
+  if (index === 0) return 'first';
+  if (index === total - 1) return 'last';
+  return 'middle';
+}
+
 type ButtonGroupProps = ViewProps &
-  VariantProps<typeof buttonGroupVariants> & {
+  Omit<VariantProps<typeof buttonGroupVariants>, 'orientation'> & {
+    /**
+     * Layout direction. Defaults to 'horizontal'.
+     */
+    orientation?: 'horizontal' | 'vertical';
     /**
      * Gap between items. Defaults to 0 for seamless grouping.
      * Use non-zero values when items should have visual separation.
@@ -78,50 +94,41 @@ function ButtonGroup({
   children,
   ...props
 }: ButtonGroupProps) {
-  // Ensure orientation is always defined for context and styling
-  const resolvedOrientation = orientation ?? 'horizontal';
-
-  // Filter out null/undefined/boolean children for accurate positioning
+  // Filter out null/undefined/boolean children
   const validChildren = React.Children.toArray(children).filter(
     (child): child is React.ReactElement<{ className?: string }> =>
       React.isValidElement(child)
   );
 
-  const childCount = validChildren.length;
+  // Count only styleable children (exclude separators) for position calculation
+  const isSeparator = (child: React.ReactElement) =>
+    (child.type as { displayName?: string })?.displayName === 'ButtonGroupSeparator';
 
-  // Clone each child with position-based styling
+  const styleableCount = validChildren.filter((child) => !isSeparator(child)).length;
+
+  // Track position among styleable children only
+  let styleableIndex = 0;
+
   const styledChildren = validChildren.map((child, index) => {
-    // Determine position
-    let position: 'first' | 'middle' | 'last' | 'only';
-    if (childCount === 1) {
-      position = 'only';
-    } else if (index === 0) {
-      position = 'first';
-    } else if (index === childCount - 1) {
-      position = 'last';
-    } else {
-      position = 'middle';
-    }
-
-    const positionStyles = POSITION_STYLES[resolvedOrientation][position];
-
-    // Skip styling for separators - they handle their own appearance
-    if (child.type === ButtonGroupSeparator) {
+    // Separators pass through without position styling
+    if (isSeparator(child)) {
       return child;
     }
 
-    // Merge position styles with existing className
-    const existingClassName = child.props.className ?? '';
+    const position = getChildPosition(styleableIndex, styleableCount);
+    const positionStyles = POSITION_STYLES[orientation][position];
+    styleableIndex++;
+
     return React.cloneElement(child, {
-      className: cn(existingClassName, positionStyles),
+      key: child.key ?? `button-group-child-${index}`,
+      className: cn(child.props.className, positionStyles),
     });
   });
 
   return (
-    <ButtonGroupContext.Provider value={{ orientation: resolvedOrientation }}>
+    <ButtonGroupContext.Provider value={{ orientation }}>
       <View
         role="group"
-        accessibilityRole="none"
         className={cn(buttonGroupVariants({ orientation }), className)}
         style={gap > 0 ? { gap } : undefined}
         {...props}
