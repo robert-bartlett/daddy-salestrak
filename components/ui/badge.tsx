@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import * as Slot from '@rn-primitives/slot';
 import { cva, type VariantProps } from 'class-variance-authority';
-import type { LucideIcon } from 'lucide-react-native';
+import { X, type LucideIcon } from 'lucide-react-native';
 
 import { Icon } from '@/components/ui/icon';
 import { TextClassContext } from '@/components/ui/text';
@@ -14,7 +14,7 @@ const BASE_STYLES =
 
 // Web-specific styles for focus, transitions, and SVG handling
 const WEB_STYLES =
-  'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-fit whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] [&>svg]:pointer-events-none';
+  'focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive w-fit whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] [&>svg:not([data-badge-icon])]:pointer-events-none';
 
 const badgeVariants = cva(
   cn(BASE_STYLES, Platform.select({ web: WEB_STYLES })),
@@ -57,9 +57,9 @@ const badgeVariants = cva(
         pink: '',
       },
       size: {
-        sm: 'h-4 gap-0.5 rounded px-1.5',
-        default: 'h-5 gap-1 rounded px-2',
-        lg: 'h-6 gap-1.5 rounded-md px-2.5',
+        sm: 'h-4 gap-0.5 rounded px-1.5 [&>svg:not([data-badge-icon])]:size-2.5',
+        default: 'h-5 gap-1 rounded px-2 [&>svg:not([data-badge-icon])]:size-3',
+        lg: 'h-6 gap-1.5 rounded-md px-2.5 [&>svg:not([data-badge-icon])]:size-3.5',
       },
     },
     compoundVariants: [
@@ -212,42 +212,66 @@ const ICON_SIZES = {
   lg: 14,
 } as const;
 
+// Dismiss icon sizes (slightly smaller than regular icons)
+const DISMISS_ICON_SIZES = {
+  sm: 8,
+  default: 10,
+  lg: 12,
+} as const;
+
 type BadgeProps = React.ComponentProps<typeof View> &
   VariantProps<typeof badgeVariants> & {
     /** Palette key used when variant="color" */
     color?: VariantProps<typeof badgeVariants>['color'];
+    /** Callback when dismiss button is pressed. When provided, shows X button and forces secondary styling */
+    onDismiss?: () => void;
   } & (
-    | { asChild?: false; icon?: LucideIcon }
-    | { asChild: true; icon?: never }
+    | { asChild?: false; icon?: LucideIcon; onDismiss?: () => void }
+    | { asChild: true; icon?: never; onDismiss?: never }
   );
 
 const Badge = React.forwardRef<View, BadgeProps>(
   (
-    { className, variant, color, size = 'default', asChild, icon, children, ...props },
+    { className, variant, color, size = 'default', asChild, icon, onDismiss, children, ...props },
     ref
   ) => {
     const Component = asChild ? Slot.View : View;
     const iconSize = ICON_SIZES[size ?? 'default'];
+    const dismissIconSize = DISMISS_ICON_SIZES[size ?? 'default'];
 
-    if (__DEV__ && asChild && icon) {
-      console.warn(
-        'Badge: `icon` is not supported when `asChild` is true. Compose the icon inside the child instead.'
-      );
-    }
+    // When dismissible, force secondary variant
+    const effectiveVariant = onDismiss ? 'secondary' : variant;
 
     const showIcon = !asChild && icon;
+    const showDismiss = !asChild && onDismiss;
 
     return (
-      <TextClassContext.Provider value={badgeTextVariants({ variant, color, size })}>
+      <TextClassContext.Provider value={badgeTextVariants({ variant: effectiveVariant, color, size })}>
         <Component
           ref={ref}
-          className={cn(badgeVariants({ variant, color, size }), className)}
+          className={cn(badgeVariants({ variant: effectiveVariant, color, size }), className)}
           {...props}
         >
           {showIcon && (
-            <Icon as={icon} size={iconSize} className={badgeIconVariants({ variant, color })} />
+            <Icon
+              as={icon}
+              size={iconSize}
+              data-badge-icon
+              className={badgeIconVariants({ variant: effectiveVariant, color })}
+            />
           )}
           {children}
+          {showDismiss && (
+            <Pressable
+              onPress={onDismiss}
+              hitSlop={4}
+              className="ml-0.5 rounded-sm opacity-70 hover:opacity-100"
+              accessibilityRole="button"
+              accessibilityLabel="Dismiss"
+            >
+              <X size={dismissIconSize} className="text-secondary-foreground" />
+            </Pressable>
+          )}
         </Component>
       </TextClassContext.Provider>
     );

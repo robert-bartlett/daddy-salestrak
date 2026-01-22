@@ -238,6 +238,22 @@ function AvatarDemo() {
 }
 
 function BadgeDemo() {
+  // State for dismissible demo
+  const [dismissibleTags, setDismissibleTags] = React.useState([
+    'React',
+    'TypeScript',
+    'Tailwind',
+    'Expo',
+  ]);
+
+  const handleDismiss = (tag: string) => {
+    setDismissibleTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const resetTags = () => {
+    setDismissibleTags(['React', 'TypeScript', 'Tailwind', 'Expo']);
+  };
+
   return (
     <View className="gap-6">
       <DemoSection title="Variants">
@@ -252,23 +268,6 @@ function BadgeDemo() {
             <Text>Destructive</Text>
           </Badge>
           <Badge variant="outline">
-            <Text>Outline</Text>
-          </Badge>
-        </View>
-      </DemoSection>
-
-      <DemoSection title="Icon Colors">
-        <View className="flex-row flex-wrap items-center gap-2">
-          <Badge icon={PlusCircle}>
-            <Text>Default</Text>
-          </Badge>
-          <Badge icon={Mail} variant="secondary">
-            <Text>Secondary</Text>
-          </Badge>
-          <Badge icon={PlusCircle} variant="destructive">
-            <Text>Destructive</Text>
-          </Badge>
-          <Badge icon={User} variant="outline">
             <Text>Outline</Text>
           </Badge>
         </View>
@@ -362,6 +361,54 @@ function BadgeDemo() {
           </Badge>
           <Badge size="lg" variant="color" color="pink" icon={PlusCircle}>
             <Text>Pink</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible">
+        <View className="gap-3">
+          <View className="flex-row flex-wrap items-center gap-2">
+            {dismissibleTags.map((tag) => (
+              <Badge key={tag} onDismiss={() => handleDismiss(tag)}>
+                <Text>{tag}</Text>
+              </Badge>
+            ))}
+            {dismissibleTags.length === 0 && (
+              <Text className="text-muted-foreground text-sm">All tags dismissed!</Text>
+            )}
+          </View>
+          {dismissibleTags.length < 4 && (
+            <Pressable onPress={resetTags}>
+              <Text className="text-primary text-sm">Reset tags</Text>
+            </Pressable>
+          )}
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible Sizes">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="sm" onDismiss={() => {}}>
+            <Text>Small</Text>
+          </Badge>
+          <Badge size="default" onDismiss={() => {}}>
+            <Text>Default</Text>
+          </Badge>
+          <Badge size="lg" onDismiss={() => {}}>
+            <Text>Large</Text>
+          </Badge>
+        </View>
+      </DemoSection>
+
+      <DemoSection title="Dismissible with Icons">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge icon={User} onDismiss={() => {}}>
+            <Text>John Doe</Text>
+          </Badge>
+          <Badge icon={Mail} onDismiss={() => {}}>
+            <Text>Inbox</Text>
+          </Badge>
+          <Badge icon={Settings} size="lg" onDismiss={() => {}}>
+            <Text>Settings</Text>
           </Badge>
         </View>
       </DemoSection>
