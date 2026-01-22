@@ -37,6 +37,24 @@ const badgeVariants = cva(
           web: '[a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
           default: '',
         }),
+        color: '',
+      },
+      color: {
+        grey: '',
+        red: '',
+        orange: '',
+        yellow: '',
+        'light-green': '',
+        green: '',
+        teal: '',
+        cyan: '',
+        'light-blue': '',
+        blue: '',
+        purple: '',
+        'light-purple': '',
+        violet: '',
+        magenta: '',
+        pink: '',
       },
       size: {
         sm: 'h-4 gap-0.5 rounded px-1.5',
@@ -44,8 +62,38 @@ const badgeVariants = cva(
         lg: 'h-6 gap-1.5 rounded-md px-2.5',
       },
     },
+    compoundVariants: [
+      { variant: 'color', color: 'grey', className: 'bg-grey-100 border-transparent' },
+      { variant: 'color', color: 'red', className: 'bg-red-100 border-transparent' },
+      { variant: 'color', color: 'orange', className: 'bg-orange-100 border-transparent' },
+      { variant: 'color', color: 'yellow', className: 'bg-yellow-100 border-transparent' },
+      {
+        variant: 'color',
+        color: 'light-green',
+        className: 'bg-light-green-100 border-transparent',
+      },
+      { variant: 'color', color: 'green', className: 'bg-green-100 border-transparent' },
+      { variant: 'color', color: 'teal', className: 'bg-teal-100 border-transparent' },
+      { variant: 'color', color: 'cyan', className: 'bg-cyan-100 border-transparent' },
+      {
+        variant: 'color',
+        color: 'light-blue',
+        className: 'bg-light-blue-100 border-transparent',
+      },
+      { variant: 'color', color: 'blue', className: 'bg-blue-100 border-transparent' },
+      { variant: 'color', color: 'purple', className: 'bg-purple-100 border-transparent' },
+      {
+        variant: 'color',
+        color: 'light-purple',
+        className: 'bg-light-purple-100 border-transparent',
+      },
+      { variant: 'color', color: 'violet', className: 'bg-violet-100 border-transparent' },
+      { variant: 'color', color: 'magenta', className: 'bg-magenta-100 border-transparent' },
+      { variant: 'color', color: 'pink', className: 'bg-pink-100 border-transparent' },
+    ],
     defaultVariants: {
       variant: 'default',
+      color: 'grey',
       size: 'default',
     },
   }
@@ -58,6 +106,24 @@ const badgeTextVariants = cva('font-medium', {
       secondary: 'text-secondary-foreground',
       destructive: 'text-destructive-foreground',
       outline: 'text-foreground',
+      color: '',
+    },
+    color: {
+      grey: '',
+      red: '',
+      orange: '',
+      yellow: '',
+      'light-green': '',
+      green: '',
+      teal: '',
+      cyan: '',
+      'light-blue': '',
+      blue: '',
+      purple: '',
+      'light-purple': '',
+      violet: '',
+      magenta: '',
+      pink: '',
     },
     size: {
       sm: 'text-[10px] leading-none',
@@ -65,8 +131,26 @@ const badgeTextVariants = cva('font-medium', {
       lg: 'text-sm',
     },
   },
+  compoundVariants: [
+    { variant: 'color', color: 'grey', className: 'text-grey-700' },
+    { variant: 'color', color: 'red', className: 'text-red-700' },
+    { variant: 'color', color: 'orange', className: 'text-orange-700' },
+    { variant: 'color', color: 'yellow', className: 'text-yellow-700' },
+    { variant: 'color', color: 'light-green', className: 'text-light-green-700' },
+    { variant: 'color', color: 'green', className: 'text-green-700' },
+    { variant: 'color', color: 'teal', className: 'text-teal-700' },
+    { variant: 'color', color: 'cyan', className: 'text-cyan-700' },
+    { variant: 'color', color: 'light-blue', className: 'text-light-blue-700' },
+    { variant: 'color', color: 'blue', className: 'text-blue-700' },
+    { variant: 'color', color: 'purple', className: 'text-purple-700' },
+    { variant: 'color', color: 'light-purple', className: 'text-light-purple-700' },
+    { variant: 'color', color: 'violet', className: 'text-violet-700' },
+    { variant: 'color', color: 'magenta', className: 'text-magenta-700' },
+    { variant: 'color', color: 'pink', className: 'text-pink-700' },
+  ],
   defaultVariants: {
     variant: 'default',
+    color: 'grey',
     size: 'default',
   },
 });
@@ -78,10 +162,46 @@ const badgeIconVariants = cva('', {
       secondary: 'text-secondary-foreground',
       destructive: 'text-destructive-foreground',
       outline: 'text-foreground',
+      color: '',
+    },
+    color: {
+      grey: '',
+      red: '',
+      orange: '',
+      yellow: '',
+      'light-green': '',
+      green: '',
+      teal: '',
+      cyan: '',
+      'light-blue': '',
+      blue: '',
+      purple: '',
+      'light-purple': '',
+      violet: '',
+      magenta: '',
+      pink: '',
     },
   },
+  compoundVariants: [
+    { variant: 'color', color: 'grey', className: 'text-grey-700' },
+    { variant: 'color', color: 'red', className: 'text-red-700' },
+    { variant: 'color', color: 'orange', className: 'text-orange-700' },
+    { variant: 'color', color: 'yellow', className: 'text-yellow-700' },
+    { variant: 'color', color: 'light-green', className: 'text-light-green-700' },
+    { variant: 'color', color: 'green', className: 'text-green-700' },
+    { variant: 'color', color: 'teal', className: 'text-teal-700' },
+    { variant: 'color', color: 'cyan', className: 'text-cyan-700' },
+    { variant: 'color', color: 'light-blue', className: 'text-light-blue-700' },
+    { variant: 'color', color: 'blue', className: 'text-blue-700' },
+    { variant: 'color', color: 'purple', className: 'text-purple-700' },
+    { variant: 'color', color: 'light-purple', className: 'text-light-purple-700' },
+    { variant: 'color', color: 'violet', className: 'text-violet-700' },
+    { variant: 'color', color: 'magenta', className: 'text-magenta-700' },
+    { variant: 'color', color: 'pink', className: 'text-pink-700' },
+  ],
   defaultVariants: {
     variant: 'default',
+    color: 'grey',
   },
 });
 
@@ -94,26 +214,39 @@ const ICON_SIZES = {
 
 type BadgeProps = React.ComponentProps<typeof View> &
   VariantProps<typeof badgeVariants> & {
-    asChild?: boolean;
-    /** Lucide icon to display on the left side of the badge */
-    icon?: LucideIcon;
-  };
+    /** Palette key used when variant="color" */
+    color?: VariantProps<typeof badgeVariants>['color'];
+  } & (
+    | { asChild?: false; icon?: LucideIcon }
+    | { asChild: true; icon?: never }
+  );
 
 const Badge = React.forwardRef<View, BadgeProps>(
-  ({ className, variant, size = 'default', asChild, icon, children, ...props }, ref) => {
+  (
+    { className, variant, color, size = 'default', asChild, icon, children, ...props },
+    ref
+  ) => {
     const Component = asChild ? Slot.View : View;
-    const textStyles = badgeTextVariants({ variant, size });
     const iconSize = ICON_SIZES[size ?? 'default'];
-    const iconClassName = badgeIconVariants({ variant });
+
+    if (__DEV__ && asChild && icon) {
+      console.warn(
+        'Badge: `icon` is not supported when `asChild` is true. Compose the icon inside the child instead.'
+      );
+    }
+
+    const showIcon = !asChild && icon;
 
     return (
-      <TextClassContext.Provider value={textStyles}>
+      <TextClassContext.Provider value={badgeTextVariants({ variant, color, size })}>
         <Component
           ref={ref}
-          className={cn(badgeVariants({ variant, size }), className)}
+          className={cn(badgeVariants({ variant, color, size }), className)}
           {...props}
         >
-          {icon && <Icon as={icon} size={iconSize} className={iconClassName} />}
+          {showIcon && (
+            <Icon as={icon} size={iconSize} className={badgeIconVariants({ variant, color })} />
+          )}
           {children}
         </Component>
       </TextClassContext.Provider>

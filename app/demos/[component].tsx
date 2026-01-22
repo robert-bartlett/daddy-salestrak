@@ -315,6 +315,56 @@ function BadgeDemo() {
           </Badge>
         </View>
       </DemoSection>
+
+      <DemoSection title="Color Variants">
+        <View className="flex-row flex-wrap items-center gap-2">
+          <Badge size="lg" variant="color" color="grey" icon={PlusCircle}>
+            <Text>Grey</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="red" icon={PlusCircle}>
+            <Text>Red</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="orange" icon={PlusCircle}>
+            <Text>Orange</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="yellow" icon={PlusCircle}>
+            <Text>Yellow</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-green" icon={PlusCircle}>
+            <Text>Light Green</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="green" icon={PlusCircle}>
+            <Text>Green</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="teal" icon={PlusCircle}>
+            <Text>Teal</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="cyan" icon={PlusCircle}>
+            <Text>Cyan</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-blue" icon={PlusCircle}>
+            <Text>Light Blue</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="blue" icon={PlusCircle}>
+            <Text>Blue</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="purple" icon={PlusCircle}>
+            <Text>Purple</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="light-purple" icon={PlusCircle}>
+            <Text>Light Purple</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="violet" icon={PlusCircle}>
+            <Text>Violet</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="magenta" icon={PlusCircle}>
+            <Text>Magenta</Text>
+          </Badge>
+          <Badge size="lg" variant="color" color="pink" icon={PlusCircle}>
+            <Text>Pink</Text>
+          </Badge>
+        </View>
+      </DemoSection>
     </View>
   );
 }
