@@ -82,6 +82,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/components/ui/message';
@@ -117,11 +125,13 @@ import {
   FileText,
   Folder,
   Home,
+  Inbox,
   Italic,
   LogOut,
   Mail,
   MoreHorizontal,
   PlusCircle,
+  Search,
   Settings,
   Smile,
   Trash2,
@@ -145,6 +155,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   'context-menu': 'Context Menu',
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
+  empty: 'Empty',
   input: 'Input',
   kbd: 'Kbd',
   message: 'Message',
@@ -1138,6 +1149,89 @@ function DialogDemo() {
   );
 }
 
+function EmptyDemo() {
+  return (
+    <Container size="md">
+      <VStack gap="xl">
+        <DemoSection title="Size Variants">
+          <VStack gap="lg">
+            <Empty size="sm">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Icon as={Inbox} size={20} />
+                </EmptyMedia>
+                <EmptyTitle>No messages</EmptyTitle>
+                <EmptyDescription>Your inbox is empty.</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+
+            <Separator />
+
+            <Empty size="md">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Icon as={Inbox} size={24} />
+                </EmptyMedia>
+                <EmptyTitle>No messages</EmptyTitle>
+                <EmptyDescription>Your inbox is empty. Start a conversation!</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+
+            <Separator />
+
+            <Empty size="lg">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Icon as={Inbox} size={32} />
+                </EmptyMedia>
+                <EmptyTitle>No messages</EmptyTitle>
+                <EmptyDescription>
+                  Your inbox is empty. Start a new conversation to see messages here.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="With Actions">
+          <Empty size="md">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Icon as={Search} size={24} />
+              </EmptyMedia>
+              <EmptyTitle>No results found</EmptyTitle>
+              <EmptyDescription>
+                We couldn't find anything matching your search. Try different keywords.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button variant="outline">Clear search</Button>
+              <Button>Browse all</Button>
+            </EmptyContent>
+          </Empty>
+        </DemoSection>
+
+        <DemoSection title="Animation Variant">
+          {/* The animation variant renders a pulsing placeholder circle, useful for loading states */}
+          <Empty size="md">
+            <EmptyHeader>
+              <EmptyMedia variant="animation" />
+              <EmptyTitle>Loading...</EmptyTitle>
+              <EmptyDescription>Please wait while we fetch your data.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </DemoSection>
+
+        <DemoSection title="Minimal (Title Only)">
+          <Empty size="sm">
+            <EmptyTitle>Nothing here yet</EmptyTitle>
+          </Empty>
+        </DemoSection>
+      </VStack>
+    </Container>
+  );
+}
+
 function DropdownMenuDemo() {
   const [showStatusBar, setShowStatusBar] = React.useState(true);
   const [position, setPosition] = React.useState('bottom');
@@ -1823,6 +1917,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   'context-menu': ContextMenuDemo,
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,
+  empty: EmptyDemo,
   input: InputDemo,
   kbd: KbdDemo,
   message: MessageDemo,

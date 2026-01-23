@@ -31,6 +31,7 @@ const COMPONENTS: NavItem[] = [
   { label: 'Context Menu', href: '/demos/context-menu' },
   { label: 'Dialog', href: '/demos/dialog' },
   { label: 'Dropdown Menu', href: '/demos/dropdown-menu' },
+  { label: 'Empty', href: '/demos/empty' },
   { label: 'Input', href: '/demos/input' },
   { label: 'Kbd', href: '/demos/kbd' },
   { label: 'Message', href: '/demos/message' },
