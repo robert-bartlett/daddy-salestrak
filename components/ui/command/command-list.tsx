@@ -17,7 +17,24 @@ const CMDK_LIST_ATTR = 'cmdk-list';
 // Default list height
 const DEFAULT_MAX_HEIGHT = 300;
 
-export type CommandListProps = Omit<ScrollViewProps, 'children'> & {
+// Web-specific event handlers (only used when Platform.OS === 'web')
+type WebEventHandlers = {
+  onWheel?: React.WheelEventHandler<HTMLDivElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
+  onKeyUp?: React.KeyboardEventHandler<HTMLDivElement>;
+  onMouseEnter?: React.MouseEventHandler<HTMLDivElement>;
+  onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
+  onMouseMove?: React.MouseEventHandler<HTMLDivElement>;
+  onMouseDown?: React.MouseEventHandler<HTMLDivElement>;
+  onMouseUp?: React.MouseEventHandler<HTMLDivElement>;
+  onPointerEnter?: React.PointerEventHandler<HTMLDivElement>;
+  onPointerLeave?: React.PointerEventHandler<HTMLDivElement>;
+  onPointerMove?: React.PointerEventHandler<HTMLDivElement>;
+  onPointerDown?: React.PointerEventHandler<HTMLDivElement>;
+  onPointerUp?: React.PointerEventHandler<HTMLDivElement>;
+};
+
+export type CommandListProps = Omit<ScrollViewProps, 'children'> & WebEventHandlers & {
   /** Maximum height for the list (pixels or CSS value on web) */
   maxHeight?: number | string;
   /** Additional className for the container */

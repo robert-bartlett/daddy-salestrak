@@ -132,7 +132,7 @@ import {
   Mail,
   MoreHorizontal,
   PlusCircle,
-  Search,
+  Search as SearchIcon,
   Settings,
   Smile,
   Trash2,
@@ -1199,7 +1199,7 @@ function EmptyDemo() {
           <Empty size="md">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Icon as={Search} size={24} />
+                <Icon as={SearchIcon} size={24} />
               </EmptyMedia>
               <EmptyTitle>No results found</EmptyTitle>
               <EmptyDescription>

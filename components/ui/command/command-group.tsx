@@ -89,8 +89,8 @@ const CommandGroup = React.forwardRef<View, CommandGroupProps>(
 
     // Determine if group should be hidden
     const shouldHide = !forceMount && !isVisible;
-    const hiddenWebStyle = Platform.OS === 'web' && shouldHide ? { display: 'none' } : undefined;
-    const hiddenNativeStyle = Platform.OS !== 'web' && shouldHide ? { display: 'none' } : undefined;
+    const hiddenWebStyle = Platform.OS === 'web' && shouldHide ? { display: 'none' as const } : undefined;
+    const hiddenNativeStyle = Platform.OS !== 'web' && shouldHide ? { display: 'none' as const } : undefined;
 
     // Generate heading ID for aria-labelledby
     const headingId = heading ? `${groupId}-heading` : undefined;

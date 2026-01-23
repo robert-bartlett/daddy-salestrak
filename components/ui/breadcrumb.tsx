@@ -98,7 +98,8 @@ function collapseChildren(
   const forEachChild = (nodes: React.ReactNode, fn: (child: React.ReactNode) => void) => {
     React.Children.forEach(nodes, (child) => {
       if (React.isValidElement(child) && child.type === React.Fragment) {
-        forEachChild(child.props.children, fn);
+        const fragmentChild = child as React.ReactElement<{ children?: React.ReactNode }>;
+        forEachChild(fragmentChild.props.children, fn);
         return;
       }
       fn(child);

@@ -185,19 +185,19 @@ const CommandItem = React.forwardRef<View, CommandItemProps>(
             }),
             className
           )}
-          // React Native Web uses dataSet prop to set data-* attributes
-          dataSet={{
-            cmdkItem: '',
-            value: value,
-            selected: isSelected ? '' : undefined,
-            disabled: disabled ? '' : undefined,
-          }}
           {...(Platform.OS === 'web' && {
             role: 'option',
             'aria-selected': isSelected,
             'aria-disabled': disabled,
             onPointerEnter: handlePointerEnter,
-          })}
+            // React Native Web uses dataSet prop to set data-* attributes
+            dataSet: {
+              cmdkItem: '',
+              value: value,
+              selected: isSelected ? '' : undefined,
+              disabled: disabled ? '' : undefined,
+            },
+          } as object)}
           {...props}
         >{wrapTextChildren(children)}</Pressable>
       </TextClassContext.Provider>
