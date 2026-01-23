@@ -35,6 +35,32 @@ const textVariants = cva(
         small: 'text-sm font-medium leading-none',
         muted: 'text-sm text-muted-foreground',
       },
+      size: {
+        xs: 'text-xs',
+        sm: 'text-sm',
+        base: 'text-base',
+        lg: 'text-lg',
+        xl: 'text-xl',
+        '2xl': 'text-2xl',
+      },
+      weight: {
+        regular: 'font-normal',
+        medium: 'font-medium',
+        semibold: 'font-semibold',
+        bold: 'font-bold',
+      },
+      tone: {
+        default: '',
+        muted: 'text-muted-foreground',
+        destructive: 'text-destructive',
+        primary: 'text-primary',
+        secondary: 'text-secondary',
+      },
+      align: {
+        left: 'text-left',
+        center: 'text-center',
+        right: 'text-right',
+      },
     },
     defaultVariants: {
       variant: 'default',
@@ -72,13 +98,29 @@ type TextProps = React.ComponentProps<typeof RNText> &
   };
 
 const Text = React.forwardRef<RNText, TextProps>(
-  ({ className, asChild = false, variant = 'default', ...props }, ref) => {
+  (
+    {
+      className,
+      asChild = false,
+      variant = 'default',
+      size,
+      weight,
+      tone,
+      align,
+      ...props
+    },
+    ref
+  ) => {
     const textClass = React.useContext(TextClassContext);
     const Component = asChild ? Slot.Text : RNText;
     return (
       <Component
         ref={ref}
-        className={cn(textVariants({ variant }), textClass, className)}
+        className={cn(
+          textVariants({ variant, size, weight, tone, align }),
+          textClass,
+          className
+        )}
         role={variant ? ROLE[variant] : undefined}
         aria-level={variant ? ARIA_LEVEL[variant] : undefined}
         {...props}

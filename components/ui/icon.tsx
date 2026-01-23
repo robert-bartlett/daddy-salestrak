@@ -9,6 +9,7 @@ const DEFAULT_ICON_SIZE = 14;
 
 type IconProps = LucideProps & {
   as: LucideIcon;
+  tone?: 'default' | 'muted' | 'destructive' | 'primary' | 'secondary';
 };
 
 // Note: Lucide icons don't expose refs in their type definitions,
@@ -53,12 +54,28 @@ cssInterop(IconImpl, {
  * @param {number} size - Icon size (defaults to 14).
  * @param {...LucideProps} ...props - Additional Lucide icon props passed to the "as" icon.
  */
-function Icon({ as: IconComponent, className, size = DEFAULT_ICON_SIZE, ...props }: IconProps) {
+function Icon({
+  as: IconComponent,
+  className,
+  size = DEFAULT_ICON_SIZE,
+  tone = 'default',
+  ...props
+}: IconProps) {
   const textClass = React.useContext(TextClassContext);
+  const toneClass =
+    tone === 'muted'
+      ? 'text-muted-foreground'
+      : tone === 'destructive'
+      ? 'text-destructive'
+      : tone === 'primary'
+      ? 'text-primary'
+      : tone === 'secondary'
+      ? 'text-secondary'
+      : undefined;
   return (
     <IconImpl
       as={IconComponent}
-      className={cn(textClass || 'text-foreground', className)}
+      className={cn(toneClass || textClass || 'text-foreground', className)}
       size={size}
       {...props}
     />

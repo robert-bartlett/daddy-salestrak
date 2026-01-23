@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 import * as SeparatorPrimitive from '@rn-primitives/separator';
+import { SPACING_SCALE, type SpacingToken } from '@/components/ui/layout/layout-constants';
 
 // Separator styles by orientation (1px thickness)
 const SEPARATOR_STYLES = {
@@ -9,7 +10,10 @@ const SEPARATOR_STYLES = {
   vertical: 'h-full w-[1px]',
 } as const;
 
-type SeparatorProps = SeparatorPrimitive.RootProps;
+type SeparatorProps = SeparatorPrimitive.RootProps & {
+  /** Optional length for the separator using semantic spacing tokens. */
+  length?: SpacingToken | number;
+};
 
 /**
  * A visual divider for separating content sections.
@@ -17,7 +21,17 @@ type SeparatorProps = SeparatorPrimitive.RootProps;
  * @ref Forwards ref to the underlying separator primitive.
  */
 const Separator = React.forwardRef<SeparatorPrimitive.RootRef, SeparatorProps>(
-  ({ className, orientation = 'horizontal', decorative = true, ...props }, ref) => {
+  (
+    { className, orientation = 'horizontal', decorative = true, length, style, ...props },
+    ref
+  ) => {
+    const lengthValue =
+      typeof length === 'number' ? length : length ? SPACING_SCALE[length] : undefined;
+    const lengthStyle = lengthValue
+      ? orientation === 'horizontal'
+        ? { width: lengthValue }
+        : { height: lengthValue }
+      : undefined;
     return (
       <SeparatorPrimitive.Root
         ref={ref}
@@ -28,6 +42,7 @@ const Separator = React.forwardRef<SeparatorPrimitive.RootRef, SeparatorProps>(
           SEPARATOR_STYLES[orientation],
           className
         )}
+        style={[lengthStyle, style]}
         {...props}
       />
     );

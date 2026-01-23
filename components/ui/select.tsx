@@ -47,8 +47,12 @@ const SelectTrigger = React.forwardRef<
   SelectPrimitive.TriggerProps & {
     children?: React.ReactNode;
     size?: 'default' | 'sm';
+    fullWidth?: boolean;
   }
->(function SelectTrigger({ className, children, size = 'default', ...props }, ref) {
+>(function SelectTrigger(
+  { className, children, size = 'default', fullWidth = false, ...props },
+  ref
+) {
   return (
     <SelectPrimitive.Trigger
       ref={ref}
@@ -59,6 +63,7 @@ const SelectTrigger = React.forwardRef<
         }),
         props.disabled && 'opacity-50',
         size === 'sm' && 'h-8 py-2 sm:py-1.5',
+        fullWidth && 'w-full',
         className
       )}
       {...props}>

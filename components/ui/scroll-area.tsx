@@ -42,6 +42,8 @@ type ScrollAreaProps = {
   maxHeight?: number | string;
   /** Maximum width for the scroll area. Can be a number (pixels) or string (CSS value). */
   maxWidth?: number | string;
+  /** Expand to fill available space. */
+  fill?: boolean;
   /** Scroll direction. Defaults to 'vertical'. */
   orientation?: 'vertical' | 'horizontal' | 'both';
   /** When to show scrollbar. Defaults to 'auto'. */
@@ -83,8 +85,9 @@ type ScrollAreaRef = WebRef | NativeRef;
 const ScrollArea = React.forwardRef<ScrollAreaRef, ScrollAreaProps>(
   (
     {
-      maxHeight = DEFAULT_MAX_HEIGHT,
+      maxHeight,
       maxWidth,
+      fill = false,
       orientation = DEFAULT_ORIENTATION,
       showScrollbar = 'auto',
       scrollbarSize = 'default',
@@ -95,9 +98,12 @@ const ScrollArea = React.forwardRef<ScrollAreaRef, ScrollAreaProps>(
     },
     ref
   ) => {
+    const resolvedMaxHeight = fill ? undefined : maxHeight ?? DEFAULT_MAX_HEIGHT;
     // Convert numeric dimensions to pixel strings for web
-    const maxHeightValue = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
+    const maxHeightValue =
+      typeof resolvedMaxHeight === 'number' ? `${resolvedMaxHeight}px` : resolvedMaxHeight;
     const maxWidthValue = maxWidth ? (typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth) : undefined;
+    const fillClass = fill ? 'flex-1' : undefined;
 
     // Determine overflow classes based on orientation
     const overflowClasses = {
@@ -113,6 +119,7 @@ const ScrollArea = React.forwardRef<ScrollAreaRef, ScrollAreaProps>(
           className={cn(
             overflowClasses,
             scrollbarStyles({ visibility: showScrollbar, size: scrollbarSize }),
+            fillClass,
             viewportClassName,
             className
           )}
@@ -128,11 +135,14 @@ const ScrollArea = React.forwardRef<ScrollAreaRef, ScrollAreaProps>(
     // Native implementation using ScrollView
     // Hide scroll indicators on mobile for cleaner appearance
     // Only apply numeric dimension values on native (strings like '100vh' are web-only)
-    const nativeMaxHeight = typeof maxHeight === 'number' ? maxHeight : undefined;
+    const nativeMaxHeight = typeof resolvedMaxHeight === 'number' ? resolvedMaxHeight : undefined;
     const nativeMaxWidth = typeof maxWidth === 'number' ? maxWidth : undefined;
 
     return (
-      <View className={className} style={{ maxHeight: nativeMaxHeight, maxWidth: nativeMaxWidth }}>
+      <View
+        className={cn(fillClass, className)}
+        style={[fill ? { flex: 1 } : undefined, { maxHeight: nativeMaxHeight, maxWidth: nativeMaxWidth }]}
+      >
         <ScrollView
           ref={ref as React.Ref<ScrollView>}
           horizontal={orientation === 'horizontal'}

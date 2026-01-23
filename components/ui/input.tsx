@@ -20,11 +20,22 @@ const NATIVE_STYLES = 'placeholder:text-muted-foreground/50';
 const DISABLED_STYLES = 'opacity-50';
 const WEB_DISABLED_STYLES = 'cursor-not-allowed';
 
+const WIDTH_CLASSES = {
+  xs: 'w-16',
+  sm: 'w-24',
+  md: 'w-32',
+  lg: 'w-40',
+  xl: 'w-48',
+  full: 'w-full',
+} as const;
+
 type InputProps = TextInputProps & {
   /** Disable the input. Sets visual state and prevents interaction. */
   disabled?: boolean;
   /** Mark the input as invalid for error states. Maps to aria-invalid on web. */
   invalid?: boolean;
+  /** Constrain the input width using semantic tokens. */
+  width?: keyof typeof WIDTH_CLASSES;
 };
 
 /**
@@ -40,9 +51,10 @@ type InputProps = TextInputProps & {
  * - Pass `cursorColor` prop to customize cursor on native platforms
  */
 const Input = React.forwardRef<TextInput, InputProps>(
-  ({ className, disabled, editable, invalid, ...props }, ref) => {
+  ({ className, disabled, editable, invalid, width, ...props }, ref) => {
     // Support both disabled prop and editable={false} for disabling
     const isDisabled = disabled || editable === false;
+    const widthClass = width ? WIDTH_CLASSES[width] : undefined;
 
     return (
       <TextInput
@@ -52,6 +64,7 @@ const Input = React.forwardRef<TextInput, InputProps>(
         accessibilityState={{ disabled: isDisabled }}
         className={cn(
           BASE_STYLES,
+          widthClass,
           isDisabled &&
             cn(DISABLED_STYLES, Platform.select({ web: WEB_DISABLED_STYLES })),
           Platform.select({

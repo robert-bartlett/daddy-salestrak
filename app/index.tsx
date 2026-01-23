@@ -1,13 +1,19 @@
+import { Box, Center, VStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
-import { View } from 'react-native';
 
 export default function Screen() {
   return (
-    <View className="flex-1 items-center justify-center gap-4 p-4">
-      <Text className="text-2xl font-semibold">Design System</Text>
-      <Text className="text-center text-muted-foreground">
-        Tap the menu icon to browse components.
-      </Text>
-    </View>
+    <Box fill padding="md">
+      <Center fill>
+        <VStack gap="md" align="center">
+          <Text size="2xl" weight="semibold">
+            Design System
+          </Text>
+          <Text tone="muted" align="center">
+            Tap the menu icon to browse components.
+          </Text>
+        </VStack>
+      </Center>
+    </Box>
   );
 }

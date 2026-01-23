@@ -11,6 +11,7 @@ const avatarVariants = cva('relative flex shrink-0 overflow-hidden rounded-full'
       sm: 'size-6',
       default: 'size-8',
       lg: 'size-12',
+      xl: 'size-16',
     },
   },
   defaultVariants: {

@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Icon } from '@/components/ui/icon';
+import { Box, Center, HStack, VStack } from '@/components/ui/layout';
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +22,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
 import { Text } from '@/components/ui/text';
 import {
   Calendar,
@@ -36,7 +38,7 @@ import {
   Users,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform } from 'react-native';
 
 // Navigation items for the sidebar
 const NAV_ITEMS = [
@@ -53,7 +55,7 @@ const PROJECTS = [
   { name: 'Mobile App', color: '#22c55e' },
 ];
 
-type FocusablePressableRef = React.ElementRef<typeof Pressable> & {
+type FocusablePressableRef = React.ElementRef<typeof SidebarMenuButton> & {
   focus?: () => void;
 };
 
@@ -93,57 +95,55 @@ function NavUser() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <View {...webKeyboardProps}>
-          <Pressable
+        <Box {...webKeyboardProps}>
+          <SidebarMenuButton
             ref={triggerRef}
             onPress={() => setIsOpen(!isOpen)}
-            accessibilityRole="button"
-            accessibilityLabel="User menu"
-            accessibilityState={{ expanded: isOpen }}
-            className="flex w-full flex-row items-center gap-2 rounded-md p-2 active:bg-sidebar-accent">
-            <Avatar alt="User avatar" className="size-8">
+            isActive={isOpen}
+            tooltip="User menu">
+            <Avatar alt="User avatar">
               <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
               <AvatarFallback>
-                <Text className="text-xs">CN</Text>
+                <Text size="xs">CN</Text>
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <>
-                <View className="flex-1">
-                  <Text className="text-sm font-medium text-sidebar-foreground">shadcn</Text>
-                  <Text className="text-xs text-sidebar-foreground/60">m@example.com</Text>
-                </View>
-                <Icon
-                  as={isOpen ? ChevronUp : ChevronDown}
-                  className="text-sidebar-foreground/60"
-                  size={16}
-                />
+                <Box fill>
+                  <VStack gap="xs">
+                    <Text size="sm" weight="medium">
+                      shadcn
+                    </Text>
+                    <Text size="xs">m@example.com</Text>
+                  </VStack>
+                </Box>
+                <Icon as={isOpen ? ChevronUp : ChevronDown} size={16} />
               </>
             )}
-          </Pressable>
+          </SidebarMenuButton>
           {isOpen && !isCollapsed && (
             <SidebarMenuSub>
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton>
-                  <Icon as={User} className="text-sidebar-foreground" size={16} />
+                  <Icon as={User} size={16} />
                   <Text>Profile</Text>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton>
-                  <Icon as={Settings} className="text-sidebar-foreground" size={16} />
+                  <Icon as={Settings} size={16} />
                   <Text>Settings</Text>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
               <SidebarMenuSubItem>
                 <SidebarMenuSubButton>
-                  <Icon as={LogOut} className="text-sidebar-foreground" size={16} />
+                  <Icon as={LogOut} size={16} />
                   <Text>Log out</Text>
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
             </SidebarMenuSub>
           )}
-        </View>
+        </Box>
       </SidebarMenuItem>
     </SidebarMenu>
   );
@@ -159,13 +159,17 @@ function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" tooltip="Acme Inc">
-              <View className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary">
-                <Text className="font-bold text-sidebar-primary-foreground">A</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-semibold text-sidebar-foreground">Acme Inc</Text>
-                <Text className="text-xs text-sidebar-foreground/60">Enterprise</Text>
-              </View>
+              <Box size="xl" background="sidebar-primary" rounded="lg">
+                <Center fill>
+                  <Text weight="bold">A</Text>
+                </Center>
+              </Box>
+              <Box fill>
+                <VStack gap="xs">
+                  <Text weight="semibold">Acme Inc</Text>
+                  <Text size="xs">Enterprise</Text>
+                </VStack>
+              </Box>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -179,7 +183,7 @@ function AppSidebar() {
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton isActive={item.isActive} tooltip={item.label}>
-                    <Icon as={item.icon} className="text-sidebar-foreground" size={20} />
+                    <Icon as={item.icon} size={20} />
                     <Text>{item.label}</Text>
                   </SidebarMenuButton>
                   {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
@@ -198,10 +202,7 @@ function AppSidebar() {
               {PROJECTS.map((project) => (
                 <SidebarMenuItem key={project.name}>
                   <SidebarMenuButton tooltip={project.name}>
-                    <View
-                      className="size-4 rounded"
-                      style={{ backgroundColor: project.color }}
-                    />
+                    <Box size="md" rounded="sm" background={project.color} />
                     <Text>{project.name}</Text>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -218,7 +219,7 @@ function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton tooltip="Team Members">
-                  <Icon as={Users} className="text-sidebar-foreground" size={20} />
+                  <Icon as={Users} size={20} />
                   <Text>Team Members</Text>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -241,67 +242,74 @@ function MainContent() {
   return (
     <SidebarInset>
       {/* Header with trigger (mobile only) */}
-      <View className="flex flex-row items-center gap-2 border-b border-border p-4">
-        {isMobile && (
-          <>
-            <SidebarTrigger />
-            <View className="h-4 w-px bg-border" />
-          </>
-        )}
-        <Text className="font-medium text-foreground">Dashboard</Text>
-      </View>
+      <Box padding="md">
+        <HStack gap="sm" align="center">
+          {isMobile && (
+            <>
+              <SidebarTrigger />
+              <Separator orientation="vertical" length="md" />
+            </>
+          )}
+          <Text weight="medium">Dashboard</Text>
+        </HStack>
+      </Box>
+      <Separator />
 
       {/* Main content area */}
-      <View className="flex-1 p-6">
-        <View className="gap-6">
-          <View className="gap-2">
-            <Text className="text-2xl font-bold text-foreground">Welcome back!</Text>
-            <Text className="text-muted-foreground">
+      <Box fill padding="lg">
+        <VStack gap="lg">
+          <VStack gap="sm">
+            <Text size="2xl" weight="bold">
+              Welcome back!
+            </Text>
+            <Text tone="muted">
               This is a demo of the shadcn-inspired Sidebar component for React Native.
             </Text>
-          </View>
+          </VStack>
 
-          <View className="gap-4">
-            <Text className="font-semibold text-foreground">How to use:</Text>
-            <View className="gap-2">
+          <VStack gap="md">
+            <Text weight="semibold">How to use:</Text>
+            <VStack gap="sm">
               {isMobile ? (
                 <>
-                  <Text className="text-muted-foreground">
-                    • Tap the <Text className="font-medium text-foreground">panel icon</Text> in the header to open the sidebar
+                  <Text tone="muted">
+                    • Tap the <Text weight="medium">panel icon</Text> in the header to open the sidebar
                   </Text>
-                  <Text className="text-muted-foreground">
-                    • The sidebar appears as a slide-out sheet
-                  </Text>
+                  <Text tone="muted">• The sidebar appears as a slide-out sheet</Text>
                 </>
               ) : (
-                <Text className="text-muted-foreground">
-                  • The sidebar is always visible on desktop
-                </Text>
+                <Text tone="muted">• The sidebar is always visible on desktop</Text>
               )}
-            </View>
-          </View>
+            </VStack>
+          </VStack>
 
-          <View className="rounded-lg border border-border bg-card p-4">
-            <Text className="font-medium text-card-foreground">Current State</Text>
-            <View className="mt-2 flex-row flex-wrap gap-4">
-              <View className="gap-1">
-                <Text className="text-xs text-muted-foreground">Sidebar State</Text>
-                <Text className="font-mono text-sm text-foreground">{state}</Text>
-              </View>
-              <View className="gap-1">
-                <Text className="text-xs text-muted-foreground">Device</Text>
-                <Text className="font-mono text-sm text-foreground">
-                  {isMobile ? 'Mobile' : 'Desktop'}
-                </Text>
-              </View>
-              <View className="gap-1">
-                <Text className="text-xs text-muted-foreground">Platform</Text>
-                <Text className="font-mono text-sm text-foreground">{Platform.OS}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
+          <Box background="card" border rounded="lg" padding="md">
+            <VStack gap="sm">
+              <Text weight="medium">Current State</Text>
+              <HStack gap="md" wrap>
+                <VStack gap="xs">
+                  <Text size="xs" tone="muted">
+                    Sidebar State
+                  </Text>
+                  <Text size="sm">{state}</Text>
+                </VStack>
+                <VStack gap="xs">
+                  <Text size="xs" tone="muted">
+                    Device
+                  </Text>
+                  <Text size="sm">{isMobile ? 'Mobile' : 'Desktop'}</Text>
+                </VStack>
+                <VStack gap="xs">
+                  <Text size="xs" tone="muted">
+                    Platform
+                  </Text>
+                  <Text size="sm">{Platform.OS}</Text>
+                </VStack>
+              </HStack>
+            </VStack>
+          </Box>
+        </VStack>
+      </Box>
     </SidebarInset>
   );
 }

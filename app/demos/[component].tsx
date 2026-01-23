@@ -72,8 +72,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import {
+  Box,
+  Center,
+  Container,
+  Frame,
+  HStack,
+  Spacer,
+  VStack,
+} from '@/components/ui/layout';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
@@ -105,7 +115,7 @@ import {
   User,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { Platform, Pressable, ScrollView, View } from 'react-native';
+import { Platform } from 'react-native';
 
 // Map route params to display names
 const COMPONENT_NAMES: Record<string, string> = {
@@ -138,25 +148,27 @@ const COMPONENT_NAMES: Record<string, string> = {
 function DemoSection({ title, children }: { title: string; children: React.ReactNode }) {
   const filteredChildren = filterWhitespaceChildren(children);
   return (
-    <View className="gap-3">{[
-      <Text key="title" className="text-muted-foreground text-sm font-medium">{title}</Text>,
-      ...filteredChildren,
-    ]}</View>
+    <VStack gap="sm">
+      <Text size="sm" weight="medium" tone="muted">
+        {title}
+      </Text>
+      {filteredChildren}
+    </VStack>
   );
 }
 
 // Individual component demos
 function AccordionDemo() {
   return (
-    <View className="w-full max-w-md gap-6">
+    <Container size="md">
       <DemoSection title="Default Accordion">
-        <Accordion type="single" collapsible className="w-full">
+        <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
             <AccordionTrigger>
               <Text>Is it accessible?</Text>
             </AccordionTrigger>
             <AccordionContent>
-              <Text className="text-muted-foreground">
+              <Text tone="muted">
                 Yes. It adheres to the WAI-ARIA design pattern.
               </Text>
             </AccordionContent>
@@ -166,7 +178,7 @@ function AccordionDemo() {
               <Text>Is it styled?</Text>
             </AccordionTrigger>
             <AccordionContent>
-              <Text className="text-muted-foreground">
+              <Text tone="muted">
                 Yes. It comes with default styles that match the design system.
               </Text>
             </AccordionContent>
@@ -176,20 +188,20 @@ function AccordionDemo() {
               <Text>Is it animated?</Text>
             </AccordionTrigger>
             <AccordionContent>
-              <Text className="text-muted-foreground">
+              <Text tone="muted">
                 Yes. It's animated by default with smooth expand/collapse transitions.
               </Text>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
       </DemoSection>
-    </View>
+    </Container>
   );
 }
 
 function AlertDialogDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Destructive Action">
         <AlertDialog>
           <AlertDialogTrigger asChild>
@@ -216,56 +228,56 @@ function AlertDialogDemo() {
           </AlertDialogContent>
         </AlertDialog>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function AvatarDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="With Image">
-        <View className="flex-row items-center gap-4">
+        <HStack gap="md" align="center">
           <Avatar alt="User avatar">
             <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
             <AvatarFallback>
               <Text>CN</Text>
             </AvatarFallback>
           </Avatar>
-          <Avatar alt="User avatar" className="size-12">
+          <Avatar alt="User avatar" size="lg">
             <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
             <AvatarFallback>
               <Text>CN</Text>
             </AvatarFallback>
           </Avatar>
-          <Avatar alt="User avatar" className="size-16">
+          <Avatar alt="User avatar" size="xl">
             <AvatarImage source={{ uri: 'https://github.com/shadcn.png' }} />
             <AvatarFallback>
               <Text>CN</Text>
             </AvatarFallback>
           </Avatar>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Fallback Only">
-        <View className="flex-row items-center gap-4">
+        <HStack gap="md" align="center">
           <Avatar alt="John Doe">
             <AvatarFallback>
-              <Text className="text-xs">JD</Text>
+              <Text size="xs">JD</Text>
             </AvatarFallback>
           </Avatar>
-          <Avatar alt="Alice Brown" className="size-12">
+          <Avatar alt="Alice Brown" size="lg">
             <AvatarFallback>
-              <Text className="text-sm">AB</Text>
+              <Text size="sm">AB</Text>
             </AvatarFallback>
           </Avatar>
-          <Avatar alt="Xavier York" className="size-16">
+          <Avatar alt="Xavier York" size="xl">
             <AvatarFallback>
               <Text>XY</Text>
             </AvatarFallback>
           </Avatar>
-        </View>
+        </HStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -287,9 +299,9 @@ function BadgeDemo() {
   };
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Variants">
-        <View className="flex-row flex-wrap gap-2">
+        <HStack gap="sm" wrap>
           <Badge>
             <Text>Default</Text>
           </Badge>
@@ -302,11 +314,11 @@ function BadgeDemo() {
           <Badge variant="outline">
             <Text>Outline</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Sizes">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge size="sm">
             <Text>Small</Text>
           </Badge>
@@ -316,11 +328,11 @@ function BadgeDemo() {
           <Badge size="lg">
             <Text>Large</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="With Icon Prop">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge icon={PlusCircle} size="sm">
             <Text>New</Text>
           </Badge>
@@ -330,11 +342,11 @@ function BadgeDemo() {
           <Badge icon={User} variant="outline" size="lg">
             <Text>Profile</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Sizes with Icons">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge icon={PlusCircle} size="sm" variant="secondary">
             <Text>Small</Text>
           </Badge>
@@ -344,11 +356,11 @@ function BadgeDemo() {
           <Badge icon={PlusCircle} size="lg" variant="secondary">
             <Text>Large</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Color Variants">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge size="lg" variant="color" color="grey" icon={PlusCircle}>
             <Text>Grey</Text>
           </Badge>
@@ -394,31 +406,33 @@ function BadgeDemo() {
           <Badge size="lg" variant="color" color="pink" icon={PlusCircle}>
             <Text>Pink</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Dismissible">
-        <View className="gap-3">
-          <View className="flex-row flex-wrap items-center gap-2">
+        <VStack gap="sm">
+          <HStack gap="sm" align="center" wrap>
             {dismissibleTags.map((tag) => (
               <Badge key={tag} onDismiss={() => handleDismiss(tag)}>
                 <Text>{tag}</Text>
               </Badge>
             ))}
             {dismissibleTags.length === 0 && (
-              <Text className="text-muted-foreground text-sm">All tags dismissed!</Text>
+              <Text tone="muted" size="sm">
+                All tags dismissed!
+              </Text>
             )}
-          </View>
+          </HStack>
           {dismissibleTags.length < 4 && (
-            <Pressable onPress={resetTags}>
-              <Text className="text-primary text-sm">Reset tags</Text>
-            </Pressable>
+            <Button variant="link" size="sm" onPress={resetTags}>
+              Reset tags
+            </Button>
           )}
-        </View>
+        </VStack>
       </DemoSection>
 
       <DemoSection title="Dismissible Sizes">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge size="sm" onDismiss={() => {}}>
             <Text>Small</Text>
           </Badge>
@@ -428,11 +442,11 @@ function BadgeDemo() {
           <Badge size="lg" onDismiss={() => {}}>
             <Text>Large</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Dismissible with Icons">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Badge icon={User} onDismiss={() => {}}>
             <Text>John Doe</Text>
           </Badge>
@@ -442,15 +456,15 @@ function BadgeDemo() {
           <Badge icon={Settings} size="lg" onDismiss={() => {}}>
             <Text>Settings</Text>
           </Badge>
-        </View>
+        </HStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function BreadcrumbDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Basic">
         <Breadcrumb>
           <BreadcrumbList>
@@ -500,7 +514,7 @@ function BreadcrumbDemo() {
       </DemoSection>
 
       <DemoSection title="Custom Separator">
-        <Breadcrumb separator={<Text className="text-muted-foreground">/</Text>}>
+        <Breadcrumb separator={<Text tone="muted">/</Text>}>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink onPress={() => {}}>
@@ -595,15 +609,15 @@ function BreadcrumbDemo() {
           </BreadcrumbList>
         </Breadcrumb>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function ButtonDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Variants">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Button>
             <Text>Default</Text>
           </Button>
@@ -622,11 +636,11 @@ function ButtonDemo() {
           <Button variant="link">
             <Text>Link</Text>
           </Button>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Sizes">
-        <View className="flex-row flex-wrap items-center gap-2">
+        <HStack gap="sm" align="center" wrap>
           <Button size="sm">
             <Text>Small</Text>
           </Button>
@@ -639,11 +653,11 @@ function ButtonDemo() {
           <Button size="icon">
             <Icon as={Settings} />
           </Button>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="With Icon">
-        <View className="flex-row flex-wrap gap-2">
+        <HStack gap="sm" wrap>
           <Button>
             <Icon as={Mail} />
             <Text>Login with Email</Text>
@@ -652,26 +666,26 @@ function ButtonDemo() {
             <Icon as={User} />
             <Text>Profile</Text>
           </Button>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Disabled">
-        <View className="flex-row flex-wrap gap-2">
+        <HStack gap="sm" wrap>
           <Button disabled>
             <Text>Disabled</Text>
           </Button>
           <Button variant="outline" disabled>
             <Text>Disabled</Text>
           </Button>
-        </View>
+        </HStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function ButtonGroupDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Horizontal Group">
         <ButtonGroup>
           <Button variant="outline">Left</Button>
@@ -712,7 +726,7 @@ function ButtonGroupDemo() {
           <Button variant="destructive">Delete</Button>
         </ButtonGroup>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -722,24 +736,24 @@ function CheckboxDemo() {
   const [checked3, setChecked3] = React.useState(false);
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
-        <View className="gap-4">
-          <View className="flex-row items-center gap-3">
+        <VStack gap="md">
+          <HStack gap="sm" align="center">
             <Checkbox checked={checked1} onCheckedChange={setChecked1} />
             <Text>Accept terms and conditions</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
+          </HStack>
+          <HStack gap="sm" align="center">
             <Checkbox checked={checked2} onCheckedChange={setChecked2} />
             <Text>Receive marketing emails</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
+          </HStack>
+          <HStack gap="sm" align="center">
             <Checkbox checked={checked3} onCheckedChange={setChecked3} disabled />
-            <Text className="opacity-50">Disabled option</Text>
-          </View>
-        </View>
+            <Text tone="muted">Disabled option</Text>
+          </HStack>
+        </VStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -768,13 +782,15 @@ function CommandDemo() {
   };
 
   return (
-    <View className="gap-4 items-center">
+    <VStack gap="md" align="center">
       <Button variant="outline" onPress={() => setDialogOpen(true)}>
         <Text>Open Command Palette</Text>
-        <Text className="text-muted-foreground ml-2 text-xs">⌘K</Text>
+        <Text tone="muted" size="xs">
+          ⌘K
+        </Text>
       </Button>
       {selectedValue && (
-        <Text className="text-muted-foreground text-sm">
+        <Text tone="muted" size="sm">
           Selected: {selectedValue}
         </Text>
       )}
@@ -784,55 +800,55 @@ function CommandDemo() {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Suggestions">
             <CommandItem value="calendar" onSelect={handleSelect}>
-              <Icon as={Calendar} className="text-muted-foreground" />
+              <Icon as={Calendar} tone="muted" />
               <Text>Calendar</Text>
             </CommandItem>
             <CommandItem value="search-emoji" keywords={['emoji', 'emoticon', 'face']} onSelect={handleSelect}>
-              <Icon as={Smile} className="text-muted-foreground" />
+              <Icon as={Smile} tone="muted" />
               <Text>Search Emoji</Text>
             </CommandItem>
             <CommandItem value="calculator" onSelect={handleSelect}>
-              <Icon as={Calculator} className="text-muted-foreground" />
+              <Icon as={Calculator} tone="muted" />
               <Text>Calculator</Text>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Actions">
             <CommandItem value="new-file" onSelect={handleSelect}>
-              <Icon as={FileText} className="text-muted-foreground" />
+              <Icon as={FileText} tone="muted" />
               <Text>New File</Text>
             </CommandItem>
             <CommandItem value="new-folder" onSelect={handleSelect}>
-              <Icon as={Folder} className="text-muted-foreground" />
+              <Icon as={Folder} tone="muted" />
               <Text>New Folder</Text>
             </CommandItem>
             <CommandItem value="copy" keywords={['clipboard', 'duplicate']} onSelect={handleSelect}>
-              <Icon as={Copy} className="text-muted-foreground" />
+              <Icon as={Copy} tone="muted" />
               <Text>Copy</Text>
             </CommandItem>
           </CommandGroup>
           <CommandSeparator />
           <CommandGroup heading="Settings">
             <CommandItem value="profile" keywords={['account', 'user']} onSelect={handleSelect}>
-              <Icon as={User} className="text-muted-foreground" />
+              <Icon as={User} tone="muted" />
               <Text>Profile</Text>
             </CommandItem>
             <CommandItem value="billing" keywords={['payment', 'subscription']} onSelect={handleSelect}>
-              <Icon as={CreditCard} className="text-muted-foreground" />
+              <Icon as={CreditCard} tone="muted" />
               <Text>Billing</Text>
             </CommandItem>
             <CommandItem value="settings" keywords={['preferences', 'config']} onSelect={handleSelect}>
-              <Icon as={Settings} className="text-muted-foreground" />
+              <Icon as={Settings} tone="muted" />
               <Text>Settings</Text>
             </CommandItem>
             <CommandItem value="logout" disabled onSelect={handleSelect}>
-              <Icon as={LogOut} className="text-muted-foreground" />
+              <Icon as={LogOut} tone="muted" />
               <Text>Log out</Text>
             </CommandItem>
           </CommandGroup>
         </CommandList>
       </CommandDialog>
-    </View>
+    </VStack>
   );
 }
 
@@ -841,23 +857,27 @@ function ContextMenuDemo() {
   const [person, setPerson] = React.useState('pedro');
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <Pressable className="border-border bg-muted/30 flex items-center justify-center rounded-md border border-dashed px-6 py-4">
-              <Text className="text-muted-foreground text-sm">Long press or right click here</Text>
-            </Pressable>
+            <Box background="muted" border rounded="md" padding="lg">
+              <Center>
+                <Text tone="muted" size="sm">
+                  Long press or right click here
+                </Text>
+              </Center>
+            </Box>
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuLabel>Actions</ContextMenuLabel>
             <ContextMenuSeparator />
             <ContextMenuItem>
-              <Icon as={Copy} size={16} className="text-muted-foreground" />
+              <Icon as={Copy} size={16} tone="muted" />
               <Text>Copy</Text>
             </ContextMenuItem>
             <ContextMenuItem>
-              <Icon as={PlusCircle} size={16} className="text-muted-foreground" />
+              <Icon as={PlusCircle} size={16} tone="muted" />
               <Text>Add to favorites</Text>
             </ContextMenuItem>
             <ContextMenuSeparator />
@@ -876,19 +896,19 @@ function ContextMenuDemo() {
             </ContextMenuRadioGroup>
             <ContextMenuSeparator />
             <ContextMenuItem variant="destructive">
-              <Icon as={Trash2} size={16} className="text-destructive" />
+              <Icon as={Trash2} size={16} tone="destructive" />
               <Text>Delete</Text>
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function DialogDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default Dialog">
         <Dialog>
           <DialogTrigger asChild>
@@ -903,16 +923,22 @@ function DialogDemo() {
                 Make changes to your profile here. Click save when you're done.
               </DialogDescription>
             </DialogHeader>
-            <View className="gap-4 py-4">
-              <View className="gap-2">
-                <Text className="text-sm font-medium">Name</Text>
-                <Input placeholder="John Doe" />
-              </View>
-              <View className="gap-2">
-                <Text className="text-sm font-medium">Username</Text>
-                <Input placeholder="@johndoe" />
-              </View>
-            </View>
+            <Box paddingY="md">
+              <VStack gap="md">
+                <VStack gap="sm">
+                  <Text size="sm" weight="medium">
+                    Name
+                  </Text>
+                  <Input placeholder="John Doe" />
+                </VStack>
+                <VStack gap="sm">
+                  <Text size="sm" weight="medium">
+                    Username
+                  </Text>
+                  <Input placeholder="@johndoe" />
+                </VStack>
+              </VStack>
+            </Box>
             <DialogFooter>
               <Button>
                 <Text>Save changes</Text>
@@ -921,7 +947,7 @@ function DialogDemo() {
           </DialogContent>
         </Dialog>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -930,7 +956,7 @@ function DropdownMenuDemo() {
   const [position, setPosition] = React.useState('bottom');
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -943,11 +969,11 @@ function DropdownMenuDemo() {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <Icon as={User} size={16} className="text-muted-foreground" />
+              <Icon as={User} size={16} tone="muted" />
               <Text>Profile</Text>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Icon as={Settings} size={16} className="text-muted-foreground" />
+              <Icon as={Settings} size={16} tone="muted" />
               <Text>Settings</Text>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -966,40 +992,44 @@ function DropdownMenuDemo() {
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">
-              <Icon as={LogOut} size={16} className="text-destructive" />
+              <Icon as={LogOut} size={16} tone="destructive" />
               <Text>Log out</Text>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function InputDemo() {
   return (
-    <View className="w-full max-w-sm gap-6">
+    <Container size="sm">
+      <VStack gap="lg">
       <DemoSection title="Default">
         <Input placeholder="Email" />
       </DemoSection>
 
       <DemoSection title="With Label">
-        <View className="gap-2">
-          <Text className="text-sm font-medium">Email</Text>
+        <VStack gap="sm">
+          <Text size="sm" weight="medium">
+            Email
+          </Text>
           <Input placeholder="name@example.com" />
-        </View>
+        </VStack>
       </DemoSection>
 
       <DemoSection title="Disabled">
         <Input placeholder="Disabled" editable={false} />
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
 function PopoverDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
         <Popover>
           <PopoverTrigger asChild>
@@ -1008,28 +1038,28 @@ function PopoverDemo() {
             </Button>
           </PopoverTrigger>
           <PopoverContent>
-            <View className="gap-4">
-              <View className="gap-2">
-                <Text className="font-medium">Dimensions</Text>
-                <Text className="text-muted-foreground text-sm">
+            <VStack gap="md">
+              <VStack gap="sm">
+                <Text weight="medium">Dimensions</Text>
+                <Text tone="muted" size="sm">
                   Set the dimensions for the layer.
                 </Text>
-              </View>
-              <View className="gap-3">
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm">Width</Text>
-                  <Input className="w-24" placeholder="100%" />
-                </View>
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-sm">Height</Text>
-                  <Input className="w-24" placeholder="25px" />
-                </View>
-              </View>
-            </View>
+              </VStack>
+              <VStack gap="sm">
+                <HStack align="center" justify="between">
+                  <Text size="sm">Width</Text>
+                  <Input width="sm" placeholder="100%" />
+                </HStack>
+                <HStack align="center" justify="between">
+                  <Text size="sm">Height</Text>
+                  <Input width="sm" placeholder="25px" />
+                </HStack>
+              </VStack>
+            </VStack>
           </PopoverContent>
         </Popover>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -1037,37 +1067,37 @@ function RadioGroupDemo() {
   const [value, setValue] = React.useState('comfortable');
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
         <RadioGroup value={value} onValueChange={setValue}>
-          <View className="flex-row items-center gap-3">
+          <HStack gap="sm" align="center">
             <RadioGroupItem value="default" />
             <Text>Default</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
+          </HStack>
+          <HStack gap="sm" align="center">
             <RadioGroupItem value="comfortable" />
             <Text>Comfortable</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
+          </HStack>
+          <HStack gap="sm" align="center">
             <RadioGroupItem value="compact" />
             <Text>Compact</Text>
-          </View>
+          </HStack>
         </RadioGroup>
       </DemoSection>
 
       <DemoSection title="With Disabled">
         <RadioGroup value="option-one" onValueChange={() => {}}>
-          <View className="flex-row items-center gap-3">
+          <HStack gap="sm" align="center">
             <RadioGroupItem value="option-one" />
             <Text>Option One</Text>
-          </View>
-          <View className="flex-row items-center gap-3">
+          </HStack>
+          <HStack gap="sm" align="center">
             <RadioGroupItem value="option-two" disabled />
-            <Text className="opacity-50">Option Two (disabled)</Text>
-          </View>
+            <Text tone="muted">Option Two (disabled)</Text>
+          </HStack>
         </RadioGroup>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -1075,10 +1105,11 @@ function SelectDemo() {
   const [fruit, setFruit] = React.useState<string | undefined>();
 
   return (
-    <View className="w-full max-w-sm gap-6">
+    <Container size="sm">
+      <VStack gap="lg">
       <DemoSection title="Default">
         <Select value={fruit ? { value: fruit, label: fruit } : undefined} onValueChange={(opt) => setFruit(opt?.value)}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger fullWidth>
             <SelectValue placeholder="Select a fruit" />
           </SelectTrigger>
           <SelectContent>
@@ -1100,32 +1131,35 @@ function SelectDemo() {
           </SelectContent>
         </Select>
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
 function SeparatorDemo() {
   return (
-    <View className="w-full max-w-md gap-6">
+    <Container size="md">
+      <VStack gap="lg">
       <DemoSection title="Horizontal">
-        <View className="gap-4">
-          <View>
-            <Text className="font-medium">Radix Primitives</Text>
-            <Text className="text-muted-foreground text-sm">
+        <VStack gap="md">
+          <VStack gap="sm">
+            <Text weight="medium">Radix Primitives</Text>
+            <Text tone="muted" size="sm">
               An open-source UI component library.
             </Text>
-          </View>
+          </VStack>
           <Separator />
-          <View className="flex-row items-center gap-4">
-            <Text className="text-sm">Blog</Text>
-            <Separator orientation="vertical" className="h-4" />
-            <Text className="text-sm">Docs</Text>
-            <Separator orientation="vertical" className="h-4" />
-            <Text className="text-sm">Source</Text>
-          </View>
-        </View>
+          <HStack gap="md" align="center">
+            <Text size="sm">Blog</Text>
+            <Separator orientation="vertical" length="md" />
+            <Text size="sm">Docs</Text>
+            <Separator orientation="vertical" length="md" />
+            <Text size="sm">Source</Text>
+          </HStack>
+        </VStack>
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
@@ -1134,24 +1168,26 @@ function SwitchDemo() {
   const [enabled2, setEnabled2] = React.useState(true);
 
   return (
-    <View className="w-full max-w-sm gap-6">
+    <Container size="sm">
+      <VStack gap="lg">
       <DemoSection title="Default">
-        <View className="gap-4">
-          <View className="flex-row items-center justify-between gap-8">
+        <VStack gap="md">
+          <HStack align="center" justify="between" gap="lg">
             <Text>Airplane Mode</Text>
             <Switch checked={enabled1} onCheckedChange={setEnabled1} />
-          </View>
-          <View className="flex-row items-center justify-between gap-8">
+          </HStack>
+          <HStack align="center" justify="between" gap="lg">
             <Text>Notifications</Text>
             <Switch checked={enabled2} onCheckedChange={setEnabled2} />
-          </View>
-          <View className="flex-row items-center justify-between gap-8">
-            <Text className="opacity-50">Disabled</Text>
+          </HStack>
+          <HStack align="center" justify="between" gap="lg">
+            <Text tone="muted">Disabled</Text>
             <Switch checked={false} onCheckedChange={() => {}} disabled />
-          </View>
-        </View>
+          </HStack>
+        </VStack>
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
@@ -1159,7 +1195,8 @@ function TabsDemo() {
   const [activeTab, setActiveTab] = React.useState('account');
 
   return (
-    <View className="w-full max-w-md gap-6">
+    <Container size="md">
+      <VStack gap="lg">
       <DemoSection title="Default">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
@@ -1171,53 +1208,66 @@ function TabsDemo() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="account">
-            <View className="bg-card border-border gap-4 rounded-md border p-4">
-              <Text className="font-medium">Account</Text>
-              <Text className="text-muted-foreground text-sm">
+            <Box background="card" border rounded="md" padding="md">
+              <VStack gap="md">
+                <Text weight="medium">Account</Text>
+                <Text tone="muted" size="sm">
                 Make changes to your account here. Click save when you're done.
-              </Text>
-              <View className="gap-2">
-                <Text className="text-sm font-medium">Name</Text>
-                <Input placeholder="Name" defaultValue="Pedro Duarte" />
-              </View>
-            </View>
+                </Text>
+                <VStack gap="sm">
+                  <Text size="sm" weight="medium">
+                    Name
+                  </Text>
+                  <Input placeholder="Name" defaultValue="Pedro Duarte" />
+                </VStack>
+              </VStack>
+            </Box>
           </TabsContent>
           <TabsContent value="password">
-            <View className="bg-card border-border gap-4 rounded-md border p-4">
-              <Text className="font-medium">Password</Text>
-              <Text className="text-muted-foreground text-sm">
+            <Box background="card" border rounded="md" padding="md">
+              <VStack gap="md">
+                <Text weight="medium">Password</Text>
+                <Text tone="muted" size="sm">
                 Change your password here. After saving, you'll be logged out.
-              </Text>
-              <View className="gap-2">
-                <Text className="text-sm font-medium">Current password</Text>
-                <Input placeholder="Current password" secureTextEntry />
-              </View>
-            </View>
+                </Text>
+                <VStack gap="sm">
+                  <Text size="sm" weight="medium">
+                    Current password
+                  </Text>
+                  <Input placeholder="Current password" secureTextEntry />
+                </VStack>
+              </VStack>
+            </Box>
           </TabsContent>
         </Tabs>
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
 function TextareaDemo() {
   return (
-    <View className="w-full max-w-sm gap-6">
+    <Container size="sm">
+      <VStack gap="lg">
       <DemoSection title="Default">
         <Textarea placeholder="Type your message here." />
       </DemoSection>
 
       <DemoSection title="With Label">
-        <View className="gap-2">
-          <Text className="text-sm font-medium">Your message</Text>
+        <VStack gap="sm">
+          <Text size="sm" weight="medium">
+            Your message
+          </Text>
           <Textarea placeholder="Tell us what you think..." />
-        </View>
+        </VStack>
       </DemoSection>
 
       <DemoSection title="Disabled">
         <Textarea placeholder="Disabled" editable={false} />
       </DemoSection>
-    </View>
+      </VStack>
+    </Container>
   );
 }
 
@@ -1229,36 +1279,36 @@ function ToggleDemo() {
   const [withTextBold, setWithTextBold] = React.useState(false);
 
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
-        <View className="flex-row gap-2">
+        <HStack gap="sm">
           <Toggle pressed={defaultBold} onPressedChange={setDefaultBold}>
             <ToggleIcon as={Bold} />
           </Toggle>
           <Toggle pressed={defaultItalic} onPressedChange={setDefaultItalic}>
             <ToggleIcon as={Italic} />
           </Toggle>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Outline Variant">
-        <View className="flex-row gap-2">
+        <HStack gap="sm">
           <Toggle variant="outline" pressed={outlineBold} onPressedChange={setOutlineBold}>
             <ToggleIcon as={Bold} />
           </Toggle>
           <Toggle variant="outline" pressed={outlineItalic} onPressedChange={setOutlineItalic}>
             <ToggleIcon as={Italic} />
           </Toggle>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="With Text">
-        <View className="flex-row gap-2">
+        <HStack gap="sm">
           <Toggle pressed={withTextBold} onPressedChange={setWithTextBold}>
             <ToggleIcon as={Bold} />
             <Text>Bold</Text>
           </Toggle>
-        </View>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Disabled">
@@ -1266,15 +1316,15 @@ function ToggleDemo() {
           <ToggleIcon as={Bold} />
         </Toggle>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function TooltipDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
-        <View className="flex-row gap-4">
+        <HStack gap="md">
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="icon">
@@ -1307,77 +1357,99 @@ function TooltipDemo() {
               <Text>More options</Text>
             </TooltipContent>
           </Tooltip>
-        </View>
+        </HStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
 function SpinnerDemo() {
   return (
-    <View className="gap-6">
+    <VStack gap="lg">
       <DemoSection title="Default">
         <Spinner />
       </DemoSection>
 
       <DemoSection title="Sizes">
-        <View className="flex-row items-center gap-4">
-          <View className="items-center gap-1">
+        <HStack gap="md" align="center">
+          <VStack gap="xs" align="center">
             <Spinner size={12} />
-            <Text className="text-muted-foreground text-xs">12px</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              12px
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner size={16} />
-            <Text className="text-muted-foreground text-xs">16px</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              16px
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner size={20} />
-            <Text className="text-muted-foreground text-xs">20px</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              20px
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner size={24} />
-            <Text className="text-muted-foreground text-xs">24px</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              24px
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner size={32} />
-            <Text className="text-muted-foreground text-xs">32px</Text>
-          </View>
-        </View>
+            <Text tone="muted" size="xs">
+              32px
+            </Text>
+          </VStack>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="Colors">
-        <View className="flex-row flex-wrap items-center gap-4">
-          <View className="items-center gap-1">
+        <HStack gap="md" align="center" wrap>
+          <VStack gap="xs" align="center">
             <Spinner color="#3b82f6" />
-            <Text className="text-muted-foreground text-xs">Blue</Text>
-          </View>
-          <View className="items-center gap-1">
-            <Spinner iconClassName="text-destructive" />
-            <Text className="text-muted-foreground text-xs">Red</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              Blue
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
+            <Spinner tone="destructive" />
+            <Text tone="muted" size="xs">
+              Red
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner color="#10b981" />
-            <Text className="text-muted-foreground text-xs">Green</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              Green
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner color="#f59e0b" />
-            <Text className="text-muted-foreground text-xs">Amber</Text>
-          </View>
-          <View className="items-center gap-1">
+            <Text tone="muted" size="xs">
+              Amber
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
             <Spinner color="#8b5cf6" />
-            <Text className="text-muted-foreground text-xs">Purple</Text>
-          </View>
-          <View className="items-center gap-1">
-            <Spinner iconClassName="text-muted-foreground" />
-            <Text className="text-muted-foreground text-xs">Muted</Text>
-          </View>
-        </View>
+            <Text tone="muted" size="xs">
+              Purple
+            </Text>
+          </VStack>
+          <VStack gap="xs" align="center">
+            <Spinner tone="muted" />
+            <Text tone="muted" size="xs">
+              Muted
+            </Text>
+          </VStack>
+        </HStack>
       </DemoSection>
 
       <DemoSection title="In Context">
-        <View className="flex-row flex-wrap gap-3">
+        <HStack gap="sm" wrap>
           <Button disabled>
-            <Spinner size={14} iconClassName="text-primary-foreground" />
+            <Spinner size={14} tone="primary-foreground" />
             <Text>Loading...</Text>
           </Button>
           <Button variant="outline" disabled>
@@ -1388,9 +1460,9 @@ function SpinnerDemo() {
             <Spinner size={14} />
             <Text>Submitting</Text>
           </Button>
-        </View>
+        </HStack>
       </DemoSection>
-    </View>
+    </VStack>
   );
 }
 
@@ -1427,18 +1499,22 @@ export default function ComponentDemo() {
   const DemoComponent = COMPONENT_DEMOS[component ?? ''];
 
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerClassName="p-4 pb-8"
-      showsVerticalScrollIndicator={Platform.OS === 'web'}>
-      <View className="items-center gap-8">
-        <Text className="text-2xl font-semibold">{displayName}</Text>
-        {DemoComponent ? (
-          <DemoComponent />
-        ) : (
-          <Text className="text-muted-foreground">Demo not available yet.</Text>
-        )}
-      </View>
-    </ScrollView>
+    <Frame fill>
+      <ScrollArea fill showScrollbar={Platform.OS === 'web' ? 'auto' : 'never'}>
+        <Box padding="md">
+          <VStack gap="xl" align="center">
+            <Text size="2xl" weight="semibold">
+              {displayName}
+            </Text>
+            {DemoComponent ? (
+              <DemoComponent />
+            ) : (
+              <Text tone="muted">Demo not available yet.</Text>
+            )}
+            <Spacer size="xl" />
+          </VStack>
+        </Box>
+      </ScrollArea>
+    </Frame>
   );
 }

@@ -18,6 +18,8 @@ type SpinnerProps = ViewProps & {
   size?: number;
   /** Custom color for the spinner. Defaults to current text color. */
   color?: string;
+  /** Semantic color tone for the spinner icon. */
+  tone?: 'default' | 'muted' | 'destructive' | 'primary' | 'secondary' | 'primary-foreground';
   /** Utility classes applied to the icon. */
   iconClassName?: string;
 };
@@ -48,6 +50,7 @@ function Spinner({
   iconClassName,
   size = DEFAULT_SPINNER_SIZE,
   color,
+  tone = 'default',
   style,
   ...props
 }: SpinnerProps) {
@@ -94,7 +97,14 @@ function Spinner({
         as={Loader2}
         size={size}
         color={color}
-        className={iconClassName}
+        className={cn(
+          tone === 'muted' && 'text-muted-foreground',
+          tone === 'destructive' && 'text-destructive',
+          tone === 'primary' && 'text-primary',
+          tone === 'secondary' && 'text-secondary',
+          tone === 'primary-foreground' && 'text-primary-foreground',
+          iconClassName
+        )}
       />
     </WrapperComponent>
   );
