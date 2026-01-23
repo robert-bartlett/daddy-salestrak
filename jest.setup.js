@@ -4,19 +4,37 @@
 // Note: react-native-reanimated mock is in __mocks__/react-native-reanimated.js
 // and configured via moduleNameMapper in jest.config.js
 
-// Mock lucide-react-native icons
-jest.mock('lucide-react-native', () => ({
-  PanelLeft: () => null,
-  AlertTriangle: () => null,
-  Info: () => null,
-  ChevronRight: () => null,
-  ChevronDown: () => null,
-  FileText: () => null,
-  Folder: () => null,
-  Home: () => null,
-  MoreHorizontal: () => null,
-  X: () => null,
-}));
+// Mock lucide-react-native icons using Proxy to handle any icon
+jest.mock('lucide-react-native', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+
+  const createMockIcon = (name) => {
+    const MockIcon = React.forwardRef((props, ref) =>
+      React.createElement(View, { ref, testID: `icon-${name}`, ...props })
+    );
+    MockIcon.displayName = name;
+    return MockIcon;
+  };
+
+  // Cache for icons
+  const iconCache = {};
+
+  return new Proxy(
+    {},
+    {
+      get: (target, prop) => {
+        if (typeof prop === 'string' && prop !== '__esModule') {
+          if (!iconCache[prop]) {
+            iconCache[prop] = createMockIcon(prop);
+          }
+          return iconCache[prop];
+        }
+        return undefined;
+      },
+    }
+  );
+});
 
 // Mock the useIsMobile hook directly
 jest.mock('@/hooks/use-is-mobile', () => ({
@@ -48,6 +66,27 @@ jest.mock('@rn-primitives/dialog', () => {
 jest.mock('@rn-primitives/portal', () => ({
   PortalHost: ({ children }) => children,
 }));
+
+// Mock @rn-primitives/popover
+jest.mock('@rn-primitives/popover', () => {
+  const React = require('react');
+  const { View, Pressable } = require('react-native');
+
+  return {
+    Root: ({ children }) => children,
+    Trigger: React.forwardRef(({ children, asChild, ...props }, ref) => {
+      if (asChild && React.isValidElement(children)) {
+        return React.cloneElement(children, { ref, ...props });
+      }
+      return React.createElement(Pressable, { ref, ...props }, children);
+    }),
+    Portal: ({ children }) => children,
+    Overlay: ({ children }) => children,
+    Content: React.forwardRef(({ children, ...props }, ref) =>
+      React.createElement(View, { ref, ...props }, children)
+    ),
+  };
+});
 
 // Mock @rn-primitives/tooltip
 jest.mock('@rn-primitives/tooltip', () => {

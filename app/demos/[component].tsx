@@ -20,6 +20,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxGroup,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxSeparator,
+  ComboboxTrigger,
+} from '@/components/ui/combobox';
+import {
   Command,
   CommandDialog,
   CommandEmpty,
@@ -128,6 +139,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   button: 'Button',
   'button-group': 'Button Group',
   checkbox: 'Checkbox',
+  combobox: 'Combobox',
   command: 'Command',
   'context-menu': 'Context Menu',
   dialog: 'Dialog',
@@ -854,6 +866,177 @@ function CommandDemo() {
   );
 }
 
+function ComboboxDemo() {
+  // Single-select state
+  const [framework, setFramework] = React.useState<string | undefined>();
+
+  // Single-select for disabled items demo (separate state)
+  const [disabledDemoFramework, setDisabledDemoFramework] = React.useState<string | undefined>();
+
+  // Multi-select state for list display demo
+  const [selectedTags, setSelectedTags] = React.useState<string[]>(['bug']);
+
+  // Multi-select state for count display demo (separate state)
+  const [countDisplayTags, setCountDisplayTags] = React.useState<string[]>(['bug', 'feature']);
+
+  // Multi-select with groups state
+  const [selectedTech, setSelectedTech] = React.useState<string[]>([]);
+
+  return (
+    <Container size="md">
+      <VStack gap="xl">
+        <DemoSection title="Single-Select">
+          <VStack gap="sm">
+            <Combobox value={framework} onValueChange={setFramework}>
+              <ComboboxTrigger placeholder="Select framework..." />
+              <ComboboxContent>
+                <ComboboxInput placeholder="Search frameworks..." />
+                <ComboboxList>
+                  <ComboboxEmpty>No framework found.</ComboboxEmpty>
+                  <ComboboxItem value="react">React</ComboboxItem>
+                  <ComboboxItem value="vue">Vue</ComboboxItem>
+                  <ComboboxItem value="angular">Angular</ComboboxItem>
+                  <ComboboxItem value="svelte">Svelte</ComboboxItem>
+                  <ComboboxItem value="solid">Solid</ComboboxItem>
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+            {framework && (
+              <Text size="sm" tone="muted">
+                Selected: {framework}
+              </Text>
+            )}
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="Multi-Select (List Display)">
+          <VStack gap="sm">
+            <Combobox
+              multiple
+              values={selectedTags}
+              onValuesChange={setSelectedTags}
+            >
+              <ComboboxTrigger placeholder="Select tags..." />
+              <ComboboxContent>
+                <ComboboxInput placeholder="Search tags..." />
+                <ComboboxList>
+                  <ComboboxEmpty>No tags found.</ComboboxEmpty>
+                  <ComboboxItem value="bug">Bug</ComboboxItem>
+                  <ComboboxItem value="feature">Feature</ComboboxItem>
+                  <ComboboxItem value="enhancement">Enhancement</ComboboxItem>
+                  <ComboboxItem value="documentation">Documentation</ComboboxItem>
+                  <ComboboxItem value="help-wanted">Help Wanted</ComboboxItem>
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+            <Text size="sm" tone="muted">
+              {selectedTags.length} tag(s) selected
+            </Text>
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="Multi-Select (Count Display)">
+          <Combobox
+            multiple
+            values={countDisplayTags}
+            onValuesChange={setCountDisplayTags}
+          >
+            <ComboboxTrigger
+              placeholder="Select tags..."
+              displayMode="count"
+            />
+            <ComboboxContent>
+              <ComboboxInput placeholder="Search tags..." />
+              <ComboboxList>
+                <ComboboxEmpty>No tags found.</ComboboxEmpty>
+                <ComboboxItem value="bug">Bug</ComboboxItem>
+                <ComboboxItem value="feature">Feature</ComboboxItem>
+                <ComboboxItem value="enhancement">Enhancement</ComboboxItem>
+                <ComboboxItem value="documentation">Documentation</ComboboxItem>
+                <ComboboxItem value="help-wanted">Help Wanted</ComboboxItem>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </DemoSection>
+
+        <DemoSection title="With Groups">
+          <Combobox
+            multiple
+            values={selectedTech}
+            onValuesChange={setSelectedTech}
+          >
+            <ComboboxTrigger placeholder="Select technologies..." />
+            <ComboboxContent>
+              <ComboboxInput placeholder="Search..." />
+              <ComboboxList>
+                <ComboboxEmpty>No results found.</ComboboxEmpty>
+                <ComboboxGroup heading="Frontend">
+                  <ComboboxItem value="react">React</ComboboxItem>
+                  <ComboboxItem value="vue">Vue</ComboboxItem>
+                  <ComboboxItem value="angular">Angular</ComboboxItem>
+                </ComboboxGroup>
+                <ComboboxSeparator />
+                <ComboboxGroup heading="Backend">
+                  <ComboboxItem value="node">Node.js</ComboboxItem>
+                  <ComboboxItem value="python">Python</ComboboxItem>
+                  <ComboboxItem value="go">Go</ComboboxItem>
+                </ComboboxGroup>
+                <ComboboxSeparator />
+                <ComboboxGroup heading="Database">
+                  <ComboboxItem value="postgres">PostgreSQL</ComboboxItem>
+                  <ComboboxItem value="mongodb">MongoDB</ComboboxItem>
+                  <ComboboxItem value="redis">Redis</ComboboxItem>
+                </ComboboxGroup>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </DemoSection>
+
+        <DemoSection title="With Disabled Items">
+          <Combobox value={disabledDemoFramework} onValueChange={setDisabledDemoFramework}>
+            <ComboboxTrigger placeholder="Select framework..." />
+            <ComboboxContent>
+              <ComboboxInput placeholder="Search..." />
+              <ComboboxList>
+                <ComboboxEmpty>No framework found.</ComboboxEmpty>
+                <ComboboxItem value="react">React</ComboboxItem>
+                <ComboboxItem value="vue">Vue</ComboboxItem>
+                <ComboboxItem value="angular">Angular</ComboboxItem>
+                <ComboboxItem value="jquery" disabled>
+                  jQuery (deprecated)
+                </ComboboxItem>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </DemoSection>
+
+        <DemoSection title="Sizes">
+          <HStack gap="sm" align="end">
+            <Combobox>
+              <ComboboxTrigger placeholder="Default" size="default" />
+              <ComboboxContent>
+                <ComboboxInput placeholder="Search..." />
+                <ComboboxList>
+                  <ComboboxItem value="opt1">Option 1</ComboboxItem>
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+            <Combobox>
+              <ComboboxTrigger placeholder="Small" size="sm" />
+              <ComboboxContent>
+                <ComboboxInput placeholder="Search..." />
+                <ComboboxList>
+                  <ComboboxItem value="opt1">Option 1</ComboboxItem>
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </HStack>
+        </DemoSection>
+      </VStack>
+    </Container>
+  );
+}
+
 function ContextMenuDemo() {
   const [bookmarked, setBookmarked] = React.useState(true);
   const [person, setPerson] = React.useState('pedro');
@@ -1546,6 +1729,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   button: ButtonDemo,
   'button-group': ButtonGroupDemo,
   checkbox: CheckboxDemo,
+  combobox: ComboboxDemo,
   command: CommandDemo,
   'context-menu': ContextMenuDemo,
   dialog: DialogDemo,

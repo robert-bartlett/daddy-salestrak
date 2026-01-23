@@ -25,7 +25,7 @@ const JUSTIFY_CLASSES = {
   evenly: 'justify-evenly',
 } as const;
 
-type StackProps = Omit<ViewProps, 'className' | 'style'> & {
+type StackProps = Omit<ViewProps, 'style' | 'className'> & {
   direction?: keyof typeof DIRECTION_CLASSES;
   gap?: SpacingToken;
   align?: keyof typeof ALIGN_CLASSES;

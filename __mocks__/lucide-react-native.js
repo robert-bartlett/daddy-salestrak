@@ -17,21 +17,24 @@ const createMockIcon = (name) => {
   return MockIcon;
 };
 
-// Export commonly used icons
-module.exports = {
-  Loader2: createMockIcon('Loader2'),
-  // Add more icons as needed
-  ArrowRight: createMockIcon('ArrowRight'),
-  Bold: createMockIcon('Bold'),
-  ChevronDown: createMockIcon('ChevronDown'),
-  Copy: createMockIcon('Copy'),
-  Italic: createMockIcon('Italic'),
-  LogOut: createMockIcon('LogOut'),
-  Mail: createMockIcon('Mail'),
-  MoreHorizontal: createMockIcon('MoreHorizontal'),
-  PlusCircle: createMockIcon('PlusCircle'),
-  Settings: createMockIcon('Settings'),
-  Trash2: createMockIcon('Trash2'),
-  User: createMockIcon('User'),
-  X: createMockIcon('X'),
-};
+// Cache for mocked icons
+const iconCache = {};
+
+// Use a Proxy to automatically create mock icons for any import
+const mockIcons = new Proxy(
+  {},
+  {
+    get: (target, prop) => {
+      // Return cached icon or create new one
+      if (typeof prop === 'string' && prop !== '__esModule') {
+        if (!iconCache[prop]) {
+          iconCache[prop] = createMockIcon(prop);
+        }
+        return iconCache[prop];
+      }
+      return undefined;
+    },
+  }
+);
+
+module.exports = mockIcons;
