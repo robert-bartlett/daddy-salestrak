@@ -61,6 +61,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
+import { Kbd } from '@/components/ui/kbd';
 import {
   Dialog,
   DialogContent,
@@ -145,6 +146,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
   input: 'Input',
+  kbd: 'Kbd',
   message: 'Message',
   popover: 'Popover',
   'radio-group': 'Radio Group',
@@ -1212,6 +1214,93 @@ function InputDemo() {
   );
 }
 
+function KbdDemo() {
+  return (
+    <VStack gap="lg">
+      <DemoSection title="Single Keys">
+        <HStack gap="md" wrap>
+          <Kbd>K</Kbd>
+          <Kbd>Enter</Kbd>
+          <Kbd>Esc</Kbd>
+          <Kbd>Tab</Kbd>
+        </HStack>
+      </DemoSection>
+
+      <DemoSection title="Key Combinations">
+        <VStack gap="sm">
+          <Kbd keys={['Cmd', 'K']} />
+          <Kbd keys={['Cmd', 'Shift', 'P']} />
+          <Kbd keys={['Ctrl', 'Alt', 'Delete']} />
+        </VStack>
+      </DemoSection>
+
+      <DemoSection title="Sizes">
+        <VStack gap="sm">
+          <HStack gap="md" align="center">
+            <Text size="sm" tone="muted">sm</Text>
+            <Kbd size="sm">Esc</Kbd>
+            <Kbd size="sm" keys={['Cmd', 'K']} />
+          </HStack>
+          <HStack gap="md" align="center">
+            <Text size="sm" tone="muted">default</Text>
+            <Kbd size="default">Esc</Kbd>
+            <Kbd size="default" keys={['Cmd', 'K']} />
+          </HStack>
+          <HStack gap="md" align="center">
+            <Text size="sm" tone="muted">lg</Text>
+            <Kbd size="lg">Esc</Kbd>
+            <Kbd size="lg" keys={['Cmd', 'K']} />
+          </HStack>
+        </VStack>
+      </DemoSection>
+
+      <DemoSection title="Symbol Conversion">
+        <HStack gap="md" wrap>
+          <Kbd>Cmd</Kbd>
+          <Kbd>Shift</Kbd>
+          <Kbd>Alt</Kbd>
+          <Kbd>Ctrl</Kbd>
+          <Kbd>Enter</Kbd>
+          <Kbd>Backspace</Kbd>
+          <Kbd>Up</Kbd>
+          <Kbd>Down</Kbd>
+        </HStack>
+      </DemoSection>
+
+      <DemoSection title="In Context Menu">
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <Box background="muted" border rounded="md" padding="lg">
+              <Center>
+                <Text tone="muted" size="sm">
+                  Right click or long press
+                </Text>
+              </Center>
+            </Box>
+          </ContextMenuTrigger>
+          <ContextMenuContent>
+            <ContextMenuItem>
+              <Text>Cut</Text>
+              <Spacer />
+              <Kbd keys={['Cmd', 'X']} />
+            </ContextMenuItem>
+            <ContextMenuItem>
+              <Text>Copy</Text>
+              <Spacer />
+              <Kbd keys={['Cmd', 'C']} />
+            </ContextMenuItem>
+            <ContextMenuItem>
+              <Text>Paste</Text>
+              <Spacer />
+              <Kbd keys={['Cmd', 'V']} />
+            </ContextMenuItem>
+          </ContextMenuContent>
+        </ContextMenu>
+      </DemoSection>
+    </VStack>
+  );
+}
+
 function MessageDemo() {
   const [showInfo, setShowInfo] = React.useState(true);
   const [showDanger, setShowDanger] = React.useState(true);
@@ -1735,6 +1824,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,
   input: InputDemo,
+  kbd: KbdDemo,
   message: MessageDemo,
   popover: PopoverDemo,
   'radio-group': RadioGroupDemo,

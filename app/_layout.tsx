@@ -32,6 +32,7 @@ const COMPONENTS: NavItem[] = [
   { label: 'Dialog', href: '/demos/dialog' },
   { label: 'Dropdown Menu', href: '/demos/dropdown-menu' },
   { label: 'Input', href: '/demos/input' },
+  { label: 'Kbd', href: '/demos/kbd' },
   { label: 'Message', href: '/demos/message' },
   { label: 'Popover', href: '/demos/popover' },
   { label: 'Radio Group', href: '/demos/radio-group' },

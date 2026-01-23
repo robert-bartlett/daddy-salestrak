@@ -10,8 +10,6 @@ import {
   Platform,
   type StyleProp,
   StyleSheet,
-  Text,
-  type TextProps,
   View,
   type ViewStyle,
 } from 'react-native';
@@ -337,22 +335,6 @@ const ContextMenuSeparator = React.forwardRef<
 
 ContextMenuSeparator.displayName = 'ContextMenuSeparator';
 
-type ContextMenuShortcutProps = TextProps;
-
-const ContextMenuShortcut = React.forwardRef<Text, ContextMenuShortcutProps>(
-  ({ className, ...props }, ref) => {
-    return (
-      <Text
-        ref={ref}
-        className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
-        {...props}
-      />
-    );
-  }
-);
-
-ContextMenuShortcut.displayName = 'ContextMenuShortcut';
-
 export {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -364,7 +346,6 @@ export {
   ContextMenuRadioGroup,
   ContextMenuRadioItem,
   ContextMenuSeparator,
-  ContextMenuShortcut,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -378,7 +359,6 @@ export type {
   ContextMenuLabelProps,
   ContextMenuRadioItemProps,
   ContextMenuSeparatorProps,
-  ContextMenuShortcutProps,
   ContextMenuSubContentProps,
   ContextMenuSubTriggerProps,
 };
