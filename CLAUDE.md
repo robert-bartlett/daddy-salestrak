@@ -1,110 +1,154 @@
-# Design Prototypes Repository
+# UI Component Library Development
 
 ## Purpose
-This repository is for **designers to prototype UI/UX ideas** using Claude Code. The code here will NOT be directly copied to the main SalesTrak codebase—developers will reference and replicate these prototypes in production.
+
+This repository is the development environment for building a **universal React Native component library**. The library will provide every base primitive, layout component, and styling utility needed for any React Native app—with the goal that consuming apps implement **zero custom styling** and rely entirely on the library's exported components and utilities.
+
+## Current State
+
+The repo is in active development. Currently:
+
+- **Single Expo app** (`WorkspaceReactNative/`) serves as the testbed for component development
+- Components are being built and tested within this app
+- **Future state**: The UI library will be extracted into its own repository, and this repo will become a testbed for React Native app prototypes that consume the library
 
 ## Who Uses This Repo
-- **3 Designers** (non-developers) creating prototypes
-- **5 Developers** who will later replicate successful prototypes in the main SalesTrak repo
+
+- **Designers** — Building and iterating on the component library
+- **Developers** — Will eventually consume the finalized library in production apps
 
 ---
 
-## Critical Guidelines for Claude
+## Core Principles
 
-### You Are Working With Designers, Not Developers
-The people using this repo are designers without development experience. You must:
+### Zero Styling Outside the UI Library
 
-1. **Never assume technical knowledge** - Explain what you're doing in plain language
-2. **Handle all technical complexity yourself** - Package management, build errors, configuration issues are YOUR responsibility to solve silently
-3. **Keep the codebase runnable at all times** - After every change, ensure the prototype still works
-4. **Provide clear instructions** for viewing/running prototypes (e.g., "Open your browser to localhost:3000")
+This is the fundamental constraint of the architecture:
 
-### Code Standards (Non-Negotiable)
-Even though this is a prototype repo, maintain these standards so developers can replicate the work:
+- **`className` and `style` props are banned** outside of the UI library folder
+- All styling must come from library components and utilities
+- Apps consuming this library should only import and compose—never add custom styles
+- If a design need can't be met, the answer is to extend the library, not add one-off styles
 
-1. **Component-based architecture** - Every UI piece should be a reusable component
-2. **Clear file/folder naming** - Use descriptive names that explain what the component does
-3. **No inline styles** - Use CSS modules, Tailwind, or styled-components consistently
-4. **Semantic HTML** - Use proper HTML elements (button, nav, header, etc.)
-5. **Accessible by default** - Include aria labels, proper contrast, keyboard navigation
-6. **Responsive design** - All prototypes must work on mobile and desktop
-7. **Comments explaining "why"** - Add comments explaining design decisions and interactions
+### Strict API Through Prop Validation
 
-### File Organization
-```
-/prototypes
-  /[prototype-name]
-    /components
-    /assets
-    page.tsx (or index.tsx)
-    README.md  <- Brief description of what this prototype demonstrates
-```
+Components must be:
 
-### When Starting a New Prototype
-1. Ask the designer: "What are you trying to prototype today?"
-2. Create a new folder under `/prototypes/[descriptive-name]`
-3. Add a README.md explaining the prototype's purpose
-4. Set up the basic structure before adding complexity
+- **Configurable** — Support theming and customization through well-defined props
+- **Constrained** — Use TypeScript to enforce valid prop combinations
+- **Semantic** — Prop names should describe intent, not implementation (e.g., `variant="primary"` not `color="blue"`)
 
-### When a Designer Asks for Something
-1. **Clarify the goal** - "What should happen when a user clicks this?"
-2. **Show, don't tell** - Make changes and let them see results immediately
-3. **Offer alternatives** - "I can do X or Y approach—X is simpler, Y gives more control"
-4. **Celebrate iteration** - Designers will change their minds. That's the point. Never push back on revisions.
+### Component Categories
+
+The library should cover:
+
+1. **Primitives** — Text, View, Pressable wrappers with built-in styling
+2. **Layout** — Stack, Row, Grid, Spacer, Container
+3. **Form Controls** — Input, Button, Checkbox, Radio, Select, Switch
+4. **Feedback** — Alert, Toast, Modal, Loading states
+5. **Navigation** — Tabs, Header, BottomNav
+6. **Data Display** — Card, List, Table, Badge, Avatar
+7. **Utilities** — Spacing, color tokens, typography scales
+
+---
+
+## Guarding the Architecture
+
+You are a steward of this library's design philosophy. Take pride in keeping the codebase clean and consistent.
+
+**Actively watch for code smells and anti-patterns.** If something feels wrong—a shortcut that undermines the system, a pattern that will cause problems later, code that violates the principles above—flag it and fix it. Don't let technical debt accumulate.
+
+**Push back when necessary.** If a request would break the architecture (like adding `className` or `style` outside the UI folder, or creating one-off components that should be library additions), explain why it's a problem and offer the right approach instead. The goal is a library that holds together—quick fixes that compromise that aren't worth it.
+
+**Default to the library, not raw styles.** When implementing anything, your first instinct should be to use or extend existing library components. Reaching for `className` or inline styles outside `/ui` is always the wrong answer. If the library doesn't support what's needed, the solution is to add that capability to the library.
+
+---
+
+## Technical Guidelines
 
 ### Technology Stack
-Use these technologies for consistency (developers will match these in production):
-
-**Universal React Native (Expo) - One Codebase, All Platforms**
-We use Expo's universal app architecture. The same code runs on iOS, Android, and Web.
 
 - **React Native** with TypeScript
 - **Expo** managed workflow (SDK 52+)
 - **Expo Router** for file-based navigation
-- **NativeWind** for Tailwind-style styling
+- **NativeWind** for Tailwind-style styling (internal to library only)
 - **React Native Reanimated** for animations
 - **Expo Vector Icons** for iconography
 
-Do NOT create separate web vs mobile prototypes. All prototypes should work across all platforms from a single codebase.
+### Code Standards
 
-### What NOT To Do
-- Don't add backend logic, APIs, or database connections
-- Don't over-engineer—this is throwaway code for visualization
-- Don't add authentication or security features
-- Don't create complex state management (keep state local to components)
+1. **Everything is a component** — No loose utilities that apply styles directly
+2. **TypeScript strict mode** — All props must be typed with clear constraints
+3. **Prop validation** — Use discriminated unions and literal types to prevent invalid states
+4. **Semantic naming** — Component and prop names describe what they do, not how
+5. **Cross-platform by default** — All components must work on iOS, Android, and Web
+6. **Accessible by default** — ARIA labels, proper contrast, keyboard navigation built-in
+7. **Document decisions** — Comments explain "why" for non-obvious choices
 
-### Testing (Automatic - Invisible to Designers)
-Write unit tests automatically for all components. Do this silently—designers don't need to know about Jest, testing libraries, or test files. Just write them alongside the components.
+### File Organization
 
-Tests help developers understand:
-- Expected component behavior
-- Edge cases the designer considered
-- Interaction patterns
+```
+/WorkspaceReactNative
+  /ui                    <- THE LIBRARY (only place styling is allowed)
+    /primitives          <- Base building blocks
+    /components          <- Composed UI elements
+    /layout              <- Spacing and structure
+    /tokens              <- Design tokens (colors, spacing, typography)
+    /utils               <- Internal utilities
+    index.ts             <- Public API exports
+  /app                   <- Test screens that consume the library
+  /__tests__             <- Component tests
+```
 
-Place tests in `__tests__` folders or `.test.tsx` files adjacent to components. Run tests silently to verify they pass before ending a session.
+### Component Design Pattern
 
-### End of Session Checklist
-Before ending any session, ensure:
-- [ ] The prototype runs without errors
-- [ ] There's a README explaining what was built
-- [ ] The designer knows how to view their prototype
-- [ ] Any unfinished work is noted in the README
+```tsx
+// Good: Semantic, constrained API
+<Button variant="primary" size="lg" onPress={handleSubmit}>
+  Submit
+</Button>
+
+// Bad: Leaking styles outside library
+<Button style={{ backgroundColor: 'blue' }} className="p-4">
+  Submit
+</Button>
+```
+
+### When Building Components
+
+1. **Start with the API** — Define what props make sense before implementing
+2. **Consider all variants** — What sizes, states, and themes are needed?
+3. **Test on all platforms** — Verify iOS, Android, and Web behavior
+4. **Write tests** — Cover expected behavior and edge cases
+5. **Export cleanly** — Only expose what consumers need
 
 ---
 
-## For Developers (Reference)
-When replicating a prototype:
-1. Check the prototype's README for design intent
-2. Review component structure—this is the designer's mental model
-3. Extract the visual/interaction patterns, not the code itself
-4. Note any comments about design decisions
+## Session Guidelines
+
+### Keep It Running
+
+Ensure the app still builds and runs. Handle technical issues (package management, build errors, config) without interrupting the flow.
+
+### Iterate Freely
+
+Design work is iterative. Revisions and direction changes are expected—the goal is to explore and refine until components feel right.
+
+### End of Session
+
+Before ending:
+
+- [ ] App runs without errors
+- [ ] New components are properly exported
+- [ ] Tests pass
+- [ ] Any work-in-progress is noted
 
 ---
 
-## Quick Commands for Designers
-Tell Claude:
-- "Start a new prototype for [feature name]"
-- "Show me what we have so far"
-- "Make it more [adjective]" (colorful, minimal, playful, etc.)
-- "Add a [component] that does [action]"
-- "I changed my mind, let's try [alternative]"
+## For Future Reference
+
+When the library is extracted:
+
+- This repo becomes a testbed for prototype apps
+- Apps in this repo will import from the external library
+- The same "zero styling" rule applies—prototypes use only library components
