@@ -93,6 +93,7 @@ import {
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/components/ui/message';
+import { Search } from '@/components/ui/search';
 import {
   Box,
   Center,
@@ -161,6 +162,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   message: 'Message',
   popover: 'Popover',
   'radio-group': 'Radio Group',
+  search: 'Search',
   select: 'Select',
   separator: 'Separator',
   spinner: 'Spinner',
@@ -1463,6 +1465,70 @@ function MessageDemo() {
   );
 }
 
+function SearchDemo() {
+  const [query, setQuery] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  const handleSearch = (value: string) => {
+    console.log('Searching for:', value);
+    setLoading(true);
+    // Simulate async search
+    setTimeout(() => setLoading(false), 1000);
+  };
+
+  return (
+    <Container size="sm">
+      <VStack gap="lg">
+        <DemoSection title="Default">
+          <Search placeholder="Search..." />
+        </DemoSection>
+
+        <DemoSection title="Controlled with Submit">
+          <VStack gap="sm">
+            <Search
+              value={query}
+              onValueChange={setQuery}
+              onSubmit={handleSearch}
+              loading={loading}
+              placeholder="Type and press Enter..."
+            />
+            {query && (
+              <Text size="sm" tone="muted">
+                Current query: {query}
+              </Text>
+            )}
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="Loading State">
+          <Search placeholder="Loading..." loading />
+        </DemoSection>
+
+        <DemoSection title="Disabled">
+          <Search placeholder="Disabled" disabled />
+        </DemoSection>
+
+        <DemoSection title="Invalid">
+          <Search placeholder="Invalid state" invalid />
+        </DemoSection>
+
+        <DemoSection title="Width Variants">
+          <VStack gap="sm">
+            <Search width="sm" placeholder="Small" />
+            <Search width="md" placeholder="Medium" />
+            <Search width="lg" placeholder="Large" />
+            <Search width="full" placeholder="Full width" />
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="Without Icon">
+          <Search hideIcon placeholder="No icon" />
+        </DemoSection>
+      </VStack>
+    </Container>
+  );
+}
+
 function PopoverDemo() {
   return (
     <VStack gap="lg">
@@ -1923,6 +1989,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   message: MessageDemo,
   popover: PopoverDemo,
   'radio-group': RadioGroupDemo,
+  search: SearchDemo,
   select: SelectDemo,
   separator: SeparatorDemo,
   spinner: SpinnerDemo,
