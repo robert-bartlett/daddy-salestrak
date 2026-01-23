@@ -72,6 +72,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+import { Message } from '@/components/ui/message';
 import {
   Box,
   Center,
@@ -132,6 +133,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
   input: 'Input',
+  message: 'Message',
   popover: 'Popover',
   'radio-group': 'Radio Group',
   select: 'Select',
@@ -1027,6 +1029,74 @@ function InputDemo() {
   );
 }
 
+function MessageDemo() {
+  const [showInfo, setShowInfo] = React.useState(true);
+  const [showDanger, setShowDanger] = React.useState(true);
+  const [showSubtle, setShowSubtle] = React.useState(true);
+
+  return (
+    <Container size="md">
+      <VStack gap="lg">
+        <DemoSection title="Variants">
+          <VStack gap="sm">
+            {showInfo && (
+              <Message variant="info" onDismiss={() => setShowInfo(false)}>
+                This is an informational message.
+              </Message>
+            )}
+            {showDanger && (
+              <Message variant="danger" onDismiss={() => setShowDanger(false)}>
+                This is a danger/error message.
+              </Message>
+            )}
+            {showSubtle && (
+              <Message variant="subtle" onDismiss={() => setShowSubtle(false)}>
+                This is a subtle message.
+              </Message>
+            )}
+            {!showInfo && !showDanger && !showSubtle && (
+              <Button variant="outline" onPress={() => {
+                setShowInfo(true);
+                setShowDanger(true);
+                setShowSubtle(true);
+              }}>
+                <Text>Reset Messages</Text>
+              </Button>
+            )}
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="Position">
+          <VStack gap="sm">
+            <Message variant="info" dismissable={false}>
+              Left-aligned (default)
+            </Message>
+            <Message variant="info" position="centered" dismissable={false}>
+              Centered message
+            </Message>
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="With Action">
+          <Message variant="danger" dismissable={false} action={
+            <Button variant="link" size="sm">
+              <Text>Learn more</Text>
+            </Button>
+          }>
+            Your session is about to expire.
+          </Message>
+        </DemoSection>
+
+        <DemoSection title="Non-dismissable">
+          <Message variant="subtle" dismissable={false}>
+            This message cannot be dismissed.
+          </Message>
+        </DemoSection>
+      </VStack>
+    </Container>
+  );
+}
+
 function PopoverDemo() {
   return (
     <VStack gap="lg">
@@ -1481,6 +1551,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,
   input: InputDemo,
+  message: MessageDemo,
   popover: PopoverDemo,
   'radio-group': RadioGroupDemo,
   select: SelectDemo,

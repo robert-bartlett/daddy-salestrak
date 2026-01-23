@@ -8,6 +8,7 @@
 jest.mock('lucide-react-native', () => ({
   PanelLeft: () => null,
   AlertTriangle: () => null,
+  Info: () => null,
   ChevronRight: () => null,
   ChevronDown: () => null,
   FileText: () => null,
