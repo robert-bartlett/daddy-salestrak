@@ -112,7 +112,12 @@ const Message = React.forwardRef<View, MessageProps>(
           )}
 
           {/* Content wrapper */}
-          <View className="flex-1 flex-row flex-wrap items-center gap-2">
+          <View
+            className={cn(
+              'flex-row flex-wrap items-center gap-2',
+              position !== 'centered' && 'flex-1'
+            )}
+          >
             {wrapTextChildren(children)}
             {action}
           </View>
