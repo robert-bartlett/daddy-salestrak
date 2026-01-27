@@ -55,6 +55,9 @@ const textVariants = cva(
         destructive: 'text-destructive',
         primary: 'text-primary',
         secondary: 'text-secondary',
+        success: 'text-success-foreground',
+        warning: 'text-warning-foreground',
+        info: 'text-info-foreground',
       },
       align: {
         left: 'text-left',

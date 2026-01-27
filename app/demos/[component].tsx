@@ -1,4 +1,9 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -31,7 +36,6 @@ import {
   ComboboxTrigger,
 } from '@/components/ui/combobox';
 import {
-  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -40,15 +44,28 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
+import {
+  DataTable,
+  DataTableColumnHeader,
+  DataTablePagination,
+  DataTableRowActions,
+  DataTableToolbar,
+  createSelectionColumn,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnFiltersState,
+  type DataTableColumnDef,
+  type SortingState,
+  type VisibilityState,
+} from '@/components/ui/data-table';
 import { filterWhitespaceChildren } from '@/components/ui/command/command-utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  ButtonGroup,
-  ButtonGroupSeparator,
-  ButtonGroupText,
-} from '@/components/ui/button-group';
+import { ButtonGroup, ButtonGroupSeparator, ButtonGroupText } from '@/components/ui/button-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   ContextMenu,
@@ -94,19 +111,17 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/components/ui/message';
 import { Search } from '@/components/ui/search';
-import {
-  Box,
-  Center,
-  Container,
-  Frame,
-  HStack,
-  Spacer,
-  VStack,
-} from '@/components/ui/layout';
+import { Box, Center, Container, Frame, HStack, Spacer, VStack } from '@/components/ui/layout';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
@@ -154,6 +169,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   combobox: 'Combobox',
   command: 'Command',
   'context-menu': 'Context Menu',
+  'data-table': 'Data Table',
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
   empty: 'Empty',
@@ -197,9 +213,7 @@ function AccordionDemo() {
               <Text>Is it accessible?</Text>
             </AccordionTrigger>
             <AccordionContent>
-              <Text tone="muted">
-                Yes. It adheres to the WAI-ARIA design pattern.
-              </Text>
+              <Text tone="muted">Yes. It adheres to the WAI-ARIA design pattern.</Text>
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
@@ -598,8 +612,7 @@ function BreadcrumbDemo() {
         <Breadcrumb>
           <BreadcrumbList
             maxItems={4}
-            ellipsisProps={{ onPress: () => console.log('Ellipsis pressed') }}
-          >
+            ellipsisProps={{ onPress: () => console.log('Ellipsis pressed') }}>
             <BreadcrumbItem>
               <BreadcrumbLink onPress={() => {}}>
                 <Text>Home</Text>
@@ -832,7 +845,10 @@ function CommandDemo() {
               <Icon as={Calendar} tone="muted" />
               <Text>Calendar</Text>
             </CommandItem>
-            <CommandItem value="search-emoji" keywords={['emoji', 'emoticon', 'face']} onSelect={handleSelect}>
+            <CommandItem
+              value="search-emoji"
+              keywords={['emoji', 'emoticon', 'face']}
+              onSelect={handleSelect}>
               <Icon as={Smile} tone="muted" />
               <Text>Search Emoji</Text>
             </CommandItem>
@@ -862,11 +878,17 @@ function CommandDemo() {
               <Icon as={User} tone="muted" />
               <Text>Profile</Text>
             </CommandItem>
-            <CommandItem value="billing" keywords={['payment', 'subscription']} onSelect={handleSelect}>
+            <CommandItem
+              value="billing"
+              keywords={['payment', 'subscription']}
+              onSelect={handleSelect}>
               <Icon as={CreditCard} tone="muted" />
               <Text>Billing</Text>
             </CommandItem>
-            <CommandItem value="settings" keywords={['preferences', 'config']} onSelect={handleSelect}>
+            <CommandItem
+              value="settings"
+              keywords={['preferences', 'config']}
+              onSelect={handleSelect}>
               <Icon as={Settings} tone="muted" />
               <Text>Settings</Text>
             </CommandItem>
@@ -926,11 +948,7 @@ function ComboboxDemo() {
 
         <DemoSection title="Multi-Select (List Display)">
           <VStack gap="sm">
-            <Combobox
-              multiple
-              values={selectedTags}
-              onValuesChange={setSelectedTags}
-            >
+            <Combobox multiple values={selectedTags} onValuesChange={setSelectedTags}>
               <ComboboxTrigger placeholder="Select tags..." />
               <ComboboxContent>
                 <ComboboxInput placeholder="Search tags..." />
@@ -951,15 +969,8 @@ function ComboboxDemo() {
         </DemoSection>
 
         <DemoSection title="Multi-Select (Count Display)">
-          <Combobox
-            multiple
-            values={countDisplayTags}
-            onValuesChange={setCountDisplayTags}
-          >
-            <ComboboxTrigger
-              placeholder="Select tags..."
-              displayMode="count"
-            />
+          <Combobox multiple values={countDisplayTags} onValuesChange={setCountDisplayTags}>
+            <ComboboxTrigger placeholder="Select tags..." displayMode="count" />
             <ComboboxContent>
               <ComboboxInput placeholder="Search tags..." />
               <ComboboxList>
@@ -975,11 +986,7 @@ function ComboboxDemo() {
         </DemoSection>
 
         <DemoSection title="With Groups">
-          <Combobox
-            multiple
-            values={selectedTech}
-            onValuesChange={setSelectedTech}
-          >
+          <Combobox multiple values={selectedTech} onValuesChange={setSelectedTech}>
             <ComboboxTrigger placeholder="Select technologies..." />
             <ComboboxContent>
               <ComboboxInput placeholder="Search..." />
@@ -1103,6 +1110,140 @@ function ContextMenuDemo() {
         </ContextMenu>
       </DemoSection>
     </VStack>
+  );
+}
+
+// Sample data for DataTable demo
+type Payment = {
+  id: string;
+  amount: number;
+  status: 'pending' | 'processing' | 'success' | 'failed';
+  email: string;
+};
+
+const payments: Payment[] = [
+  { id: 'pay_1', amount: 316.0, status: 'success', email: 'ken99@example.com' },
+  { id: 'pay_2', amount: 242.0, status: 'success', email: 'abe45@example.com' },
+  { id: 'pay_3', amount: 837.0, status: 'processing', email: 'monserrat44@example.com' },
+  { id: 'pay_4', amount: 874.0, status: 'success', email: 'silas22@example.com' },
+  { id: 'pay_5', amount: 721.0, status: 'failed', email: 'carmella@example.com' },
+  { id: 'pay_6', amount: 150.0, status: 'pending', email: 'john.doe@example.com' },
+  { id: 'pay_7', amount: 499.0, status: 'success', email: 'jane.smith@example.com' },
+  { id: 'pay_8', amount: 125.0, status: 'processing', email: 'bob.wilson@example.com' },
+  { id: 'pay_9', amount: 950.0, status: 'success', email: 'alice.jones@example.com' },
+  { id: 'pay_10', amount: 275.0, status: 'failed', email: 'charlie.brown@example.com' },
+  { id: 'pay_11', amount: 680.0, status: 'success', email: 'diana.prince@example.com' },
+  { id: 'pay_12', amount: 420.0, status: 'pending', email: 'bruce.wayne@example.com' },
+];
+
+function DataTableDemo() {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
+
+  const columns: DataTableColumnDef<Payment>[] = React.useMemo(
+    () => [
+      createSelectionColumn<Payment>(),
+      {
+        id: 'payment',
+        header: 'Payment',
+        columns: [
+          {
+            accessorKey: 'status',
+            header: 'Status',
+            cell: ({ row }) => {
+              const status = row.getValue('status') as string;
+              const colors: Record<string, 'green' | 'red' | 'yellow' | 'blue'> = {
+                success: 'green',
+                failed: 'red',
+                pending: 'yellow',
+                processing: 'blue',
+              };
+              const color = colors[status];
+              return (
+                <Badge variant="color" color={color} size="sm">
+                  <Text>{status}</Text>
+                </Badge>
+              );
+            },
+          },
+          {
+            accessorKey: 'email',
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Email" />,
+            meta: { minWidth: 200 },
+          },
+          {
+            accessorKey: 'amount',
+            header: ({ column }) => <DataTableColumnHeader column={column} title="Amount" />,
+            meta: { isNumeric: true, width: 120 },
+            cell: ({ row }) => {
+              const amount = parseFloat(row.getValue('amount'));
+              const formatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              }).format(amount);
+              return <Text weight="medium">{formatted}</Text>;
+            },
+          },
+        ],
+      },
+      {
+        id: 'actions',
+        enableSorting: false,
+        enableHiding: false,
+        meta: { width: 50 },
+        cell: ({ row }) => (
+          <DataTableRowActions
+            row={row}
+            items={[
+              { id: 'copy', label: 'Copy payment ID', onSelect: (r) => console.log('Copy', r.id) },
+              { id: 'view', label: 'View details', onSelect: (r) => console.log('View', r.id) },
+              {
+                id: 'delete',
+                label: 'Delete',
+                onSelect: (r) => console.log('Delete', r.id),
+                destructive: true,
+              },
+            ]}
+          />
+        ),
+      },
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: payments,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: { sorting, columnFilters, columnVisibility, rowSelection },
+    initialState: { pagination: { pageSize: 5 } },
+  });
+
+  return (
+    <Container size="lg">
+      <VStack gap="lg">
+        <DemoSection title="Full Featured Table">
+          <VStack gap="md">
+            <DataTableToolbar
+              table={table}
+              filters={[{ columnId: 'email', placeholder: 'Filter emails...' }]}
+              showViewOptions
+            />
+            <DataTable table={table} density="regular" striped />
+            <DataTablePagination table={table} pageSizes={[5, 10, 20]} />
+          </VStack>
+        </DemoSection>
+      </VStack>
+    </Container>
   );
 }
 
@@ -1289,22 +1430,22 @@ function InputDemo() {
   return (
     <Container size="sm">
       <VStack gap="lg">
-      <DemoSection title="Default">
-        <Input placeholder="Email" />
-      </DemoSection>
+        <DemoSection title="Default">
+          <Input placeholder="Email" />
+        </DemoSection>
 
-      <DemoSection title="With Label">
-        <VStack gap="sm">
-          <Text size="sm" weight="medium">
-            Email
-          </Text>
-          <Input placeholder="name@example.com" />
-        </VStack>
-      </DemoSection>
+        <DemoSection title="With Label">
+          <VStack gap="sm">
+            <Text size="sm" weight="medium">
+              Email
+            </Text>
+            <Input placeholder="name@example.com" />
+          </VStack>
+        </DemoSection>
 
-      <DemoSection title="Disabled">
-        <Input placeholder="Disabled" editable={false} />
-      </DemoSection>
+        <DemoSection title="Disabled">
+          <Input placeholder="Disabled" editable={false} />
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1333,17 +1474,23 @@ function KbdDemo() {
       <DemoSection title="Sizes">
         <VStack gap="sm">
           <HStack gap="md" align="center">
-            <Text size="sm" tone="muted">sm</Text>
+            <Text size="sm" tone="muted">
+              sm
+            </Text>
             <Kbd size="sm">Esc</Kbd>
             <Kbd size="sm" keys={['Cmd', 'K']} />
           </HStack>
           <HStack gap="md" align="center">
-            <Text size="sm" tone="muted">default</Text>
+            <Text size="sm" tone="muted">
+              default
+            </Text>
             <Kbd size="default">Esc</Kbd>
             <Kbd size="default" keys={['Cmd', 'K']} />
           </HStack>
           <HStack gap="md" align="center">
-            <Text size="sm" tone="muted">lg</Text>
+            <Text size="sm" tone="muted">
+              lg
+            </Text>
             <Kbd size="lg">Esc</Kbd>
             <Kbd size="lg" keys={['Cmd', 'K']} />
           </HStack>
@@ -1423,11 +1570,13 @@ function MessageDemo() {
               </Message>
             )}
             {!showInfo && !showDanger && !showSubtle && (
-              <Button variant="outline" onPress={() => {
-                setShowInfo(true);
-                setShowDanger(true);
-                setShowSubtle(true);
-              }}>
+              <Button
+                variant="outline"
+                onPress={() => {
+                  setShowInfo(true);
+                  setShowDanger(true);
+                  setShowSubtle(true);
+                }}>
                 <Text>Reset Messages</Text>
               </Button>
             )}
@@ -1446,11 +1595,14 @@ function MessageDemo() {
         </DemoSection>
 
         <DemoSection title="With Action">
-          <Message variant="danger" dismissable={false} action={
-            <Button variant="link" size="sm">
-              <Text>Learn more</Text>
-            </Button>
-          }>
+          <Message
+            variant="danger"
+            dismissable={false}
+            action={
+              <Button variant="link" size="sm">
+                <Text>Learn more</Text>
+              </Button>
+            }>
             Your session is about to expire.
           </Message>
         </DemoSection>
@@ -1609,30 +1761,32 @@ function SelectDemo() {
   return (
     <Container size="sm">
       <VStack gap="lg">
-      <DemoSection title="Default">
-        <Select value={fruit ? { value: fruit, label: fruit } : undefined} onValueChange={(opt) => setFruit(opt?.value)}>
-          <SelectTrigger fullWidth>
-            <SelectValue placeholder="Select a fruit" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="apple" label="Apple">
-              Apple
-            </SelectItem>
-            <SelectItem value="banana" label="Banana">
-              Banana
-            </SelectItem>
-            <SelectItem value="blueberry" label="Blueberry">
-              Blueberry
-            </SelectItem>
-            <SelectItem value="grapes" label="Grapes">
-              Grapes
-            </SelectItem>
-            <SelectItem value="pineapple" label="Pineapple">
-              Pineapple
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </DemoSection>
+        <DemoSection title="Default">
+          <Select
+            value={fruit ? { value: fruit, label: fruit } : undefined}
+            onValueChange={(opt) => setFruit(opt?.value)}>
+            <SelectTrigger fullWidth>
+              <SelectValue placeholder="Select a fruit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="apple" label="Apple">
+                Apple
+              </SelectItem>
+              <SelectItem value="banana" label="Banana">
+                Banana
+              </SelectItem>
+              <SelectItem value="blueberry" label="Blueberry">
+                Blueberry
+              </SelectItem>
+              <SelectItem value="grapes" label="Grapes">
+                Grapes
+              </SelectItem>
+              <SelectItem value="pineapple" label="Pineapple">
+                Pineapple
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1642,24 +1796,24 @@ function SeparatorDemo() {
   return (
     <Container size="md">
       <VStack gap="lg">
-      <DemoSection title="Horizontal">
-        <VStack gap="md">
-          <VStack gap="sm">
-            <Text weight="medium">Radix Primitives</Text>
-            <Text tone="muted" size="sm">
-              An open-source UI component library.
-            </Text>
+        <DemoSection title="Horizontal">
+          <VStack gap="md">
+            <VStack gap="sm">
+              <Text weight="medium">Radix Primitives</Text>
+              <Text tone="muted" size="sm">
+                An open-source UI component library.
+              </Text>
+            </VStack>
+            <Separator />
+            <HStack gap="md" align="center">
+              <Text size="sm">Blog</Text>
+              <Separator orientation="vertical" length="md" />
+              <Text size="sm">Docs</Text>
+              <Separator orientation="vertical" length="md" />
+              <Text size="sm">Source</Text>
+            </HStack>
           </VStack>
-          <Separator />
-          <HStack gap="md" align="center">
-            <Text size="sm">Blog</Text>
-            <Separator orientation="vertical" length="md" />
-            <Text size="sm">Docs</Text>
-            <Separator orientation="vertical" length="md" />
-            <Text size="sm">Source</Text>
-          </HStack>
-        </VStack>
-      </DemoSection>
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1672,22 +1826,22 @@ function SwitchDemo() {
   return (
     <Container size="sm">
       <VStack gap="lg">
-      <DemoSection title="Default">
-        <VStack gap="md">
-          <HStack align="center" justify="between" gap="lg">
-            <Text>Airplane Mode</Text>
-            <Switch checked={enabled1} onCheckedChange={setEnabled1} />
-          </HStack>
-          <HStack align="center" justify="between" gap="lg">
-            <Text>Notifications</Text>
-            <Switch checked={enabled2} onCheckedChange={setEnabled2} />
-          </HStack>
-          <HStack align="center" justify="between" gap="lg">
-            <Text tone="muted">Disabled</Text>
-            <Switch checked={false} onCheckedChange={() => {}} disabled />
-          </HStack>
-        </VStack>
-      </DemoSection>
+        <DemoSection title="Default">
+          <VStack gap="md">
+            <HStack align="center" justify="between" gap="lg">
+              <Text>Airplane Mode</Text>
+              <Switch checked={enabled1} onCheckedChange={setEnabled1} />
+            </HStack>
+            <HStack align="center" justify="between" gap="lg">
+              <Text>Notifications</Text>
+              <Switch checked={enabled2} onCheckedChange={setEnabled2} />
+            </HStack>
+            <HStack align="center" justify="between" gap="lg">
+              <Text tone="muted">Disabled</Text>
+              <Switch checked={false} onCheckedChange={() => {}} disabled />
+            </HStack>
+          </VStack>
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1699,50 +1853,50 @@ function TabsDemo() {
   return (
     <Container size="md">
       <VStack gap="lg">
-      <DemoSection title="Default">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="account">
-              <Text>Account</Text>
-            </TabsTrigger>
-            <TabsTrigger value="password">
-              <Text>Password</Text>
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="account">
-            <Box background="card" border rounded="md" padding="md">
-              <VStack gap="md">
-                <Text weight="medium">Account</Text>
-                <Text tone="muted" size="sm">
-                Make changes to your account here. Click save when you're done.
-                </Text>
-                <VStack gap="sm">
-                  <Text size="sm" weight="medium">
-                    Name
+        <DemoSection title="Default">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="account">
+                <Text>Account</Text>
+              </TabsTrigger>
+              <TabsTrigger value="password">
+                <Text>Password</Text>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="account">
+              <Box background="card" border rounded="md" padding="md">
+                <VStack gap="md">
+                  <Text weight="medium">Account</Text>
+                  <Text tone="muted" size="sm">
+                    Make changes to your account here. Click save when you're done.
                   </Text>
-                  <Input placeholder="Name" defaultValue="Pedro Duarte" />
+                  <VStack gap="sm">
+                    <Text size="sm" weight="medium">
+                      Name
+                    </Text>
+                    <Input placeholder="Name" defaultValue="Pedro Duarte" />
+                  </VStack>
                 </VStack>
-              </VStack>
-            </Box>
-          </TabsContent>
-          <TabsContent value="password">
-            <Box background="card" border rounded="md" padding="md">
-              <VStack gap="md">
-                <Text weight="medium">Password</Text>
-                <Text tone="muted" size="sm">
-                Change your password here. After saving, you'll be logged out.
-                </Text>
-                <VStack gap="sm">
-                  <Text size="sm" weight="medium">
-                    Current password
+              </Box>
+            </TabsContent>
+            <TabsContent value="password">
+              <Box background="card" border rounded="md" padding="md">
+                <VStack gap="md">
+                  <Text weight="medium">Password</Text>
+                  <Text tone="muted" size="sm">
+                    Change your password here. After saving, you'll be logged out.
                   </Text>
-                  <Input placeholder="Current password" secureTextEntry />
+                  <VStack gap="sm">
+                    <Text size="sm" weight="medium">
+                      Current password
+                    </Text>
+                    <Input placeholder="Current password" secureTextEntry />
+                  </VStack>
                 </VStack>
-              </VStack>
-            </Box>
-          </TabsContent>
-        </Tabs>
-      </DemoSection>
+              </Box>
+            </TabsContent>
+          </Tabs>
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1752,22 +1906,22 @@ function TextareaDemo() {
   return (
     <Container size="sm">
       <VStack gap="lg">
-      <DemoSection title="Default">
-        <Textarea placeholder="Type your message here." />
-      </DemoSection>
+        <DemoSection title="Default">
+          <Textarea placeholder="Type your message here." />
+        </DemoSection>
 
-      <DemoSection title="With Label">
-        <VStack gap="sm">
-          <Text size="sm" weight="medium">
-            Your message
-          </Text>
-          <Textarea placeholder="Tell us what you think..." />
-        </VStack>
-      </DemoSection>
+        <DemoSection title="With Label">
+          <VStack gap="sm">
+            <Text size="sm" weight="medium">
+              Your message
+            </Text>
+            <Textarea placeholder="Tell us what you think..." />
+          </VStack>
+        </DemoSection>
 
-      <DemoSection title="Disabled">
-        <Textarea placeholder="Disabled" editable={false} />
-      </DemoSection>
+        <DemoSection title="Disabled">
+          <Textarea placeholder="Disabled" editable={false} />
+        </DemoSection>
       </VStack>
     </Container>
   );
@@ -1981,6 +2135,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   combobox: ComboboxDemo,
   command: CommandDemo,
   'context-menu': ContextMenuDemo,
+  'data-table': DataTableDemo,
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,
   empty: EmptyDemo,
@@ -2013,11 +2168,7 @@ export default function ComponentDemo() {
             <Text size="2xl" weight="semibold">
               {displayName}
             </Text>
-            {DemoComponent ? (
-              <DemoComponent />
-            ) : (
-              <Text tone="muted">Demo not available yet.</Text>
-            )}
+            {DemoComponent ? <DemoComponent /> : <Text tone="muted">Demo not available yet.</Text>}
             <Spacer size="xl" />
           </VStack>
         </Box>

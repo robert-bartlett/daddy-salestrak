@@ -51,6 +51,147 @@ If you don't specify any component names, you'll be prompted to select which com
 - 🔥 Edge to Edge enabled
 - 📱 Runs on iOS, Android, and Web
 
+## DataTable usage patterns
+
+The DataTable is designed to work in both client-side and server-side modes.
+
+### Client-side (local data)
+
+```tsx
+import * as React from 'react';
+import {
+  DataTable,
+  DataTablePagination,
+  DataTableToolbar,
+  createSelectionColumn,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnFiltersState,
+  type DataTableColumnDef,
+  type SortingState,
+} from '@/components/ui/data-table';
+
+type Payment = { id: string; amount: number; status: string; email: string };
+
+const columns: DataTableColumnDef<Payment>[] = [
+  createSelectionColumn<Payment>(),
+  { accessorKey: 'email', header: 'Email' },
+  { accessorKey: 'amount', header: 'Amount' },
+];
+
+function PaymentsTable({ data }: { data: Payment[] }) {
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, columnFilters, pagination },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  });
+
+  return (
+    <>
+      <DataTableToolbar table={table} filters={[{ columnId: 'email' }]} showViewOptions />
+      <DataTable table={table} striped />
+      <DataTablePagination table={table} />
+    </>
+  );
+}
+```
+
+### Server-side (API-driven)
+
+```tsx
+import * as React from 'react';
+import {
+  DataTable,
+  DataTablePagination,
+  DataTableToolbar,
+  createSelectionColumn,
+  getCoreRowModel,
+  useReactTable,
+  type ColumnFiltersState,
+  type DataTableColumnDef,
+  type SortingState,
+} from '@/components/ui/data-table';
+
+type Payment = { id: string; amount: number; status: string; email: string };
+
+const columns: DataTableColumnDef<Payment>[] = [
+  createSelectionColumn<Payment>(),
+  { accessorKey: 'email', header: 'Email' },
+  { accessorKey: 'amount', header: 'Amount' },
+];
+
+function PaymentsTableServer() {
+  const [data, setData] = React.useState<Payment[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [pageCount, setPageCount] = React.useState(-1); // unknown total pages
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+
+  React.useEffect(() => {
+    let isActive = true;
+    setLoading(true);
+
+    const sort = encodeURIComponent(JSON.stringify(sorting));
+    const filters = encodeURIComponent(JSON.stringify(columnFilters));
+
+    void fetch(
+      `/api/payments?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&sort=${sort}&filters=${filters}`
+    )
+      .then((res) => res.json())
+      .then((result) => {
+        if (!isActive) return;
+        setData(result.rows);
+        setPageCount(result.pageCount ?? -1);
+      })
+      .finally(() => {
+        if (!isActive) return;
+        setLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [pagination, sorting, columnFilters]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    state: { sorting, columnFilters, pagination },
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onPaginationChange: setPagination,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
+    pageCount,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
+  return (
+    <>
+      <DataTableToolbar table={table} filters={[{ columnId: 'email' }]} showViewOptions />
+      <DataTable table={table} loading={loading} striped />
+      <DataTablePagination table={table} />
+    </>
+  );
+}
+```
+
 ## Learn More
 
 To dive deeper into the technologies used:
