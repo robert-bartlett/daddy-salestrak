@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Platform, View, type ViewProps, type ViewStyle } from 'react-native';
+import { useDebugStyle } from './layout-debug-context';
 import { GAP_CLASSES, SPACING_SCALE, type SpacingToken } from './layout-constants';
 
 const GRID_COLUMNS_CLASS: Record<number, string> = {
@@ -21,82 +22,75 @@ const GRID_COLUMNS_CLASS: Record<number, string> = {
 type GridProps = Omit<ViewProps, 'className' | 'style'> & {
   columns?: number;
   gap?: SpacingToken;
-  /**
-   * Additional className applied to each grid cell wrapper (native only).
-   * Use this to customize cell styling if the default wrapper affects your layout.
-   */
-  cellClassName?: string;
 };
 
 /**
- * Grid layout component with responsive columns.
+ * Grid - Grid layout with responsive columns
  *
- * ## Platform Differences
+ * Platform behavior:
+ * - Web: Uses CSS Grid for true grid layout
+ * - Native: Uses flex-wrap fallback (children wrapped in cell Views with calculated flexBasis)
  *
- * **Web**: Uses CSS Grid for true grid layout with perfect gap handling.
- *
- * **Native (iOS/Android)**: Uses flex-wrap fallback since React Native doesn't
- * support CSS Grid. Each child is wrapped in a View with calculated flexBasis.
- *
- * ### Native Limitations
- * - Children are wrapped in a cell View, which may affect styling that depends
- *   on being a direct child (use `cellClassName` to customize the wrapper)
- * - Gap is simulated using padding on cells with negative margins on container,
- *   which provides consistent spacing but differs slightly from CSS Grid
- * - For pixel-perfect layouts, test on both platforms
+ * @example
+ * ```tsx
+ * <Grid columns={3} gap="md">
+ *   <Card>Item 1</Card>
+ *   <Card>Item 2</Card>
+ *   <Card>Item 3</Card>
+ * </Grid>
+ * ```
  */
-const Grid = React.forwardRef<View, GridProps>(
-  ({ columns = 1, gap, cellClassName, children, ...props }, ref) => {
+const Grid = React.memo(
+  React.forwardRef<View, GridProps>(({ columns = 1, gap, children, ...props }, ref) => {
+    const debugStyle = useDebugStyle();
     const clampedColumns = Math.min(Math.max(columns, 1), 12);
-    const gapClass = gap ? GAP_CLASSES[gap] : undefined;
 
     // Web: Use native CSS Grid
     if (Platform.OS === 'web') {
       return (
         <View
           ref={ref}
-          className={cn('grid', GRID_COLUMNS_CLASS[clampedColumns], gapClass)}
+          className={cn('grid', GRID_COLUMNS_CLASS[clampedColumns], gap && GAP_CLASSES[gap])}
+          style={debugStyle}
           {...props}>
           {children}
         </View>
       );
     }
 
-    // Native: Use flex-wrap with margin-based spacing for consistent behavior
-    // We use padding on cells + negative margin on container to simulate gap
-    // This avoids edge-case spacing issues that can occur with gap + flex-wrap
+    // Native: flex-wrap with padding on cells + negative margin on container
     const gapValue = gap ? SPACING_SCALE[gap] : 0;
     const halfGap = gapValue / 2;
-    const basisPercent = 100 / clampedColumns;
-    const basis = `${basisPercent}%` as const;
 
-    // Container style: negative margin to offset cell padding at edges
-    const containerStyle: ViewStyle = gapValue > 0 ? { margin: -halfGap } : {};
+    const containerStyle = React.useMemo<ViewStyle>(() => ({
+      ...(gapValue > 0 && { margin: -halfGap }),
+      ...debugStyle,
+    }), [gapValue, debugStyle]);
 
-    // Cell style: padding creates the gap between cells
-    const cellStyle: ViewStyle = {
-      flexBasis: basis as `${number}%`,
-      maxWidth: basis as `${number}%`,
-      padding: halfGap,
-    };
+    const cellStyle = React.useMemo<ViewStyle>(() => {
+      const basisPercent = 100 / clampedColumns;
+      const basis = `${basisPercent}%` as `${number}%`;
+      return {
+        flexBasis: basis,
+        maxWidth: basis,
+        padding: halfGap,
+      };
+    }, [clampedColumns, halfGap]);
 
     return (
       <View ref={ref} className="flex-row flex-wrap" style={containerStyle} {...props}>
         {React.Children.map(children, (child, index) => {
-          if (!React.isValidElement(child)) {
-            return child;
-          }
+          if (!React.isValidElement(child)) return child;
           return (
-            <View key={child.key ?? index} style={cellStyle} className={cellClassName}>
+            <View key={child.key ?? index} style={cellStyle}>
               {child}
             </View>
           );
         })}
       </View>
     );
-  }
+  })
 );
-
 Grid.displayName = 'Grid';
 
 export { Grid };

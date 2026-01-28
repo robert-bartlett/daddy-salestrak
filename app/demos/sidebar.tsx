@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ColorSwatch } from '@/components/ui/color-swatch';
 import { Icon } from '@/components/ui/icon';
-import { Box, Center, HStack, VStack } from '@/components/ui/layout';
+import { Box, Center, HStack, Surface, VStack } from '@/components/ui/layout';
 import {
   Sidebar,
   SidebarContent,
@@ -202,7 +203,7 @@ function AppSidebar() {
               {PROJECTS.map((project) => (
                 <SidebarMenuItem key={project.name}>
                   <SidebarMenuButton tooltip={project.name}>
-                    <Box size="md" rounded="sm" background={project.color} />
+                    <ColorSwatch color={project.color} size="md" rounded="sm" />
                     <Text>{project.name}</Text>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -283,7 +284,7 @@ function MainContent() {
             </VStack>
           </VStack>
 
-          <Box background="card" border rounded="lg" padding="md">
+          <Surface variant="outline" rounded="lg" padding="md">
             <VStack gap="sm">
               <Text weight="medium">Current State</Text>
               <HStack gap="md" wrap>
@@ -307,7 +308,7 @@ function MainContent() {
                 </VStack>
               </HStack>
             </VStack>
-          </Box>
+          </Surface>
         </VStack>
       </Box>
     </SidebarInset>

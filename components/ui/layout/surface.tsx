@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import * as React from 'react';
-import { Platform, View, type ViewProps } from 'react-native';
+import { Platform, View, type ViewProps, type ViewStyle } from 'react-native';
+import { useDebugStyle } from './layout-debug-context';
 import {
   PADDING_CLASSES,
   PADDING_X_CLASSES,
@@ -28,41 +29,52 @@ type SurfaceProps = Omit<ViewProps, 'className' | 'style'> & {
   rounded?: RoundedToken;
 };
 
-const Surface = React.forwardRef<View, SurfaceProps>(
-  (
-    {
-      variant = 'card',
-      padding,
-      paddingX,
-      paddingY,
-      rounded = 'lg',
-      ...props
-    },
-    ref
-  ) => {
-    const elevationStyle =
-      variant === 'elevated'
-        ? Platform.select({ android: { elevation: 4 } })
-        : undefined;
+/**
+ * Surface - A styled container with visual treatments
+ *
+ * Provides pre-defined visual variants for common container styles.
+ * The `elevated` variant uses CSS shadows on web and native elevation on Android.
+ *
+ * @example
+ * ```tsx
+ * <Surface variant="elevated" padding="lg" rounded="xl">
+ *   <Text>Elevated panel with shadow</Text>
+ * </Surface>
+ * ```
+ */
+const Surface = React.memo(
+  React.forwardRef<View, SurfaceProps>(
+    ({ variant = 'card', padding, paddingX, paddingY, rounded = 'lg', ...props }, ref) => {
+      const debugStyle = useDebugStyle();
 
-    return (
-      <View
-        ref={ref}
-        className={cn(
-          SURFACE_VARIANTS[variant],
-          rounded ? ROUNDED_CLASSES[rounded] : undefined,
-          padding ? PADDING_CLASSES[padding] : undefined,
-          paddingX ? PADDING_X_CLASSES[paddingX] : undefined,
-          paddingY ? PADDING_Y_CLASSES[paddingY] : undefined
-        )}
-        style={elevationStyle}
-        {...props}
-      />
-    );
-  }
+      const combinedStyle = React.useMemo<ViewStyle | undefined>(() => {
+        const needsElevation = variant === 'elevated' && Platform.OS === 'android';
+        if (!needsElevation && !debugStyle) return undefined;
+
+        return {
+          ...(needsElevation && { elevation: 4 }),
+          ...debugStyle,
+        };
+      }, [variant, debugStyle]);
+
+      return (
+        <View
+          ref={ref}
+          className={cn(
+            SURFACE_VARIANTS[variant],
+            rounded && ROUNDED_CLASSES[rounded],
+            padding && PADDING_CLASSES[padding],
+            paddingX && PADDING_X_CLASSES[paddingX],
+            paddingY && PADDING_Y_CLASSES[paddingY]
+          )}
+          style={combinedStyle}
+          {...props}
+        />
+      );
+    }
+  )
 );
-
 Surface.displayName = 'Surface';
 
 export { Surface };
-export type { SurfaceProps, SurfaceVariant };
+export type { SurfaceProps };

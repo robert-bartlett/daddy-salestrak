@@ -124,7 +124,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/components/ui/message';
 import { Search } from '@/components/ui/search';
-import { Box, Center, Container, Frame, HStack, Spacer, VStack } from '@/components/ui/layout';
+import { Box, Center, Container, Frame, HStack, Spacer, Surface, VStack } from '@/components/ui/layout';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -1085,13 +1085,13 @@ function ContextMenuDemo() {
       <DemoSection title="Default">
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <Box background="muted" border rounded="md" padding="lg">
+            <Surface variant="outline" rounded="md" padding="lg">
               <Center>
                 <Text tone="muted" size="sm">
                   Long press or right click here
                 </Text>
               </Center>
-            </Box>
+            </Surface>
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuLabel>Actions</ContextMenuLabel>
@@ -1676,13 +1676,13 @@ function KbdDemo() {
       <DemoSection title="In Context Menu">
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <Box background="muted" border rounded="md" padding="lg">
+            <Surface variant="outline" rounded="md" padding="lg">
               <Center>
                 <Text tone="muted" size="sm">
                   Right click or long press
                 </Text>
               </Center>
-            </Box>
+            </Surface>
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuItem>
@@ -2027,7 +2027,7 @@ function TabsDemo() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="account">
-              <Box background="card" border rounded="md" padding="md">
+              <Surface variant="outline" rounded="md" padding="md">
                 <VStack gap="md">
                   <Text weight="medium">Account</Text>
                   <Text tone="muted" size="sm">
@@ -2040,10 +2040,10 @@ function TabsDemo() {
                     <Input placeholder="Name" defaultValue="Pedro Duarte" />
                   </VStack>
                 </VStack>
-              </Box>
+              </Surface>
             </TabsContent>
             <TabsContent value="password">
-              <Box background="card" border rounded="md" padding="md">
+              <Surface variant="outline" rounded="md" padding="md">
                 <VStack gap="md">
                   <Text weight="medium">Password</Text>
                   <Text tone="muted" size="sm">
@@ -2056,7 +2056,7 @@ function TabsDemo() {
                     <Input placeholder="Current password" secureTextEntry />
                   </VStack>
                 </VStack>
-              </Box>
+              </Surface>
             </TabsContent>
           </Tabs>
         </DemoSection>
