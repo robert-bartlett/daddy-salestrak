@@ -6,6 +6,7 @@
  */
 
 import { Icon } from '@/components/ui/icon';
+import { getListKeyboardAction } from '@/hooks';
 import { cn } from '@/lib/utils';
 import { Search } from 'lucide-react-native';
 import * as React from 'react';
@@ -91,45 +92,42 @@ const CommandInput = React.forwardRef<TextInput, CommandInputProps>(
     // Handle keyboard navigation (arrow keys) from within the input
     // This is necessary because arrow key events are consumed by the TextInput
     // and don't bubble up to the window's keydown listener
-  const handleKeyPress = React.useCallback(
-    (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-      const key = event.nativeEvent.key;
+    const handleKeyPress = React.useCallback(
+      (event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        const key = event.nativeEvent.key;
+        // TextInput onKeyPress doesn't provide modifier keys, so they're always false here
+        // Modifier key support comes from the web keydown listener in command-root
+        const action = getListKeyboardAction(key, { inputEmpty: !value });
 
-        switch (key) {
-          case 'ArrowDown':
+        switch (action) {
+          case 'next':
             event.preventDefault?.();
             store.selectNext();
             break;
-          case 'ArrowUp':
+          case 'previous':
             event.preventDefault?.();
             store.selectPrevious();
             break;
-          case 'Home':
-            // Only navigate list when input is empty to avoid conflicting with text cursor movement
-            if (!value) {
-              event.preventDefault?.();
-              store.selectFirst();
-            }
+          case 'first':
+            event.preventDefault?.();
+            store.selectFirst();
             break;
-          case 'End':
-            // Only navigate list when input is empty to avoid conflicting with text cursor movement
-            if (!value) {
-              event.preventDefault?.();
-              store.selectLast();
-            }
+          case 'last':
+            event.preventDefault?.();
+            store.selectLast();
             break;
-          case 'Enter': {
+          case 'select': {
             const selectedItem = store.getSelectedItem();
             if (selectedItem && !selectedItem.disabled) {
               event.preventDefault?.();
               selectedItem.onSelect?.(selectedItem.value);
             }
             break;
+          }
         }
-      }
-    },
-    [store, value]
-  );
+      },
+      [store, value]
+    );
 
     // Build children array to avoid whitespace text nodes between JSX elements
     const viewChildren = [

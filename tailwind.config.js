@@ -37,6 +37,11 @@ module.exports = {
           DEFAULT: 'hsl(var(--info))',
           foreground: 'hsl(var(--info-foreground))',
         },
+        theme: {
+          DEFAULT: 'hsl(var(--theme))',
+          secondary: 'hsl(var(--theme-secondary))',
+          foreground: 'hsl(var(--theme-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',

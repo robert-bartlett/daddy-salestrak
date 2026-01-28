@@ -36,6 +36,19 @@ import {
   ComboboxTrigger,
 } from '@/components/ui/combobox';
 import {
+  EntitySelector,
+  EntitySelectorAutoTabs,
+  EntitySelectorContent,
+  EntitySelectorEmpty,
+  EntitySelectorFooter,
+  EntitySelectorInput,
+  EntitySelectorPool,
+  EntitySelectorSelected,
+  EntitySelectorTrigger,
+  type EntitySelection,
+  type EntitySelectorConfig,
+} from '@/components/ui/entity-selector';
+import {
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -152,6 +165,9 @@ import {
   Smile,
   Trash2,
   User,
+  UserPlus,
+  Users,
+  UsersRound,
 } from 'lucide-react-native';
 import * as React from 'react';
 import { Platform } from 'react-native';
@@ -173,6 +189,7 @@ const COMPONENT_NAMES: Record<string, string> = {
   dialog: 'Dialog',
   'dropdown-menu': 'Dropdown Menu',
   empty: 'Empty',
+  'entity-selector': 'Entity Selector',
   input: 'Input',
   kbd: 'Kbd',
   message: 'Message',
@@ -1375,6 +1392,152 @@ function EmptyDemo() {
   );
 }
 
+// Sample data for EntitySelector demo
+const SAMPLE_MEMBERS = [
+  {
+    id: 'user-1',
+    title: 'Alice Johnson',
+    description: 'alice@example.com',
+    avatar: { src: 'https://i.pravatar.cc/150?u=alice' },
+  },
+  {
+    id: 'user-2',
+    title: 'Bob Smith',
+    description: 'bob@example.com',
+    avatar: { fallback: 'BS' },
+  },
+  {
+    id: 'user-3',
+    title: 'Carol Davis',
+    description: 'carol@example.com',
+    avatar: { src: 'https://i.pravatar.cc/150?u=carol' },
+    keywords: ['frontend', 'react'],
+  },
+  {
+    id: 'user-4',
+    title: 'David Wilson',
+    description: 'david@example.com',
+    avatar: { fallback: 'DW' },
+    keywords: ['backend', 'python'],
+  },
+  {
+    id: 'user-5',
+    title: 'Eva Martinez',
+    description: 'eva@example.com',
+    avatar: { src: 'https://i.pravatar.cc/150?u=eva' },
+    disabled: true,
+  },
+];
+
+const SAMPLE_TEAMS = [
+  {
+    id: 'team-1',
+    title: 'Engineering',
+    description: '12 members',
+    avatar: { icon: UsersRound },
+  },
+  {
+    id: 'team-2',
+    title: 'Design',
+    description: '5 members',
+    avatar: { icon: UsersRound },
+  },
+  {
+    id: 'team-3',
+    title: 'Product',
+    description: '8 members',
+    avatar: { icon: UsersRound },
+  },
+  {
+    id: 'team-4',
+    title: 'Marketing',
+    description: '6 members',
+    avatar: { icon: UsersRound },
+  },
+];
+
+function EntitySelectorDemo() {
+  const [selections, setSelections] = React.useState<EntitySelection[]>([]);
+
+  const config: EntitySelectorConfig = {
+    pools: [
+      {
+        id: 'members',
+        label: 'Members',
+        icon: Users,
+        items: SAMPLE_MEMBERS,
+        itemBadge: { label: 'Profile' },
+      },
+      {
+        id: 'teams',
+        label: 'Teams',
+        icon: UsersRound,
+        items: SAMPLE_TEAMS,
+        itemBadge: { label: 'Team' },
+      },
+    ],
+    searchPlaceholder: 'Search members or teams...',
+    emptyMessage: 'No results found',
+  };
+
+  const handleInvite = () => {
+    console.log('Invite members clicked');
+  };
+
+  const handleAction = (entity: { id: string; title: string }) => {
+    console.log('Action clicked for:', entity.title);
+  };
+
+  return (
+    <Container size="md">
+      <VStack gap="xl">
+        <DemoSection title="Basic Usage">
+          <VStack gap="sm">
+            <EntitySelector config={config} value={selections} onValueChange={setSelections}>
+              <EntitySelectorTrigger placeholder="Set assignees..." />
+              <EntitySelectorContent>
+                <EntitySelectorInput />
+                <EntitySelectorAutoTabs />
+                <EntitySelectorSelected label="Assignees" hideWhenEmpty />
+                <EntitySelectorPool value="members" onItemAction={handleAction} />
+                <EntitySelectorPool value="teams" onItemAction={handleAction} />
+                <EntitySelectorEmpty />
+                <EntitySelectorFooter>
+                  <Button variant="ghost" onPress={handleInvite} className="w-full justify-start">
+                    <Icon as={UserPlus} tone="muted" />
+                    <Text>Invite members via email</Text>
+                  </Button>
+                </EntitySelectorFooter>
+              </EntitySelectorContent>
+            </EntitySelector>
+            {selections.length > 0 && (
+              <Text size="sm" tone="muted">
+                Selected: {selections.map((s) => s.entity.title).join(', ')}
+              </Text>
+            )}
+          </VStack>
+        </DemoSection>
+
+        <DemoSection title="With Max Selections (3)">
+          <EntitySelector
+            config={{ ...config, maxSelections: 3 }}
+            defaultValue={[]}
+          >
+            <EntitySelectorTrigger placeholder="Select up to 3..." />
+            <EntitySelectorContent>
+              <EntitySelectorInput placeholder="Search..." />
+              <EntitySelectorAutoTabs />
+              <EntitySelectorPool value="members" />
+              <EntitySelectorPool value="teams" />
+              <EntitySelectorEmpty />
+            </EntitySelectorContent>
+          </EntitySelector>
+        </DemoSection>
+      </VStack>
+    </Container>
+  );
+}
+
 function DropdownMenuDemo() {
   const [showStatusBar, setShowStatusBar] = React.useState(true);
   const [position, setPosition] = React.useState('bottom');
@@ -2139,6 +2302,7 @@ const COMPONENT_DEMOS: Record<string, React.ComponentType> = {
   dialog: DialogDemo,
   'dropdown-menu': DropdownMenuDemo,
   empty: EmptyDemo,
+  'entity-selector': EntitySelectorDemo,
   input: InputDemo,
   kbd: KbdDemo,
   message: MessageDemo,

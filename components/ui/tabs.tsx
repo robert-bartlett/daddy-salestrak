@@ -5,6 +5,10 @@ import * as Haptics from 'expo-haptics';
 import * as React from 'react';
 import { Platform, type GestureResponderEvent } from 'react-native';
 
+// Variant context for coordinating TabsList and TabsTrigger styles
+type TabsVariant = 'default' | 'outline';
+const TabsVariantContext = React.createContext<TabsVariant>('default');
+
 // Minimum time between haptic triggers to prevent buzz spam
 const HAPTIC_THROTTLE_MS = 100;
 
@@ -30,20 +34,30 @@ const Tabs = React.forwardRef<TabsPrimitive.RootRef, TabsProps>(
 
 Tabs.displayName = 'Tabs';
 
-type TabsListProps = TabsPrimitive.ListProps & React.RefAttributes<TabsPrimitive.ListRef>;
+type TabsListProps = TabsPrimitive.ListProps &
+  React.RefAttributes<TabsPrimitive.ListRef> & {
+    /** Visual variant. 'outline' removes container background and uses outlined triggers. */
+    variant?: TabsVariant;
+  };
 
 const TabsList = React.forwardRef<TabsPrimitive.ListRef, TabsListProps>(
-  ({ className, ...props }, ref) => {
+  ({ className, variant = 'default', ...props }, ref) => {
     return (
-      <TabsPrimitive.List
-        ref={ref}
-        className={cn(
-          'flex h-9 flex-row items-center justify-center rounded-lg bg-muted p-[3px]',
-          Platform.select({ web: 'inline-flex w-fit', native: 'mr-auto' }),
-          className
-        )}
-        {...props}
-      />
+      <TabsVariantContext.Provider value={variant}>
+        <TabsPrimitive.List
+          ref={ref}
+          className={cn(
+            'flex flex-row items-center',
+            variant === 'default' && [
+              'h-9 justify-center rounded-lg bg-muted p-[3px]',
+              Platform.select({ web: 'inline-flex w-fit', native: 'mr-auto' }),
+            ],
+            variant === 'outline' && 'gap-2',
+            className
+          )}
+          {...props}
+        />
+      </TabsVariantContext.Provider>
     );
   }
 );
@@ -69,6 +83,7 @@ type TabsTriggerProps = TabsPrimitive.TriggerProps &
 const TabsTrigger = React.forwardRef<TabsPrimitive.TriggerRef, TabsTriggerProps>(
   ({ className, disabled, haptics = true, onPress, children, ...props }, ref) => {
     const { value } = TabsPrimitive.useRootContext();
+    const variant = React.useContext(TabsVariantContext);
     const lastHapticTime = React.useRef(0);
     const isSelected = props.value === value;
 
@@ -91,24 +106,40 @@ const TabsTrigger = React.forwardRef<TabsPrimitive.TriggerRef, TabsTriggerProps>
       [disabled, haptics, onPress]
     );
 
+    // Text styles based on variant and selection state
+    const textClassName = cn(
+      'text-sm font-medium',
+      variant === 'default' && [
+        'text-foreground dark:text-muted-foreground',
+        isSelected && 'dark:text-foreground',
+      ],
+      variant === 'outline' && (isSelected ? 'text-theme-foreground' : 'text-muted-foreground')
+    );
+
     return (
-      <TextClassContext.Provider
-        value={cn(
-          'text-foreground dark:text-muted-foreground text-sm font-medium',
-          isSelected && 'dark:text-foreground'
-        )}
-      >
+      <TextClassContext.Provider value={textClassName}>
         <TabsPrimitive.Trigger
           ref={ref}
           disabled={disabled}
-          // Height calc prevents 1px overflow from parent's 3px padding + border rendering
           className={cn(
-            'flex h-[calc(100%-1px)] flex-row items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 shadow-none',
+            // Base styles
+            'flex flex-row items-center justify-center gap-1.5 rounded-md shadow-none',
             Platform.select({
-              web: 'inline-flex cursor-default whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0',
+              web: 'inline-flex cursor-default whitespace-nowrap transition-[color,box-shadow,border-color] focus-visible:outline-1 focus-visible:outline-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0',
             }),
             disabled && 'opacity-50',
-            isSelected && 'bg-background dark:border-foreground/10 dark:bg-input/30',
+            // Default variant styles
+            variant === 'default' && [
+              // Height calc prevents 1px overflow from parent's 3px padding + border rendering
+              'h-[calc(100%-1px)] border border-transparent px-2 py-1',
+              Platform.select({ web: 'focus-visible:border-ring' }),
+              isSelected && 'bg-background dark:border-foreground/10 dark:bg-input/30',
+            ],
+            // Outline variant styles
+            variant === 'outline' && [
+              'h-8 border px-3 py-1.5',
+              isSelected ? 'border-theme bg-theme-secondary' : 'border-border',
+            ],
             className
           )}
           accessibilityRole="tab"
@@ -145,4 +176,4 @@ const TabsContent = React.forwardRef<TabsPrimitive.ContentRef, TabsContentProps>
 TabsContent.displayName = 'TabsContent';
 
 export { Tabs, TabsContent, TabsList, TabsTrigger };
-export type { TabsContentProps, TabsListProps, TabsProps, TabsTriggerProps };
+export type { TabsContentProps, TabsListProps, TabsProps, TabsTriggerProps, TabsVariant };
