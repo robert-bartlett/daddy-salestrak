@@ -166,7 +166,7 @@ const TabsContent = React.forwardRef<TabsPrimitive.ContentRef, TabsContentProps>
     return (
       <TabsPrimitive.Content
         ref={ref}
-        className={cn(Platform.select({ web: 'flex-1 outline-none' }), className)}
+        className={cn('flex-1', Platform.select({ web: 'outline-none' }), className)}
         {...props}
       />
     );

@@ -8,7 +8,6 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider, useTheme } from '@/lib/theme-context';
-import { ProjectsProvider } from '@/lib/projects-context';
 import { MapSheetProvider } from '@/lib/map-sheet-context';
 import { ScreenNavigationProvider } from '@/lib/screen-navigation-context';
 
@@ -28,14 +27,12 @@ function AppContent() {
   return (
     <View className={`flex-1 ${themeClass}`}>
       <NavThemeProvider value={NAV_THEME[colorMode]}>
-        <ProjectsProvider>
-          <MapSheetProvider>
-            <ScreenNavigationProvider>
-              <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
-              <Stack screenOptions={{ headerShown: false }} />
-            </ScreenNavigationProvider>
-          </MapSheetProvider>
-        </ProjectsProvider>
+        <MapSheetProvider>
+          <ScreenNavigationProvider>
+            <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
+            <Stack screenOptions={{ headerShown: false }} />
+          </ScreenNavigationProvider>
+        </MapSheetProvider>
       </NavThemeProvider>
     </View>
   );
