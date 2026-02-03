@@ -28,8 +28,14 @@ type UserSection = {
 
 const HEADER_PADDING = 16;
 const ITEM_HEIGHT = 44;
-const SECTION_HEADER_HEIGHT = 28;
+const SECTION_HEADER_HEIGHT = 24;
+const ALPHABET_TOUCH_WIDTH = 44; // Minimum touch target per accessibility guidelines
+const ALPHABET_VISUAL_WIDTH = 20; // Visual width of the alphabet column
 const allUsers = getAllUsers();
+
+// Snap points for the sheet - iOS style
+const SNAP_POINTS = ['50%', '92%'] as const;
+const FULL_SHEET_INDEX = SNAP_POINTS.length - 1; // Last snap point is "full"
 
 // Pre-compute alphabet for the index
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -67,14 +73,16 @@ export function TeamMemberSheet({
   const [search, setSearch] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<User[]>(currentMembers);
   const [activeIndexLetter, setActiveIndexLetter] = useState<string | null>(null);
-  const [alphabetHeight, setAlphabetHeight] = useState(0);
+  const [snapIndex, setSnapIndex] = useState(0);
+  const [listContainerHeight, setListContainerHeight] = useState(0);
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#007AFF';
   const sectionListRef = useRef<BottomSheetSectionListMethods>(null);
   const lastHapticTime = useRef(0);
 
-  // Calculate letter height based on available space
-  const letterHeight = alphabetHeight > 0 ? alphabetHeight / ALPHABET.length : 14;
+  // Show alphabet only at full sheet mode (highest snap point) and not searching
+  const isFullSheet = snapIndex === FULL_SHEET_INDEX;
+  const showAlphabet = !search && isFullSheet;
 
   // Filter users based on search
   const filteredUsers = useMemo(() => {
@@ -128,36 +136,83 @@ export function TeamMemberSheet({
     }
   }, [open, currentMembers]);
 
+  // Calculate offset for a given section index
+  const getSectionOffset = useCallback(
+    (targetSectionIndex: number): number => {
+      let offset = 0;
+      for (let i = 0; i < targetSectionIndex; i++) {
+        // Add section header height
+        offset += SECTION_HEADER_HEIGHT;
+        // Add all items in this section
+        offset += sections[i].data.length * ITEM_HEIGHT;
+      }
+      return offset;
+    },
+    [sections]
+  );
+
   // Scroll to section when alphabet letter is pressed
   const scrollToLetter = useCallback(
     (letter: string) => {
       const sectionIndex = sections.findIndex((s) => s.title === letter);
-      if (sectionIndex !== -1 && sectionListRef.current) {
-        sectionListRef.current.scrollToLocation({
-          sectionIndex,
-          itemIndex: 0,
-          animated: false,
-          viewOffset: 0,
-        });
+      if (sectionIndex === -1 || !sectionListRef.current) return;
 
-        // Haptic feedback (throttled)
-        if (Platform.OS === 'ios' || Platform.OS === 'android') {
-          const now = Date.now();
-          if (now - lastHapticTime.current >= 50) {
-            lastHapticTime.current = now;
-            Haptics.selectionAsync().catch(() => {});
+      // Calculate the flat index for the first item of this section
+      let flatIndex = 0;
+      for (let i = 0; i < sectionIndex; i++) {
+        flatIndex += sections[i].data.length;
+      }
+
+      const listRef = sectionListRef.current as any;
+      const offset = getSectionOffset(sectionIndex);
+
+      // Use requestAnimationFrame to ensure list is ready
+      requestAnimationFrame(() => {
+        try {
+          // Method 1: scrollToLocation (native SectionList method)
+          if (typeof listRef.scrollToLocation === 'function') {
+            listRef.scrollToLocation({
+              sectionIndex,
+              itemIndex: 0,
+              viewOffset: 0,
+              animated: false,
+            });
           }
+        } catch (e) {
+          // Fallback: try scrollToIndex
+          try {
+            if (typeof listRef.scrollToIndex === 'function') {
+              listRef.scrollToIndex({ index: flatIndex, animated: false });
+            }
+          } catch {
+            // Final fallback: manual offset scroll
+            try {
+              const scrollRef = listRef._listRef?._scrollRef || listRef.getScrollResponder?.();
+              scrollRef?.scrollTo?.({ y: offset, animated: false });
+            } catch {
+              // Give up silently
+            }
+          }
+        }
+      });
+
+      // Haptic feedback (throttled)
+      if (Platform.OS === 'ios' || Platform.OS === 'android') {
+        const now = Date.now();
+        if (now - lastHapticTime.current >= 50) {
+          lastHapticTime.current = now;
+          Haptics.selectionAsync().catch(() => {});
         }
       }
     },
-    [sections]
+    [sections, getSectionOffset]
   );
 
   // Handle alphabet index touch/drag
   const handleAlphabetTouch = useCallback(
     (letter: string) => {
+      setActiveIndexLetter(letter);
       if (availableLetters.has(letter)) {
-        setActiveIndexLetter(letter);
         scrollToLetter(letter);
       }
     },
@@ -169,6 +224,48 @@ export function TeamMemberSheet({
   }, []);
 
   const roleLabel = role === 'owners' ? 'Owners' : 'Assignees';
+
+  // getItemLayout for optimized scrolling - required for scrollToLocation to work reliably
+  const getItemLayout = useCallback(
+    (data: UserSection[] | null, index: number) => {
+      // SectionList flattens items with section headers interspersed
+      // We need to calculate the offset for a given flat index
+      if (!data) return { length: ITEM_HEIGHT, offset: 0, index };
+
+      let offset = 0;
+      let currentIndex = 0;
+
+      for (const section of data) {
+        // Section header
+        if (currentIndex === index) {
+          return { length: SECTION_HEADER_HEIGHT, offset, index };
+        }
+        offset += SECTION_HEADER_HEIGHT;
+        currentIndex++;
+
+        // Items in section
+        for (let i = 0; i < section.data.length; i++) {
+          if (currentIndex === index) {
+            return { length: ITEM_HEIGHT, offset, index };
+          }
+          offset += ITEM_HEIGHT;
+          currentIndex++;
+        }
+      }
+
+      return { length: ITEM_HEIGHT, offset, index };
+    },
+    []
+  );
+
+  // Calculate letter size based on container height (only used at full sheet)
+  const letterSize = useMemo(() => {
+    if (listContainerHeight <= 0) return { height: 18, fontSize: 11 };
+    const height = listContainerHeight / ALPHABET.length;
+    // At full sheet we have plenty of room, use comfortable font size (11-12pt)
+    const fontSize = Math.max(11, Math.min(12, height * 0.65));
+    return { height, fontSize };
+  }, [listContainerHeight]);
 
   // Render section header
   const renderSectionHeader = useCallback(
@@ -202,7 +299,8 @@ export function TeamMemberSheet({
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingHorizontal: 16,
+                paddingLeft: 16,
+                paddingRight: 16,
                 height: ITEM_HEIGHT,
                 gap: 10,
               }}
@@ -221,8 +319,10 @@ export function TeamMemberSheet({
                   {user.initials}
                 </Text>
               </View>
-              <Text style={{ flex: 1, fontSize: 15, color: '#fff' }}>{user.name}</Text>
-              {selected ? <Icon as={Check} size={18} color={accentColor} /> : null}
+              <Text style={{ flex: 1, fontSize: 15, color: '#fff' }} numberOfLines={1}>
+                {user.name}
+              </Text>
+              {selected && <Icon as={Check} size={20} color={accentColor} />}
             </View>
           </Pressable>
           {!isLast && (
@@ -231,53 +331,36 @@ export function TeamMemberSheet({
                 height: StyleSheet.hairlineWidth,
                 backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 marginLeft: 16 + 32 + 10,
+                marginRight: 0,
               }}
             />
           )}
         </View>
       );
     },
-    [isSelected, toggleMember, accentColor]
+    [isSelected, toggleMember, accentColor, showAlphabet]
   );
 
   const keyExtractor = useCallback((item: User) => item.id, []);
 
-  // Calculate item layout for optimized scrolling
-  const getItemLayout = useCallback(
-    (data: UserSection[] | null, index: number) => {
-      if (!data) return { length: ITEM_HEIGHT, offset: 0, index };
+  // Handle scroll failures gracefully
+  const onScrollToIndexFailed = useCallback(() => {
+    // Silently ignore - this can happen during initial render
+  }, []);
 
-      let offset = 0;
-      let itemCount = 0;
-
-      for (const section of data) {
-        // Add section header height
-        if (itemCount === index) {
-          return { length: SECTION_HEADER_HEIGHT, offset, index };
-        }
-        offset += SECTION_HEADER_HEIGHT;
-        itemCount++;
-
-        // Add items in section
-        for (let i = 0; i < section.data.length; i++) {
-          if (itemCount === index) {
-            return { length: ITEM_HEIGHT, offset, index };
-          }
-          offset += ITEM_HEIGHT;
-          itemCount++;
-        }
-      }
-
-      return { length: ITEM_HEIGHT, offset, index };
-    },
-    []
-  );
+  // Reset snap index when sheet closes
+  useEffect(() => {
+    if (!open) {
+      setSnapIndex(0);
+    }
+  }, [open]);
 
   return (
     <BottomSheetModal
       open={open}
       onOpenChange={onOpenChange}
-      snapPoints={['70%', '92%']}
+      snapPoints={SNAP_POINTS as unknown as string[]}
+      onSnapIndexChange={setSnapIndex}
     >
       {/* Header */}
       <View
@@ -314,7 +397,7 @@ export function TeamMemberSheet({
             marginHorizontal: HEADER_PADDING,
             marginTop: 8,
             paddingHorizontal: 10,
-            height: 34,
+            height: 36,
             gap: 8,
           }}
         >
@@ -326,7 +409,7 @@ export function TeamMemberSheet({
             onChangeText={setSearch}
             autoCapitalize="none"
             autoCorrect={false}
-            style={{ flex: 1, fontSize: 15, color: '#fff', paddingVertical: 0 }}
+            style={{ flex: 1, fontSize: 16, color: '#fff', paddingVertical: 0 }}
           />
           {search.length > 0 && (
             <Pressable onPress={() => setSearch('')} hitSlop={8}>
@@ -399,52 +482,56 @@ export function TeamMemberSheet({
       </View>
 
       {/* User List with Alphabet Index */}
-      <View style={{ flex: 1, flexDirection: 'row' }}>
-        {/* Section List */}
-        <View style={{ flex: 1 }}>
-          {sections.length === 0 ? (
-            <View style={{ padding: 32, alignItems: 'center' }}>
-              <Text style={{ fontSize: 15, color: 'rgba(255, 255, 255, 0.4)' }}>No results found</Text>
-            </View>
-          ) : (
+      <View
+        style={{ flex: 1 }}
+        onLayout={(e) => setListContainerHeight(e.nativeEvent.layout.height)}
+      >
+        {sections.length === 0 ? (
+          <View style={{ padding: 32, alignItems: 'center' }}>
+            <Text style={{ fontSize: 15, color: 'rgba(255, 255, 255, 0.4)' }}>No results found</Text>
+          </View>
+        ) : (
+          <View style={{ flex: 1, marginRight: showAlphabet ? ALPHABET_TOUCH_WIDTH : 0 }}>
             <BottomSheetSectionList
-              ref={sectionListRef}
+              ref={sectionListRef as any}
               sections={sections}
               keyExtractor={keyExtractor}
               renderItem={renderItem}
               renderSectionHeader={renderSectionHeader}
-              getItemLayout={getItemLayout}
+              getItemLayout={getItemLayout as any}
               stickySectionHeadersEnabled
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
+              onScrollToIndexFailed={onScrollToIndexFailed}
             />
-          )}
-        </View>
+          </View>
+        )}
 
-        {/* Alphabet Index - only show when not searching */}
-        {!search && sections.length > 0 && (
+        {/* Alphabet Index - 44pt wide touch target for accessibility */}
+        {showAlphabet && sections.length > 0 && (
           <View
             style={{
               position: 'absolute',
               right: 0,
               top: 0,
               bottom: 0,
-              width: 24,
-              alignItems: 'center',
+              width: ALPHABET_TOUCH_WIDTH,
+              justifyContent: 'center',
+              zIndex: 10,
+              backgroundColor: 'transparent',
             }}
-            onLayout={(e) => setAlphabetHeight(e.nativeEvent.layout.height)}
             onStartShouldSetResponder={() => true}
             onMoveShouldSetResponder={() => true}
             onResponderGrant={(e) => {
               const y = e.nativeEvent.locationY;
-              const index = Math.floor(y / letterHeight);
+              const index = Math.floor((y / listContainerHeight) * ALPHABET.length);
               if (index >= 0 && index < ALPHABET.length) {
                 handleAlphabetTouch(ALPHABET[index]);
               }
             }}
             onResponderMove={(e) => {
               const y = e.nativeEvent.locationY;
-              const index = Math.floor(y / letterHeight);
+              const index = Math.floor((y / listContainerHeight) * ALPHABET.length);
               if (index >= 0 && index < ALPHABET.length) {
                 handleAlphabetTouch(ALPHABET[index]);
               }
@@ -454,28 +541,29 @@ export function TeamMemberSheet({
             {ALPHABET.map((letter) => {
               const isAvailable = availableLetters.has(letter);
               const isActive = activeIndexLetter === letter;
-              // Scale font size based on available height (min 9, max 12)
-              const fontSize = Math.max(9, Math.min(12, letterHeight * 0.75));
 
               return (
                 <View
                   key={letter}
                   style={{
-                    height: letterHeight,
-                    width: 24,
-                    alignItems: 'center',
+                    height: letterSize.height,
+                    width: ALPHABET_TOUCH_WIDTH,
+                    alignItems: 'flex-end',
                     justifyContent: 'center',
+                    paddingRight: 8,
                   }}
                 >
                   <Text
                     style={{
-                      fontSize,
+                      fontSize: letterSize.fontSize,
                       fontWeight: isActive ? '700' : '600',
                       color: isActive
                         ? accentColor
                         : isAvailable
                           ? 'rgba(255, 255, 255, 0.6)'
                           : 'rgba(255, 255, 255, 0.2)',
+                      minWidth: ALPHABET_VISUAL_WIDTH,
+                      textAlign: 'center',
                     }}
                   >
                     {letter}

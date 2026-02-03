@@ -276,6 +276,8 @@ type BottomSheetModalProps = BottomSheetProps & {
   animateOnMount?: boolean;
   /** Footer content that stays fixed at the bottom of the visible sheet area */
   footer?: React.ReactNode;
+  /** Callback when snap index changes (not called when closing) */
+  onSnapIndexChange?: (index: number) => void;
 };
 
 /**
@@ -310,6 +312,7 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
       stackBehavior = 'replace',
       animateOnMount = false,
       footer,
+      onSnapIndexChange,
       children,
     },
     ref
@@ -336,9 +339,11 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
       (index: number) => {
         if (index === -1) {
           onOpenChange(false);
+        } else {
+          onSnapIndexChange?.(index);
         }
       },
-      [onOpenChange]
+      [onOpenChange, onSnapIndexChange]
     );
 
     // Handle dismiss
