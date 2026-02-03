@@ -1,22 +1,21 @@
 import { useState } from 'react';
-import { View, Pressable } from 'react-native';
-import { ChevronRight, Check, Clock, CirclePause } from 'lucide-react-native';
+import { View } from 'react-native';
+import { ChevronRight, Check } from 'lucide-react-native';
 
 import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
 import {
   BottomSheetModal,
   BottomSheetHeader,
   BottomSheetTitle,
+  BottomSheetBody,
   BottomSheetScrollBody,
-  BottomSheetFooter,
 } from '@/components/ui/bottom-sheet';
-import { STATUS_OPTIONS, REASON_OPTIONS, getStatusBadgeColor } from '@/lib/age-utils';
-import type { ProjectStatus, AgeUpdateReason, Project, BadgeColor } from '@/lib/mock-data';
+import { STATUS_OPTIONS, REASON_OPTIONS, getStatusHexColor } from '@/lib/age-utils';
+import type { ProjectStatus, AgeUpdateReason, Project } from '@/lib/mock-data';
 
 type AgeUpdateSheetProps = {
   open: boolean;
@@ -26,9 +25,10 @@ type AgeUpdateSheetProps = {
 };
 
 export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpdateSheetProps) {
-  const [status, setStatus] = useState<ProjectStatus>(project.status);
+  const [status, setStatus] = useState<ProjectStatus>('on_track');
   const [reason, setReason] = useState<AgeUpdateReason>('none');
   const [note, setNote] = useState('');
+  const [statusSheetOpen, setStatusSheetOpen] = useState(false);
   const [reasonSheetOpen, setReasonSheetOpen] = useState(false);
 
   const handleSubmit = () => {
@@ -42,10 +42,15 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
 
   const handleCancel = () => {
     // Reset form
-    setStatus(project.status);
+    setStatus('on_track');
     setReason('none');
     setNote('');
     onOpenChange(false);
+  };
+
+  const handleStatusSelect = (selectedStatus: ProjectStatus) => {
+    setStatus(selectedStatus);
+    setStatusSheetOpen(false);
   };
 
   const handleReasonSelect = (selectedReason: AgeUpdateReason) => {
@@ -53,6 +58,9 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
     setReasonSheetOpen(false);
   };
 
+  const selectedStatusOption = STATUS_OPTIONS.find((opt) => opt.value === status);
+  const selectedStatusLabel = selectedStatusOption?.label ?? 'On track';
+  const selectedStatusColor = getStatusHexColor(status);
   const selectedReasonLabel = REASON_OPTIONS.find((opt) => opt.value === reason)?.label ?? 'None';
 
   return (
@@ -60,7 +68,19 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
       <BottomSheetModal
         open={open}
         onOpenChange={onOpenChange}
-        snapPoints={['70%']}
+        snapPoints={[480]}
+        footer={
+          <HStack gap="sm">
+            <View style={{ flex: 1 }}>
+              <Button variant="ghost" onPress={handleCancel}>
+                Cancel
+              </Button>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button onPress={handleSubmit}>Reset Age</Button>
+            </View>
+          </HStack>
+        }
       >
         <BottomSheetHeader>
           <BottomSheetTitle>Update Age</BottomSheetTitle>
@@ -68,64 +88,29 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
 
         <BottomSheetScrollBody>
           <VStack gap="lg">
-            {/* Status Selection - 2 per row */}
+            {/* Status Selection - Opens sheet */}
             <VStack gap="sm">
               <Text size="sm" weight="medium" tone="muted">
                 Status
               </Text>
-              <VStack gap="sm">
-                {/* Row 1: On track, At risk */}
-                <HStack gap="sm">
-                  {STATUS_OPTIONS.slice(0, 2).map((option) => {
-                    const isSelected = status === option.value;
-                    const color = getStatusBadgeColor(option.value);
-                    return (
-                      <Pressable
-                        key={option.value}
-                        onPress={() => setStatus(option.value)}
-                        style={{ flex: 1 }}
-                      >
-                        <Badge
-                          variant="color"
-                          color={color as BadgeColor}
-                          size="lg"
-                          icon={isSelected ? Check : Clock}
-                        >
-                          <Text>{option.label}</Text>
-                        </Badge>
-                      </Pressable>
-                    );
-                  })}
-                </HStack>
-                {/* Row 2: Off track, Disable age */}
-                <HStack gap="sm">
-                  {STATUS_OPTIONS.slice(2, 4).map((option) => {
-                    const isSelected = status === option.value;
-                    const color = getStatusBadgeColor(option.value);
-                    const isDisabledOption = option.value === 'disabled';
-                    return (
-                      <Pressable
-                        key={option.value}
-                        onPress={() => {
-                          if (!isDisabledOption) {
-                            setStatus(option.value);
-                          }
+              <Button variant="outline" onPress={() => setStatusSheetOpen(true)}>
+                <View style={{ flex: 1 }}>
+                  <HStack justify="between" align="center">
+                    <HStack gap="sm" align="center">
+                      <View
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 4,
+                          backgroundColor: selectedStatusColor,
                         }}
-                        style={{ flex: 1, opacity: isDisabledOption ? 0.5 : 1 }}
-                      >
-                        <Badge
-                          variant="color"
-                          color={color as BadgeColor}
-                          size="lg"
-                          icon={isSelected ? Check : isDisabledOption ? CirclePause : Clock}
-                        >
-                          <Text>{option.label}</Text>
-                        </Badge>
-                      </Pressable>
-                    );
-                  })}
-                </HStack>
-              </VStack>
+                      />
+                      <Text>{selectedStatusLabel}</Text>
+                    </HStack>
+                    <Icon as={ChevronRight} size={20} />
+                  </HStack>
+                </View>
+              </Button>
             </VStack>
 
             {/* Reason Selection - Single bar that opens sheet */}
@@ -146,7 +131,7 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
             {/* Note Textarea */}
             <VStack gap="sm">
               <Text size="sm" weight="medium" tone="muted">
-                Note (optional)
+                Note
               </Text>
               <Textarea
                 placeholder="Add a note..."
@@ -157,55 +142,93 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
             </VStack>
           </VStack>
         </BottomSheetScrollBody>
+      </BottomSheetModal>
 
-        <BottomSheetFooter>
-          <HStack gap="sm">
-            <View style={{ flex: 1 }}>
-              <Button variant="ghost" onPress={handleCancel}>
-                Cancel
-              </Button>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Button onPress={handleSubmit}>Reset Age</Button>
-            </View>
-          </HStack>
-        </BottomSheetFooter>
+      {/* Status Selection Sheet */}
+      <BottomSheetModal
+        open={statusSheetOpen}
+        onOpenChange={setStatusSheetOpen}
+        enableDynamicSizing
+        stackBehavior="push"
+      >
+        <BottomSheetHeader>
+          <BottomSheetTitle>Select Status</BottomSheetTitle>
+        </BottomSheetHeader>
+
+        <BottomSheetBody>
+          <View style={{ paddingBottom: 16 }}>
+            <VStack gap="xs">
+              {STATUS_OPTIONS.map((option) => {
+                const isSelected = status === option.value;
+                const statusColor = getStatusHexColor(option.value);
+                return (
+                  <Button
+                    key={option.value}
+                    variant={isSelected ? 'secondary' : 'ghost'}
+                    onPress={() => handleStatusSelect(option.value)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <HStack justify="between" align="center">
+                        <HStack gap="sm" align="center">
+                          <View
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: 4,
+                              backgroundColor: statusColor,
+                            }}
+                          />
+                          <Text weight={isSelected ? 'semibold' : 'regular'}>
+                            {option.label}
+                          </Text>
+                        </HStack>
+                        {isSelected ? <Icon as={Check} size={18} /> : null}
+                      </HStack>
+                    </View>
+                  </Button>
+                );
+              })}
+            </VStack>
+          </View>
+        </BottomSheetBody>
       </BottomSheetModal>
 
       {/* Reason Selection Sheet */}
       <BottomSheetModal
         open={reasonSheetOpen}
         onOpenChange={setReasonSheetOpen}
-        snapPoints={['60%']}
+        enableDynamicSizing
         stackBehavior="push"
       >
         <BottomSheetHeader>
           <BottomSheetTitle>Select Reason</BottomSheetTitle>
         </BottomSheetHeader>
 
-        <BottomSheetScrollBody>
-          <VStack gap="xs">
-            {REASON_OPTIONS.map((option) => {
-              const isSelected = reason === option.value;
-              return (
-                <Button
-                  key={option.value}
-                  variant={isSelected ? 'secondary' : 'ghost'}
-                  onPress={() => handleReasonSelect(option.value)}
-                >
-                  <View style={{ flex: 1 }}>
-                    <HStack justify="between" align="center">
-                      <Text weight={isSelected ? 'semibold' : 'regular'}>
-                        {option.label}
-                      </Text>
-                      {isSelected && <Icon as={Check} size={18} />}
-                    </HStack>
-                  </View>
-                </Button>
-              );
-            })}
-          </VStack>
-        </BottomSheetScrollBody>
+        <BottomSheetBody>
+          <View style={{ paddingBottom: 16 }}>
+            <VStack gap="xs">
+              {REASON_OPTIONS.map((option) => {
+                const isSelected = reason === option.value;
+                return (
+                  <Button
+                    key={option.value}
+                    variant={isSelected ? 'secondary' : 'ghost'}
+                    onPress={() => handleReasonSelect(option.value)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <HStack justify="between" align="center">
+                        <Text weight={isSelected ? 'semibold' : 'regular'}>
+                          {option.label}
+                        </Text>
+                        {isSelected ? <Icon as={Check} size={18} /> : null}
+                      </HStack>
+                    </View>
+                  </Button>
+                );
+              })}
+            </VStack>
+          </View>
+        </BottomSheetBody>
       </BottomSheetModal>
     </>
   );

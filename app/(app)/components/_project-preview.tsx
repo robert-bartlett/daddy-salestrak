@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Pressable } from 'react-native';
 import { MapPin, Clock, MessageSquare, Plus, ChevronRight } from 'lucide-react-native';
 
@@ -12,16 +13,18 @@ import { useAccentColors } from '@/lib/theme-context';
 import { getWorkflowById, getStageById } from '@/lib/mock-data';
 import { formatAge, getStatusFromAge, getStatusHexColor } from '@/lib/age-utils';
 import { getPinColor } from '@/lib/map-colors';
+import { AgeUpdateSheet } from './_age-update-sheet';
 
 type ProjectPreviewContentProps = {
   projectId: string;
 };
 
 export function ProjectPreviewContent({ projectId }: ProjectPreviewContentProps) {
-  const { getProjectById, getProjectActivities } = useProjects();
+  const { getProjectById, getProjectActivities, updateProjectAge } = useProjects();
   const { expandProject } = useMapSheet();
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#0A84FF';
+  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
 
   const project = getProjectById(projectId);
 
@@ -49,9 +52,27 @@ export function ProjectPreviewContent({ projectId }: ProjectPreviewContentProps)
     console.log('Add project at:', project.address);
   };
 
+  const handleAgeTap = () => {
+    setAgeSheetOpen(true);
+  };
+
+  const handleActivityTap = () => {
+    expandProject(projectId, true); // true = show activity tab
+  };
+
+  const handleAgeUpdate = (
+    status: Parameters<typeof updateProjectAge>[1],
+    reason: Parameters<typeof updateProjectAge>[2],
+    note?: string
+  ) => {
+    updateProjectAge(project.id, status, reason, note);
+  };
+
   return (
-    <BottomSheetBody>
-      <VStack gap="md" style={{ paddingBottom: 16 }}>
+    <>
+      <BottomSheetBody>
+        <View style={{ paddingBottom: 16 }}>
+          <VStack gap="md">
         {/* Address Header */}
         <HStack gap="sm" align="center">
           <Icon as={MapPin} size={18} color="rgba(255, 255, 255, 0.6)" />
@@ -101,24 +122,40 @@ export function ProjectPreviewContent({ projectId }: ProjectPreviewContentProps)
                       </HStack>
                     )}
 
-                    {/* Age and Activity count */}
-                    <HStack gap="md" align="center">
-                      <HStack gap="xs" align="center">
-                        <Icon as={Clock} size={14} color={getStatusHexColor(getStatusFromAge(project.ageResetAt))} />
-                        <Text
-                          size="sm"
-                          weight="medium"
-                          style={{ color: getStatusHexColor(getStatusFromAge(project.ageResetAt)) }}
-                        >
-                          {formatAge(project.ageResetAt)}
-                        </Text>
-                      </HStack>
-                      <HStack gap="xs" align="center">
-                        <Icon as={MessageSquare} size={14} color="rgba(255, 255, 255, 0.4)" />
-                        <Text size="sm" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-                          {activityCount}
-                        </Text>
-                      </HStack>
+                    {/* Age and Activity count - both tappable */}
+                    <HStack gap="sm" align="center">
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleAgeTap();
+                        }}
+                        style={{ paddingVertical: 4, paddingHorizontal: 8, marginLeft: -8, borderRadius: 6 }}
+                      >
+                        <HStack gap="xs" align="center">
+                          <Icon as={Clock} size={14} color={getStatusHexColor(getStatusFromAge(project.ageResetAt))} />
+                          <Text
+                            size="sm"
+                            weight="medium"
+                            style={{ color: getStatusHexColor(getStatusFromAge(project.ageResetAt)) }}
+                          >
+                            {formatAge(project.ageResetAt)}
+                          </Text>
+                        </HStack>
+                      </Pressable>
+                      <Pressable
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleActivityTap();
+                        }}
+                        style={{ paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 }}
+                      >
+                        <HStack gap="xs" align="center">
+                          <Icon as={MessageSquare} size={14} color="rgba(255, 255, 255, 0.4)" />
+                          <Text size="sm" style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                            {activityCount}
+                          </Text>
+                        </HStack>
+                      </Pressable>
                     </HStack>
                   </VStack>
                 </View>
@@ -151,8 +188,18 @@ export function ProjectPreviewContent({ projectId }: ProjectPreviewContentProps)
               </HStack>
             </View>
           )}
-        </Pressable>
-      </VStack>
-    </BottomSheetBody>
+          </Pressable>
+          </VStack>
+        </View>
+      </BottomSheetBody>
+
+      {/* Age Update Sheet */}
+      <AgeUpdateSheet
+        open={ageSheetOpen}
+        onOpenChange={setAgeSheetOpen}
+        project={project}
+        onSubmit={handleAgeUpdate}
+      />
+    </>
   );
 }

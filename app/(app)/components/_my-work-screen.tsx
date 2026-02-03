@@ -40,9 +40,7 @@ import {
 import {
   formatAge,
   getStatusFromAge,
-  getStatusBadgeColor,
   getStatusHexColor,
-  type BadgeColor,
 } from '@/lib/age-utils';
 import { getPinColor } from '@/lib/map-colors';
 import {
@@ -108,7 +106,7 @@ type ProjectRowProps = {
 function ProjectRow({ project, onPress }: ProjectRowProps) {
   const ageText = formatAge(project.ageResetAt);
   const status = getStatusFromAge(project.ageResetAt);
-  const badgeColor = getStatusBadgeColor(status);
+  const statusColor = getStatusHexColor(status);
 
   return (
     <Pressable onPress={onPress}>
@@ -122,9 +120,12 @@ function ProjectRow({ project, onPress }: ProjectRowProps) {
               </Text>
             </VStack>
           </View>
-          <Badge variant="color" color={badgeColor as BadgeColor} size="default">
-            <Text>{ageText}</Text>
-          </Badge>
+          <HStack gap="xs" align="center">
+            <Icon as={Clock} size={14} color={statusColor} />
+            <Text size="sm" weight="medium" style={{ color: statusColor }}>
+              {ageText}
+            </Text>
+          </HStack>
         </HStack>
       </Surface>
     </Pressable>
@@ -139,9 +140,11 @@ type ProjectCardProps = {
   project: Project;
   activityCount: number;
   onPress: () => void;
+  onAgeTap: () => void;
+  onActivityTap: () => void;
 };
 
-function ProjectCard({ project, activityCount, onPress }: ProjectCardProps) {
+function ProjectCard({ project, activityCount, onPress, onAgeTap, onActivityTap }: ProjectCardProps) {
   const ageText = formatAge(project.ageResetAt);
   const status = getStatusFromAge(project.ageResetAt);
   const statusColor = getStatusHexColor(status);
@@ -180,20 +183,36 @@ function ProjectCard({ project, activityCount, onPress }: ProjectCardProps) {
                     </HStack>
                   ) : null}
 
-                  {/* Age and Activity count */}
-                  <HStack gap="md" align="center">
-                    <HStack gap="xs" align="center">
-                      <Icon as={Clock} size={14} color={statusColor} />
-                      <Text size="sm" weight="medium" style={{ color: statusColor }}>
-                        {ageText}
-                      </Text>
-                    </HStack>
-                    <HStack gap="xs" align="center">
-                      <Icon as={MessageSquare} size={14} />
-                      <Text size="sm" tone="muted">
-                        {activityCount}
-                      </Text>
-                    </HStack>
+                  {/* Age and Activity count - both tappable */}
+                  <HStack gap="sm" align="center">
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        onAgeTap();
+                      }}
+                      style={{ paddingVertical: 4, paddingHorizontal: 8, marginLeft: -8, borderRadius: 6 }}
+                    >
+                      <HStack gap="xs" align="center">
+                        <Icon as={Clock} size={14} color={statusColor} />
+                        <Text size="sm" weight="medium" style={{ color: statusColor }}>
+                          {ageText}
+                        </Text>
+                      </HStack>
+                    </Pressable>
+                    <Pressable
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        onActivityTap();
+                      }}
+                      style={{ paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 }}
+                    >
+                      <HStack gap="xs" align="center">
+                        <Icon as={MessageSquare} size={14} />
+                        <Text size="sm" tone="muted">
+                          {activityCount}
+                        </Text>
+                      </HStack>
+                    </Pressable>
                   </HStack>
                 </VStack>
               </View>
@@ -449,6 +468,20 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     setDetailSheetOpen(true);
   }, []);
 
+  // Projects tab: handle age tap on project card (opens age update sheet)
+  const handleProjectCardAgeTap = useCallback((project: Project) => {
+    setSelectedProjectForAge(project);
+    setAgeSheetOpen(true);
+  }, []);
+
+  // Projects tab: handle activity tap on project card (opens detail sheet on Activity tab)
+  const handleProjectCardActivityTap = useCallback((project: Project) => {
+    setDetailProject(project);
+    setShowActivityOnOpen(true);
+    setDetailShowsActivity(true);
+    setDetailSheetOpen(true);
+  }, []);
+
   // Activities tab: handle activity press (opens detail sheet on Activity tab)
   const handleActivityPress = useCallback(
     (activity: ActivityType) => {
@@ -515,9 +548,11 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         project={item}
         activityCount={projectActivityCounts[item.id] ?? 0}
         onPress={() => handleProjectCardPress(item)}
+        onAgeTap={() => handleProjectCardAgeTap(item)}
+        onActivityTap={() => handleProjectCardActivityTap(item)}
       />
     ),
-    [handleProjectCardPress, projectActivityCounts]
+    [handleProjectCardPress, handleProjectCardAgeTap, handleProjectCardActivityTap, projectActivityCounts]
   );
 
   const renderActivityItem = useCallback(
