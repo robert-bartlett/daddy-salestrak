@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   Clock,
   SlidersHorizontal,
+  Star,
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Surface, Header } from '@/components/ui/layout';
@@ -37,6 +38,7 @@ import {
 } from './_activity-filter-sheet';
 import { TeamMemberSheet } from './_team-member-sheet';
 import { ProjectCard } from './_project-card';
+import { ProjectActionsSheet } from './_project-actions-sheet';
 import {
   formatAge,
   getStatusFromAge,
@@ -56,7 +58,7 @@ import {
   type User as UserType,
 } from '@/lib/mock-data';
 
-type TabValue = 'today' | 'projects' | 'activities' | 'workflows';
+type TabValue = 'today' | 'projects' | 'favorites' | 'activities' | 'workflows';
 
 // Workflows tab drill-down state
 type WorkflowsViewState =
@@ -273,17 +275,33 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   const [selectedProjectForOwner, setSelectedProjectForOwner] = useState<Project | null>(null);
   const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
 
+  // Actions sheet state (for long press)
+  const [selectedProjectForActions, setSelectedProjectForActions] = useState<Project | null>(null);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
+
+  // Active (non-archived) projects
+  const activeProjects = useMemo(() => {
+    return projects.filter((p) => !p.isArchived);
+  }, [projects]);
+
   // Sort projects by age (oldest first, based on ageResetAt)
   const sortedProjectsByAge = useMemo(() => {
-    return [...projects].sort(
+    return [...activeProjects].sort(
       (a, b) => a.ageResetAt.getTime() - b.ageResetAt.getTime()
     );
-  }, [projects]);
+  }, [activeProjects]);
 
   // Sort projects alphabetically for Projects tab
   const sortedProjectsAlphabetically = useMemo(() => {
-    return [...projects].sort((a, b) => a.name.localeCompare(b.name));
-  }, [projects]);
+    return [...activeProjects].sort((a, b) => a.name.localeCompare(b.name));
+  }, [activeProjects]);
+
+  // Favorite projects (non-archived, sorted alphabetically)
+  const favoriteProjects = useMemo(() => {
+    return activeProjects
+      .filter((p) => p.isFavorite)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [activeProjects]);
 
   // Filtered activities based on activity filters
   const filteredActivities = useMemo(() => {
@@ -398,6 +416,12 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     setOwnerSheetOpen(true);
   }, []);
 
+  // Handle long press on project card (opens actions sheet)
+  const handleProjectCardLongPress = useCallback((project: Project) => {
+    setSelectedProjectForActions(project);
+    setActionsSheetOpen(true);
+  }, []);
+
   // Handle owner change from sheet
   const handleOwnersChange = useCallback(
     (newOwners: UserType[]) => {
@@ -477,9 +501,10 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         onAgeTap={() => handleProjectCardAgeTap(item)}
         onActivityTap={() => handleProjectCardActivityTap(item)}
         onOwnerTap={() => handleProjectCardOwnerTap(item)}
+        onLongPress={() => handleProjectCardLongPress(item)}
       />
     ),
-    [handleProjectCardPress, handleProjectCardAgeTap, handleProjectCardActivityTap, handleProjectCardOwnerTap, projectActivityCounts]
+    [handleProjectCardPress, handleProjectCardAgeTap, handleProjectCardActivityTap, handleProjectCardOwnerTap, handleProjectCardLongPress, projectActivityCounts]
   );
 
   const renderActivityItem = useCallback(
@@ -567,6 +592,10 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                 <Icon as={FolderKanban} size={16} />
                 <Text>Projects</Text>
               </TabsTrigger>
+              <TabsTrigger value="favorites">
+                <Icon as={Star} size={16} />
+                <Text>Favorites</Text>
+              </TabsTrigger>
               <TabsTrigger value="activities">
                 <Icon as={Activity} size={16} />
                 <Text>Activities</Text>
@@ -632,6 +661,37 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
             ) : (
               <FlatList
                 data={sortedProjectsAlphabetically}
+                renderItem={renderProjectCard}
+                keyExtractor={keyExtractor}
+                contentContainerStyle={{ padding: 16, gap: 8 }}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </Box>
+        </TabsContent>
+
+        {/* Favorites Tab: Favorited projects */}
+        <TabsContent value="favorites">
+          <Box fill>
+            {favoriteProjects.length === 0 ? (
+              <Box fill paddingX="md" paddingY="lg">
+                <VStack gap="md" align="center">
+                  <Surface variant="muted" padding="xl">
+                    <VStack gap="sm" align="center">
+                      <Icon as={Star} size={32} />
+                      <Text size="lg" weight="semibold" align="center">
+                        No Favorites
+                      </Text>
+                      <Text tone="muted" align="center">
+                        Long press a project to add it to favorites
+                      </Text>
+                    </VStack>
+                  </Surface>
+                </VStack>
+              </Box>
+            ) : (
+              <FlatList
+                data={favoriteProjects}
                 renderItem={renderProjectCard}
                 keyExtractor={keyExtractor}
                 contentContainerStyle={{ padding: 16, gap: 8 }}
@@ -862,6 +922,19 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
           currentMembers={selectedProjectForOwner.owners}
           onSave={handleOwnersChange}
           projectName={selectedProjectForOwner.name}
+        />
+      ) : null}
+
+      {/* Actions Sheet (for long press) */}
+      {selectedProjectForActions ? (
+        <ProjectActionsSheet
+          open={actionsSheetOpen}
+          onOpenChange={setActionsSheetOpen}
+          project={selectedProjectForActions}
+          onDelete={() => {
+            setDetailSheetOpen(false);
+            setDetailProject(null);
+          }}
         />
       ) : null}
     </Box>

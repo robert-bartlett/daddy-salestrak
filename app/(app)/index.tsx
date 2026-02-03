@@ -161,7 +161,7 @@ export default function MapFirstScreen() {
           return false;
         }
       }
-      if (!filters.showArchived && project.status === 'disabled') {
+      if (!filters.showArchived && project.isArchived) {
         return false;
       }
       return true;

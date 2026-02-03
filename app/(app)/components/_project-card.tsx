@@ -1,5 +1,5 @@
 import { Pressable, View } from 'react-native';
-import { Clock, MessageSquare, User } from 'lucide-react-native';
+import { Clock, MessageSquare, User, Star } from 'lucide-react-native';
 
 import { VStack, HStack, Surface } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
@@ -16,6 +16,7 @@ type ProjectCardProps = {
   onAgeTap: () => void;
   onActivityTap: () => void;
   onOwnerTap: () => void;
+  onLongPress?: () => void;
 };
 
 export function ProjectCard({
@@ -25,6 +26,7 @@ export function ProjectCard({
   onAgeTap,
   onActivityTap,
   onOwnerTap,
+  onLongPress,
 }: ProjectCardProps) {
   const ageText = formatAge(project.ageResetAt);
   const status = getStatusFromAge(project.ageResetAt);
@@ -35,15 +37,20 @@ export function ProjectCard({
   const stageColor = stage ? getPinColor(stage.color) : '#6B7280';
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={400}>
       {({ pressed }) => (
         <View style={{ opacity: pressed ? 0.7 : 1 }}>
           <Surface variant="outline" padding="md">
             <VStack gap="xs">
-              {/* Project Name */}
-              <Text weight="semibold" size="lg" numberOfLines={1}>
-                {project.name}
-              </Text>
+              {/* Project Name with Favorite Indicator */}
+              <HStack gap="xs" align="center">
+                <Text weight="semibold" size="lg" numberOfLines={1} style={{ flex: 1 }}>
+                  {project.name}
+                </Text>
+                {project.isFavorite ? (
+                  <Icon as={Star} size={14} color="#FFD700" fill="#FFD700" />
+                ) : null}
+              </HStack>
 
               {/* Stage indicator */}
               {stage ? (

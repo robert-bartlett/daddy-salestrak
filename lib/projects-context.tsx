@@ -18,6 +18,7 @@ type ProjectsContextValue = {
   projects: Project[];
   activities: Activity[];
   getFavoriteProjects: () => Project[];
+  getArchivedProjects: () => Project[];
   getProjectById: (id: string) => Project | undefined;
   getProjectActivities: (projectId: string) => Activity[];
   addProject: (data: {
@@ -39,6 +40,10 @@ type ProjectsContextValue = {
   updateProjectWorkflow: (projectId: string, workflowId: string, stageId?: string) => void;
   updateProjectOwners: (projectId: string, owners: User[]) => void;
   updateProjectAssignees: (projectId: string, assignees: User[]) => void;
+  toggleFavorite: (projectId: string) => void;
+  archiveProject: (projectId: string) => void;
+  unarchiveProject: (projectId: string) => void;
+  deleteProject: (projectId: string) => void;
   markActivityRead: (activityId: string) => void;
   markAllActivitiesRead: () => void;
 };
@@ -54,7 +59,11 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const getFavoriteProjects = useCallback(() => {
-    return projects.filter((p) => p.isFavorite);
+    return projects.filter((p) => p.isFavorite && !p.isArchived);
+  }, [projects]);
+
+  const getArchivedProjects = useCallback(() => {
+    return projects.filter((p) => p.isArchived);
   }, [projects]);
 
   const getProjectById = useCallback(
@@ -90,6 +99,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
         owners: [CURRENT_USER],
         assignees: [CURRENT_USER],
         isFavorite: false,
+        isArchived: false,
         latitude: data.latitude ?? defaultLat + (Math.random() - 0.5) * 0.02,
         longitude: data.longitude ?? defaultLng + (Math.random() - 0.5) * 0.02,
         ageResetAt: now,
@@ -362,11 +372,105 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
     );
   }, []);
 
+  const toggleFavorite = useCallback(
+    (projectId: string) => {
+      const now = new Date();
+      const project = projects.find((p) => p.id === projectId);
+      if (!project) return;
+
+      const newIsFavorite = !project.isFavorite;
+
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === projectId
+            ? { ...p, isFavorite: newIsFavorite, updatedAt: now }
+            : p
+        )
+      );
+
+      const activity: Activity = {
+        id: `act-${Date.now()}`,
+        projectId,
+        type: 'favorite',
+        description: newIsFavorite ? 'Added to favorites' : 'Removed from favorites',
+        timestamp: now,
+        user: CURRENT_USER,
+        read: true,
+      };
+
+      setActivities((prev) => [activity, ...prev]);
+    },
+    [projects]
+  );
+
+  const archiveProject = useCallback(
+    (projectId: string) => {
+      const now = new Date();
+
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === projectId
+            ? { ...p, isArchived: true, archivedAt: now, updatedAt: now }
+            : p
+        )
+      );
+
+      const activity: Activity = {
+        id: `act-${Date.now()}`,
+        projectId,
+        type: 'archive',
+        description: 'Project archived',
+        timestamp: now,
+        user: CURRENT_USER,
+        read: true,
+      };
+
+      setActivities((prev) => [activity, ...prev]);
+    },
+    []
+  );
+
+  const unarchiveProject = useCallback(
+    (projectId: string) => {
+      const now = new Date();
+
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === projectId
+            ? { ...p, isArchived: false, archivedAt: undefined, updatedAt: now }
+            : p
+        )
+      );
+
+      const activity: Activity = {
+        id: `act-${Date.now()}`,
+        projectId,
+        type: 'archive',
+        description: 'Project restored',
+        timestamp: now,
+        user: CURRENT_USER,
+        read: true,
+      };
+
+      setActivities((prev) => [activity, ...prev]);
+    },
+    []
+  );
+
+  const deleteProject = useCallback(
+    (projectId: string) => {
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      setActivities((prev) => prev.filter((a) => a.projectId !== projectId));
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       projects,
       activities,
       getFavoriteProjects,
+      getArchivedProjects,
       getProjectById,
       getProjectActivities,
       addProject,
@@ -376,10 +480,14 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
       updateProjectWorkflow,
       updateProjectOwners,
       updateProjectAssignees,
+      toggleFavorite,
+      archiveProject,
+      unarchiveProject,
+      deleteProject,
       markActivityRead,
       markAllActivitiesRead,
     }),
-    [projects, activities, getFavoriteProjects, getProjectById, getProjectActivities, addProject, addNote, updateProjectAge, updateProjectStage, updateProjectWorkflow, updateProjectOwners, updateProjectAssignees, markActivityRead, markAllActivitiesRead]
+    [projects, activities, getFavoriteProjects, getArchivedProjects, getProjectById, getProjectActivities, addProject, addNote, updateProjectAge, updateProjectStage, updateProjectWorkflow, updateProjectOwners, updateProjectAssignees, toggleFavorite, archiveProject, unarchiveProject, deleteProject, markActivityRead, markAllActivitiesRead]
   );
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;

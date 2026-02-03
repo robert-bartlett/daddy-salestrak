@@ -46,7 +46,7 @@ export type AgeUpdate = {
   updatedBy: User;
 };
 
-export type ActivityType = 'note' | 'stage_change' | 'age_update' | 'assignment' | 'created';
+export type ActivityType = 'note' | 'stage_change' | 'age_update' | 'assignment' | 'created' | 'favorite' | 'archive';
 
 export type Activity = {
   id: string;
@@ -74,6 +74,8 @@ export type Project = {
   owners: User[];
   assignees: User[];
   isFavorite: boolean;
+  isArchived: boolean;
+  archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -241,6 +243,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [MOCK_USERS[0], MOCK_USERS[1]],
     isFavorite: true,
+    isArchived: false,
     createdAt: daysAgo(45),
     updatedAt: daysAgo(2),
   },
@@ -259,6 +262,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [MOCK_USERS[2]],
     isFavorite: false,
+    isArchived: false,
     createdAt: daysAgo(30),
     updatedAt: daysAgo(1),
   },
@@ -277,6 +281,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[1]],
     assignees: [MOCK_USERS[0]],
     isFavorite: true,
+    isArchived: false,
     createdAt: daysAgo(15),
     updatedAt: daysAgo(0),
   },
@@ -295,6 +300,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [MOCK_USERS[3]],
     isFavorite: false,
+    isArchived: false,
     createdAt: daysAgo(60),
     updatedAt: daysAgo(5),
   },
@@ -313,6 +319,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[2]],
     assignees: [MOCK_USERS[0], MOCK_USERS[1]],
     isFavorite: true,
+    isArchived: false,
     createdAt: daysAgo(90),
     updatedAt: daysAgo(3),
   },
@@ -331,6 +338,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [MOCK_USERS[0]],
     isFavorite: false,
+    isArchived: false,
     createdAt: daysAgo(7),
     updatedAt: daysAgo(1),
   },
@@ -349,6 +357,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [],
     isFavorite: false,
+    isArchived: false,
     createdAt: daysAgo(22),
     updatedAt: daysAgo(22),
   },
@@ -367,6 +376,7 @@ export const MOCK_PROJECTS: Project[] = [
     owners: [MOCK_USERS[0]],
     assignees: [MOCK_USERS[0]],
     isFavorite: false,
+    isArchived: false,
     createdAt: daysAgo(3),
     updatedAt: daysAgo(0),
   },
@@ -465,7 +475,11 @@ export function getProjectsByStage(stageId: string): Project[] {
 }
 
 export function getFavoriteProjects(): Project[] {
-  return MOCK_PROJECTS.filter((p) => p.isFavorite);
+  return MOCK_PROJECTS.filter((p) => p.isFavorite && !p.isArchived);
+}
+
+export function getArchivedProjects(): Project[] {
+  return MOCK_PROJECTS.filter((p) => p.isArchived);
 }
 
 export function getProjectActivities(projectId: string): Activity[] {

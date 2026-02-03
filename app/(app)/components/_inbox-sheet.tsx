@@ -6,6 +6,8 @@ import {
   Calendar,
   UserPlus,
   Plus,
+  Star,
+  Archive,
 } from 'lucide-react-native';
 
 import {
@@ -30,6 +32,8 @@ const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
   age_update: Calendar,
   assignment: UserPlus,
   created: Plus,
+  favorite: Star,
+  archive: Archive,
 };
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
@@ -38,6 +42,8 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
   age_update: 'text-emerald-500',
   assignment: 'text-purple-500',
   created: 'text-primary',
+  favorite: 'text-yellow-500',
+  archive: 'text-gray-500',
 };
 
 function formatTimestamp(date: Date): string {

@@ -6,6 +6,8 @@ import {
   Calendar,
   UserPlus,
   Plus,
+  Star,
+  Archive,
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack } from '@/components/ui/layout';
@@ -36,6 +38,8 @@ const ALL_ACTIVITY_TYPES: ActivityType[] = [
   'age_update',
   'assignment',
   'created',
+  'favorite',
+  'archive',
 ];
 
 const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
@@ -44,6 +48,8 @@ const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
   age_update: Calendar,
   assignment: UserPlus,
   created: Plus,
+  favorite: Star,
+  archive: Archive,
 };
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
@@ -52,6 +58,8 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
   age_update: 'text-emerald-500',
   assignment: 'text-purple-500',
   created: 'text-primary',
+  favorite: 'text-yellow-500',
+  archive: 'text-gray-500',
 };
 
 const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
@@ -60,6 +68,8 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   age_update: 'Age updated',
   assignment: 'Assignments',
   created: 'Project created',
+  favorite: 'Favorited',
+  archive: 'Archived',
 };
 
 const DATE_RANGE_OPTIONS: { value: DateRange; label: string }[] = [

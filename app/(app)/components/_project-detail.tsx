@@ -8,6 +8,9 @@ import {
   Clock,
   Users,
   Send,
+  Star,
+  MoreHorizontal,
+  Archive,
 } from 'lucide-react-native';
 
 import { BottomSheetScrollBody, BottomSheetFooter } from '@/components/ui/bottom-sheet';
@@ -27,6 +30,7 @@ import { AgeUpdateSheet } from './_age-update-sheet';
 import { StageSelectSheet } from './_stage-select-sheet';
 import { WorkflowSelectSheet } from './_workflow-select-sheet';
 import { TeamMemberSheet } from './_team-member-sheet';
+import { ProjectActionsSheet } from './_project-actions-sheet';
 
 type ProjectDetailContentProps = {
   projectId: string;
@@ -93,6 +97,8 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
     updateProjectOwners,
     updateProjectAssignees,
     addNote,
+    toggleFavorite,
+    unarchiveProject,
   } = useProjects();
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#0A84FF';
@@ -105,6 +111,7 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
   const [workflowSheetOpen, setWorkflowSheetOpen] = useState(false);
   const [ownersSheetOpen, setOwnersSheetOpen] = useState(false);
   const [assigneesSheetOpen, setAssigneesSheetOpen] = useState(false);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
 
   // Tab state - initialize based on showActivity prop
   const [activeTab, setActiveTab] = useState(showActivity ? 'activity' : 'details');
@@ -162,6 +169,14 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
     updateProjectAssignees(project.id, assignees);
   };
 
+  const handleToggleFavorite = () => {
+    toggleFavorite(project.id);
+  };
+
+  const handleUnarchive = () => {
+    unarchiveProject(project.id);
+  };
+
   // Dark theme colors for the sheet
   const colors = {
     text: '#FFFFFF',
@@ -180,17 +195,58 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
       <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 40 }}>
         <VStack gap="lg">
           {/* Project Header */}
-          <VStack gap="sm">
-            <Text size="2xl" weight="semibold" style={{ color: colors.text }}>
-              {project.name}
-            </Text>
-            <HStack gap="xs" align="center">
-              <Icon as={MapPin} size={14} color={colors.textMuted} />
-              <Text size="sm" style={{ color: colors.textMuted, flex: 1 }} numberOfLines={1}>
-                {project.address}
-              </Text>
-            </HStack>
-          </VStack>
+          <HStack justify="between" align="start">
+            <View style={{ flex: 1 }}>
+              <VStack gap="sm">
+                <Text size="2xl" weight="semibold" style={{ color: colors.text }}>
+                  {project.name}
+                </Text>
+                <HStack gap="xs" align="center">
+                  <Icon as={MapPin} size={14} color={colors.textMuted} />
+                  <Text size="sm" style={{ color: colors.textMuted, flex: 1 }} numberOfLines={1}>
+                    {project.address}
+                  </Text>
+                </HStack>
+              </VStack>
+            </View>
+
+            {/* Favorite Button */}
+            <Button variant="ghost" size="icon" onPress={handleToggleFavorite}>
+              <Icon
+                as={Star}
+                size={20}
+                color={project.isFavorite ? '#FFD700' : colors.textMuted}
+                fill={project.isFavorite ? '#FFD700' : 'none'}
+              />
+            </Button>
+          </HStack>
+
+          {/* Archived Banner */}
+          {project.isArchived ? (
+            <Pressable onPress={handleUnarchive}>
+              <View
+                style={{
+                  backgroundColor: 'rgba(107, 114, 128, 0.3)',
+                  borderRadius: 8,
+                  padding: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                }}
+              >
+                <Icon as={Archive} size={18} color={colors.textSecondary} />
+                <View style={{ flex: 1 }}>
+                  <Text size="sm" weight="medium" style={{ color: colors.text }}>
+                    This project is archived
+                  </Text>
+                  <Text size="xs" style={{ color: colors.textMuted }}>
+                    Tap to restore
+                  </Text>
+                </View>
+                <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+              </View>
+            </Pressable>
+          ) : null}
 
           {/* Tabs for Details/Activity */}
           <Tabs
@@ -418,6 +474,25 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
                   <Text size="xs" style={{ color: '#fff' }}>Tap to navigate</Text>
                 </View>
               </Pressable>
+
+              {/* More Actions - at bottom of details */}
+              <Pressable
+                onPress={() => setActionsSheetOpen(true)}
+                style={{
+                  width: '100%',
+                  backgroundColor: colors.cardBg,
+                  borderRadius: 16,
+                  padding: 16,
+                }}
+              >
+                <HStack justify="between" align="center">
+                  <HStack gap="sm" align="center">
+                    <Icon as={MoreHorizontal} size={18} color={colors.textSecondary} />
+                    <Text style={{ color: colors.text }}>More Actions</Text>
+                  </HStack>
+                  <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+                </HStack>
+              </Pressable>
             </View>
           )}
 
@@ -505,6 +580,12 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
         currentMembers={project.assignees}
         onSave={handleAssigneesChange}
         projectName={project.name}
+      />
+
+      <ProjectActionsSheet
+        open={actionsSheetOpen}
+        onOpenChange={setActionsSheetOpen}
+        project={project}
       />
     </>
   );

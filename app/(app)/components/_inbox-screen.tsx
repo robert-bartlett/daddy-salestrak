@@ -9,6 +9,8 @@ import {
   Plus,
   SlidersHorizontal,
   Check,
+  Star,
+  Archive,
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Header } from '@/components/ui/layout';
@@ -37,6 +39,8 @@ const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
   age_update: Calendar,
   assignment: UserPlus,
   created: Plus,
+  favorite: Star,
+  archive: Archive,
 };
 
 const ACTIVITY_COLORS: Record<ActivityType, string> = {
@@ -45,6 +49,8 @@ const ACTIVITY_COLORS: Record<ActivityType, string> = {
   age_update: 'text-emerald-500',
   assignment: 'text-purple-500',
   created: 'text-primary',
+  favorite: 'text-yellow-500',
+  archive: 'text-gray-500',
 };
 
 function formatTimestamp(date: Date): string {
@@ -173,7 +179,7 @@ function ActivityItem({ activity, projectName, onPress }: ActivityItemProps) {
   );
 }
 
-const ALL_ACTIVITY_TYPES: ActivityType[] = ['note', 'stage_change', 'age_update', 'assignment', 'created'];
+const ALL_ACTIVITY_TYPES: ActivityType[] = ['note', 'stage_change', 'age_update', 'assignment', 'created', 'favorite', 'archive'];
 
 const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   note: 'Notes',
@@ -181,6 +187,8 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   age_update: 'Age updated',
   assignment: 'Assignments',
   created: 'Project created',
+  favorite: 'Favorited',
+  archive: 'Archived',
 };
 
 export function InboxScreen({ onBackPress }: InboxScreenProps) {
