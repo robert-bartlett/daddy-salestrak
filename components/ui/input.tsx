@@ -55,7 +55,6 @@ const Input = React.forwardRef<TextInput, InputProps>(
     // Support both disabled prop and editable={false} for disabling
     const isDisabled = disabled || editable === false;
     const widthClass = width ? WIDTH_CLASSES[width] : undefined;
-
     return (
       <TextInput
         ref={ref}
@@ -63,6 +62,8 @@ const Input = React.forwardRef<TextInput, InputProps>(
         aria-invalid={invalid}
         accessibilityState={{ disabled: isDisabled }}
         className={cn(
+          // Always apply dark class on native (app is dark mode only)
+          Platform.OS !== 'web' && 'dark',
           BASE_STYLES,
           widthClass,
           isDisabled &&

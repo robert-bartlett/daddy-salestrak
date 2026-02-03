@@ -12,10 +12,10 @@ import {
 } from './layout-constants';
 
 const SURFACE_VARIANTS = {
-  card: 'bg-card text-card-foreground',
-  elevated: 'bg-card text-card-foreground shadow-sm shadow-black/5',
-  muted: 'bg-muted',
-  outline: 'border border-border bg-background',
+  card: 'bg-card text-card-foreground dark:bg-card',
+  elevated: 'bg-card text-card-foreground dark:bg-card shadow-sm shadow-black/5',
+  muted: 'bg-muted dark:bg-secondary',
+  outline: 'border border-border bg-background dark:bg-input/30 dark:border-input',
   ghost: 'bg-transparent',
 } as const;
 
@@ -61,6 +61,8 @@ const Surface = React.memo(
         <View
           ref={ref}
           className={cn(
+            // Always apply dark class on native (app is dark mode only)
+            Platform.OS !== 'web' && 'dark',
             SURFACE_VARIANTS[variant],
             rounded && ROUNDED_CLASSES[rounded],
             padding && PADDING_CLASSES[padding],

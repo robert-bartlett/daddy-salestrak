@@ -99,7 +99,12 @@ const Message = React.forwardRef<View, MessageProps>(
           ref={ref}
           accessibilityRole={isUrgent ? 'alert' : undefined}
           {...(Platform.OS === 'web' ? { role: isUrgent ? 'alert' : 'status' } : null)}
-          className={cn(messageVariants({ variant, position }), className)}
+          className={cn(
+            // Always apply dark class on native (app is dark mode only)
+            Platform.OS !== 'web' && 'dark',
+            messageVariants({ variant, position }),
+            className
+          )}
           {...props}
         >
           {/* Leading icon - varies by variant */}

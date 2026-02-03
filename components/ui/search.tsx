@@ -170,6 +170,8 @@ const Search = React.forwardRef<TextInput, SearchProps>(
         aria-invalid={invalid || undefined}
         accessibilityState={{ disabled }}
         className={cn(
+          // Always apply dark class on native (app is dark mode only)
+          Platform.OS !== 'web' && 'dark',
           BASE_WRAPPER_STYLES,
           widthClass,
           disabled &&

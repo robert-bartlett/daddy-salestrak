@@ -1,9 +1,10 @@
 import { TextClassContext, wrapTextChildren } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { useAccentColors } from '@/lib/theme-context';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as Haptics from 'expo-haptics';
 import * as React from 'react';
-import { Platform, Pressable, View, type GestureResponderEvent } from 'react-native';
+import { Platform, Pressable, View, type GestureResponderEvent, type ViewStyle } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -54,6 +55,7 @@ const buttonVariants = cva(
       size: {
         default: cn('h-10 px-4 py-2 sm:h-9', Platform.select({ web: 'has-[>svg]:px-3' })),
         sm: cn('h-9 gap-1.5 rounded-md px-3 sm:h-8', Platform.select({ web: 'has-[>svg]:px-2.5' })),
+        xs: cn('h-7 gap-1 rounded-md px-2.5', Platform.select({ web: 'has-[>svg]:px-2' })),
         lg: cn('h-11 rounded-md px-6 sm:h-10', Platform.select({ web: 'has-[>svg]:px-4' })),
         icon: 'h-10 w-10 sm:h-9 sm:w-9',
       },
@@ -103,6 +105,7 @@ const buttonTextVariants = cva(
       size: {
         default: '',
         sm: '',
+        xs: 'text-xs',
         lg: '',
         icon: '',
       },
@@ -150,12 +153,14 @@ const LINK_HIT_SLOP = { top: 8, bottom: 8, left: 4, right: 4 };
  *   for full link behavior on web (right-click menu, cmd+click), use an `<a>` tag
  */
 const Button = React.forwardRef<View, ButtonProps>(
-  ({ className, variant, size, disabled, haptics, children, onPressIn, onPressOut, onPress, ...props }, ref) => {
+  ({ className, variant, size, disabled, haptics, children, onPressIn, onPressOut, onPress, style, ...props }, ref) => {
     const isLink = variant === 'link';
+    const isDefault = variant === 'default' || variant === undefined;
     const isNative = Platform.OS !== 'web';
     const textStyles = buttonTextVariants({ variant, size });
     const scale = useSharedValue(1);
     const lastHapticTime = React.useRef(0);
+    const accentColors = useAccentColors();
 
     // Haptics enabled by default for non-link buttons on iOS, can be overridden
     const hapticsEnabled = Platform.OS === 'ios' && (haptics ?? !isLink);
@@ -208,6 +213,8 @@ const Button = React.forwardRef<View, ButtonProps>(
     );
 
     const resolvedClassName = cn(
+      // Always apply dark class on native (app is dark mode only)
+      isNative && 'dark',
       isLink ? linkStyles : buttonVariants({ variant, size }),
       disabled && 'opacity-50',
       className
@@ -215,6 +222,34 @@ const Button = React.forwardRef<View, ButtonProps>(
 
     // Web uses regular Pressable (Reanimated not fully compatible), native uses AnimatedPressable
     const PressableComponent = isNative ? AnimatedPressable : Pressable;
+    const isSecondary = variant === 'secondary';
+
+    // Apply accent color to default (primary) and secondary buttons
+    const accentStyle: ViewStyle | undefined = React.useMemo(() => {
+      if (!accentColors) return undefined;
+      if (isDefault) {
+        return { backgroundColor: accentColors.primary };
+      }
+      if (isSecondary) {
+        return { backgroundColor: accentColors.secondary };
+      }
+      return undefined;
+    }, [isDefault, isSecondary, accentColors]);
+
+    // Combine styles: animated style + accent color + custom style
+    const combinedStyle = React.useMemo(() => {
+      const styles: ViewStyle[] = [];
+      if (isNative && animatedStyle) {
+        styles.push(animatedStyle as ViewStyle);
+      }
+      if (accentStyle) {
+        styles.push(accentStyle);
+      }
+      if (style) {
+        styles.push(style as ViewStyle);
+      }
+      return styles.length > 0 ? styles : undefined;
+    }, [isNative, animatedStyle, accentStyle, style]);
 
     return (
       <TextClassContext.Provider value={textStyles}>
@@ -223,7 +258,7 @@ const Button = React.forwardRef<View, ButtonProps>(
           disabled={disabled}
           accessibilityRole={isLink ? 'link' : 'button'}
           {...(Platform.OS === 'web' ? { role: isLink ? 'link' : 'button' } : null)}
-          style={isNative ? animatedStyle : undefined}
+          style={combinedStyle}
           className={resolvedClassName}
           hitSlop={isLink && isNative ? LINK_HIT_SLOP : undefined}
           onPressIn={handlePressIn}

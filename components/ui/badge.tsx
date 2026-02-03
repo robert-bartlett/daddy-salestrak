@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Platform, Pressable, View } from 'react-native';
+import { Platform, Pressable, View, type ViewStyle } from 'react-native';
 import * as Slot from '@rn-primitives/slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { X, type LucideIcon } from 'lucide-react-native';
@@ -7,6 +7,7 @@ import { X, type LucideIcon } from 'lucide-react-native';
 import { Icon } from '@/components/ui/icon';
 import { TextClassContext } from '@/components/ui/text';
 import { cn } from '@/lib/utils';
+import { useAccentColors } from '@/lib/theme-context';
 
 // Base styles shared across all platforms
 const BASE_STYLES =
@@ -232,15 +233,26 @@ type BadgeProps = React.ComponentProps<typeof View> &
 
 const Badge = React.forwardRef<View, BadgeProps>(
   (
-    { className, variant, color, size = 'default', asChild, icon, onDismiss, children, ...props },
+    { className, variant, color, size = 'default', asChild, icon, onDismiss, children, style, ...props },
     ref
   ) => {
     const Component = asChild ? Slot.View : View;
     const iconSize = ICON_SIZES[size ?? 'default'];
     const dismissIconSize = DISMISS_ICON_SIZES[size ?? 'default'];
+    const accentColors = useAccentColors();
 
     // When dismissible, force secondary variant
     const effectiveVariant = onDismiss ? 'secondary' : variant;
+
+    // Apply accent color to default and secondary variants
+    const isDefault = effectiveVariant === 'default' || effectiveVariant === undefined;
+    const isSecondary = effectiveVariant === 'secondary';
+    const accentStyle: ViewStyle | undefined = (() => {
+      if (!accentColors) return undefined;
+      if (isDefault) return { backgroundColor: accentColors.primary };
+      if (isSecondary) return { backgroundColor: accentColors.secondary };
+      return undefined;
+    })();
 
     const showIcon = !asChild && icon;
     const showDismiss = !asChild && onDismiss;
@@ -249,7 +261,13 @@ const Badge = React.forwardRef<View, BadgeProps>(
       <TextClassContext.Provider value={badgeTextVariants({ variant: effectiveVariant, color, size })}>
         <Component
           ref={ref}
-          className={cn(badgeVariants({ variant: effectiveVariant, color, size }), className)}
+          className={cn(
+            // Always apply dark class on native (app is dark mode only)
+            Platform.OS !== 'web' && 'dark',
+            badgeVariants({ variant: effectiveVariant, color, size }),
+            className
+          )}
+          style={accentStyle ? [accentStyle, style as ViewStyle] : style}
           {...props}
         >
           {showIcon && (

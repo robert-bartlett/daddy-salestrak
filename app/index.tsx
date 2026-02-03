@@ -1,19 +1,15 @@
-import { Box, Center, VStack } from '@/components/ui/layout';
-import { Text } from '@/components/ui/text';
+import { Redirect } from 'expo-router';
+import { Platform } from 'react-native';
 
-export default function Screen() {
-  return (
-    <Box fill padding="md">
-      <Center fill>
-        <VStack gap="md" align="center">
-          <Text size="2xl" weight="semibold">
-            Design System
-          </Text>
-          <Text tone="muted" align="center">
-            Tap the menu icon to browse components.
-          </Text>
-        </VStack>
-      </Center>
-    </Box>
-  );
+/**
+ * Root index that routes based on platform:
+ * - Web: Design System demos (for component development)
+ * - Native (iOS/Android): Sales App prototype
+ */
+export default function RootIndex() {
+  if (Platform.OS === 'web') {
+    return <Redirect href="/(design-system)" />;
+  }
+
+  return <Redirect href="/(app)" />;
 }

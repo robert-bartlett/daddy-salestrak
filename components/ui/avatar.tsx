@@ -34,6 +34,8 @@ const Avatar = React.forwardRef<AvatarPrimitive.RootRef, AvatarProps>(
       <AvatarPrimitive.Root
         ref={ref}
         className={cn(
+          // Always apply dark class on native (app is dark mode only)
+          Platform.OS !== 'web' && 'dark',
           avatarVariants({ size }),
           Platform.select({
             web: 'select-none',
@@ -71,7 +73,12 @@ const AvatarFallback = React.forwardRef<AvatarPrimitive.FallbackRef, AvatarFallb
     return (
       <AvatarPrimitive.Fallback
         ref={ref}
-        className={cn(AVATAR_FALLBACK_BASE_STYLES, className)}
+        className={cn(
+          // Always apply dark class on native (app is dark mode only)
+          Platform.OS !== 'web' && 'dark',
+          AVATAR_FALLBACK_BASE_STYLES,
+          className
+        )}
         {...props}
       />
     );

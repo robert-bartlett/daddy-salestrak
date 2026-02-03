@@ -7,7 +7,7 @@ import * as DialogPrimitive from '@rn-primitives/dialog';
 import { X } from 'lucide-react-native';
 import { useColorScheme } from 'nativewind';
 import * as React from 'react';
-import { Platform, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import {
   FadeIn,
   FadeOut,
@@ -101,7 +101,7 @@ const webSlideAnimations = cva('', {
 });
 
 const sheetContentVariants = cva(
-  'bg-background z-50 flex flex-col gap-4 shadow-lg',
+  'bg-card z-50 flex flex-col gap-4 shadow-lg',
   {
     variants: {
       side: {
@@ -121,10 +121,13 @@ type SheetContentProps = DialogPrimitive.ContentProps &
   VariantProps<typeof sheetContentVariants> & {
     portalHost?: string;
     showCloseButton?: boolean;
+    /** Close the sheet when tapping the overlay. Defaults to true for native feel. */
+    closeOnOverlayPress?: boolean;
   };
 
 const SheetContent = React.forwardRef<DialogPrimitive.ContentRef, SheetContentProps>(
-  ({ className, portalHost, children, side = 'right', showCloseButton = true, ...props }, ref) => {
+  ({ className, portalHost, children, side = 'right', showCloseButton = true, closeOnOverlayPress = true, ...props }, ref) => {
+    const { colorScheme } = useColorScheme();
     const sideValue = side ?? 'right';
     const animations = slideAnimations[sideValue];
 
@@ -142,9 +145,21 @@ const SheetContent = React.forwardRef<DialogPrimitive.ContentRef, SheetContentPr
             entering={animations.entering.duration(SLIDE_DURATION_MS).reduceMotion(ReduceMotion.System)}
             exiting={animations.exiting.duration(SLIDE_DURATION_MS).reduceMotion(ReduceMotion.System)}
             className="flex-1">
+            {/* Pressable overlay area - tapping closes the sheet */}
+            {closeOnOverlayPress && (
+              <DialogPrimitive.Close asChild>
+                <Pressable
+                  className="absolute inset-0"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close sheet"
+                />
+              </DialogPrimitive.Close>
+            )}
             <DialogPrimitive.Content
               ref={ref}
               className={cn(
+                // Apply dark class directly to content for proper CSS variable inheritance on native
+                Platform.OS !== 'web' && colorScheme === 'dark' && 'dark',
                 sheetContentVariants({ side: sideValue }),
                 Platform.select({
                   web: cn('animate-in duration-300 motion-reduce:animate-none', webSlideAnimations({ side: sideValue })),
