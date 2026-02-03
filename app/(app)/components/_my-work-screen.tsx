@@ -12,6 +12,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Clock,
+  SlidersHorizontal,
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Surface, Header } from '@/components/ui/layout';
@@ -31,7 +32,11 @@ import {
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
 import { AgeUpdateSheet } from './_age-update-sheet';
-import { ProjectDetailContent } from './_project-detail';
+import { ProjectDetailContent, NoteInputFooter } from './_project-detail';
+import {
+  ActivityFilterSheet,
+  type ActivityFilters,
+} from './_activity-filter-sheet';
 import {
   formatAge,
   getStatusFromAge,
@@ -210,35 +215,38 @@ function ProjectCard({ project, activityCount, onPress }: ProjectCardProps) {
 type ActivityItemLightProps = {
   activity: ActivityType;
   projectName: string;
+  onPress?: () => void;
 };
 
-function ActivityItemLight({ activity, projectName }: ActivityItemLightProps) {
+function ActivityItemLight({ activity, projectName, onPress }: ActivityItemLightProps) {
   return (
-    <Surface variant="outline" padding="md">
-      <HStack gap="sm" align="start">
-        <Avatar size="sm" alt={activity.user.name}>
-          <AvatarFallback>
-            <Text size="xs">{activity.user.initials}</Text>
-          </AvatarFallback>
-        </Avatar>
-        <View style={{ flex: 1 }}>
-          <VStack gap="xs">
-            <HStack justify="between" align="center">
-              <Text size="sm" weight="semibold">
-                {activity.user.name}
-              </Text>
+    <Pressable onPress={onPress}>
+      <Surface variant="outline" padding="md">
+        <HStack gap="sm" align="start">
+          <Avatar size="sm" alt={activity.user.name}>
+            <AvatarFallback>
+              <Text size="xs">{activity.user.initials}</Text>
+            </AvatarFallback>
+          </Avatar>
+          <View style={{ flex: 1 }}>
+            <VStack gap="xs">
+              <HStack justify="between" align="center">
+                <Text size="sm" weight="semibold">
+                  {activity.user.name}
+                </Text>
+                <Text size="xs" tone="muted">
+                  {formatTimestamp(activity.timestamp)}
+                </Text>
+              </HStack>
               <Text size="xs" tone="muted">
-                {formatTimestamp(activity.timestamp)}
+                {projectName}
               </Text>
-            </HStack>
-            <Text size="xs" tone="muted">
-              {projectName}
-            </Text>
-            <Text size="sm">{activity.description}</Text>
-          </VStack>
-        </View>
-      </HStack>
-    </Surface>
+              <Text size="sm">{activity.description}</Text>
+            </VStack>
+          </View>
+        </HStack>
+      </Surface>
+    </Pressable>
   );
 }
 
@@ -323,9 +331,18 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   // Projects/Workflows tabs: project detail sheet state
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [showActivityOnOpen, setShowActivityOnOpen] = useState(false);
+  const [detailShowsActivity, setDetailShowsActivity] = useState(false);
 
   // Workflows tab: drill-down navigation state
   const [workflowsView, setWorkflowsView] = useState<WorkflowsViewState>({ level: 'workflows' });
+
+  // Activities tab: filter state
+  const [activityFilters, setActivityFilters] = useState<ActivityFilters>({
+    types: [],
+    dateRange: 'all',
+  });
+  const [activityFilterSheetOpen, setActivityFilterSheetOpen] = useState(false);
 
   // Sort projects by age (oldest first, based on ageResetAt)
   const sortedProjectsByAge = useMemo(() => {
@@ -339,12 +356,35 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     return [...projects].sort((a, b) => a.name.localeCompare(b.name));
   }, [projects]);
 
-  // Sort activities by newest first
-  const sortedActivities = useMemo(() => {
-    return [...activities].sort(
-      (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
-    );
-  }, [activities]);
+  // Filtered activities based on activity filters
+  const filteredActivities = useMemo(() => {
+    let result = [...activities];
+
+    // Filter by type (empty array = all types)
+    if (activityFilters.types.length > 0) {
+      result = result.filter((a) => activityFilters.types.includes(a.type));
+    }
+
+    // Filter by date range
+    const now = new Date();
+    if (activityFilters.dateRange === 'today') {
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      result = result.filter((a) => a.timestamp >= startOfDay);
+    } else if (activityFilters.dateRange === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      result = result.filter((a) => a.timestamp >= weekAgo);
+    } else if (activityFilters.dateRange === 'month') {
+      const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      result = result.filter((a) => a.timestamp >= monthAgo);
+    }
+
+    // Sort newest first
+    return result.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }, [activities, activityFilters]);
+
+  // Check if filters are active
+  const hasActiveFilters =
+    activityFilters.types.length > 0 || activityFilters.dateRange !== 'all';
 
   // Workflow counts for Workflows tab level 1
   const workflowCounts = useMemo(() => {
@@ -404,8 +444,24 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   // Projects/Workflows tab: handle project card press (opens detail sheet)
   const handleProjectCardPress = useCallback((project: Project) => {
     setDetailProject(project);
+    setShowActivityOnOpen(false);
+    setDetailShowsActivity(false);
     setDetailSheetOpen(true);
   }, []);
+
+  // Activities tab: handle activity press (opens detail sheet on Activity tab)
+  const handleActivityPress = useCallback(
+    (activity: ActivityType) => {
+      const project = getProjectById(activity.projectId);
+      if (project) {
+        setDetailProject(project);
+        setShowActivityOnOpen(true);
+        setDetailShowsActivity(true);
+        setDetailSheetOpen(true);
+      }
+    },
+    [getProjectById]
+  );
 
   // Workflows tab: navigation handlers
   const handleWorkflowPress = useCallback((workflowId: string) => {
@@ -471,10 +527,11 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         <ActivityItemLight
           activity={item}
           projectName={project?.name ?? 'Unknown Project'}
+          onPress={() => handleActivityPress(item)}
         />
       );
     },
-    [getProjectById]
+    [getProjectById, handleActivityPress]
   );
 
   const renderWorkflowRow = useCallback(
@@ -625,17 +682,46 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         {/* Activities Tab: Recent activities with project names */}
         <TabsContent value="activities">
           <Box fill>
-            {sortedActivities.length === 0 ? (
+            {/* Filter Actions */}
+            <Box paddingX="md" paddingY="xs">
+              <HStack justify="end" align="center" gap="xs">
+                {hasActiveFilters ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onPress={() => setActivityFilters({ types: [], dateRange: 'all' })}
+                  >
+                    <Text size="sm" tone="primary">Clear</Text>
+                  </Button>
+                ) : null}
+                <View className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onPress={() => setActivityFilterSheetOpen(true)}
+                  >
+                    <Icon as={SlidersHorizontal} size={18} />
+                  </Button>
+                  {hasActiveFilters ? (
+                    <View className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-primary" />
+                  ) : null}
+                </View>
+              </HStack>
+            </Box>
+
+            {filteredActivities.length === 0 ? (
               <Box fill paddingX="md" paddingY="lg">
                 <VStack gap="md" align="center">
                   <Surface variant="muted" padding="xl">
                     <VStack gap="sm" align="center">
                       <Icon as={Activity} size={32} />
                       <Text size="lg" weight="semibold" align="center">
-                        No Activity
+                        {hasActiveFilters ? 'No Matching Activities' : 'No Activity'}
                       </Text>
                       <Text tone="muted" align="center">
-                        Activity from your projects will appear here
+                        {hasActiveFilters
+                          ? 'Try adjusting your filters'
+                          : 'Activity from your projects will appear here'}
                       </Text>
                     </VStack>
                   </Surface>
@@ -643,7 +729,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
               </Box>
             ) : (
               <FlatList
-                data={sortedActivities}
+                data={filteredActivities}
                 renderItem={renderActivityItem}
                 keyExtractor={activityKeyExtractor}
                 contentContainerStyle={{ padding: 16, gap: 8 }}
@@ -768,16 +854,42 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         />
       ) : null}
 
-      {/* Project Detail Sheet (for Projects/Workflows tabs) */}
+      {/* Project Detail Sheet (for Projects/Workflows/Activities tabs) */}
       {detailProject ? (
         <BottomSheetModal
           open={detailSheetOpen}
-          onOpenChange={setDetailSheetOpen}
+          onOpenChange={(open) => {
+            setDetailSheetOpen(open);
+            if (!open) {
+              setShowActivityOnOpen(false);
+              setDetailShowsActivity(false);
+            }
+          }}
           snapPoints={['50%', '90%']}
+          footer={
+            detailShowsActivity ? (
+              <NoteInputFooter projectId={detailProject.id} />
+            ) : undefined
+          }
         >
-          <ProjectDetailContent projectId={detailProject.id} />
+          <ProjectDetailContent
+            projectId={detailProject.id}
+            showActivity={showActivityOnOpen}
+            hideFooter
+            onActiveTabChange={(tab) => {
+              setDetailShowsActivity(tab === 'activity');
+            }}
+          />
         </BottomSheetModal>
       ) : null}
+
+      {/* Activity Filter Sheet */}
+      <ActivityFilterSheet
+        open={activityFilterSheetOpen}
+        onOpenChange={setActivityFilterSheetOpen}
+        filters={activityFilters}
+        onFiltersChange={setActivityFilters}
+      />
     </Box>
   );
 }
