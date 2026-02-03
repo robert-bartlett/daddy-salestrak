@@ -119,12 +119,9 @@ function SettingRow({
       {right ? (
         right
       ) : value ? (
-        <HStack gap="xs" align="center">
-          <Text tone="muted" size="sm">
-            {value}
-          </Text>
-          {onPress ? <Icon as={ChevronRight} size={16} tone="muted" /> : null}
-        </HStack>
+        <Text tone="muted" size="sm">
+          {value}
+        </Text>
       ) : onPress ? (
         <Icon as={ChevronRight} size={16} tone="muted" />
       ) : null}

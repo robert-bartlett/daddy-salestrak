@@ -1,23 +1,32 @@
-import { useState, useMemo } from 'react';
-import { Pressable, View } from 'react-native';
-import { MapPin, Search, X } from 'lucide-react-native';
+import { useState, useMemo, useCallback } from 'react';
+import { View } from 'react-native';
+import { X } from 'lucide-react-native';
 
 import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
-import { Box, VStack, HStack, Surface } from '@/components/ui/layout';
+import { VStack, HStack, Surface } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { useProjects } from '@/lib/projects-context';
 import { useMapSheet } from '@/lib/map-sheet-context';
-import { getWorkflowById, getStageById } from '@/lib/mock-data';
-import { formatAge, getStatusFromAge, getStatusHexColor } from '@/lib/age-utils';
-import { getPinColor } from '@/lib/map-colors';
+import { type Project, type ProjectStatus, type AgeUpdateReason, type User } from '@/lib/mock-data';
+import { AgeUpdateSheet } from './_age-update-sheet';
+import { TeamMemberSheet } from './_team-member-sheet';
+import { ProjectCard } from './_project-card';
 
 export function ProjectsSheetContent() {
-  const { projects } = useProjects();
-  const { selectProject, expandProject, closeSheet } = useMapSheet();
+  const { projects, updateProjectAge, updateProjectOwners, getProjectActivities } = useProjects();
+  const { expandProject } = useMapSheet();
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Age sheet state
+  const [selectedProjectForAge, setSelectedProjectForAge] = useState<Project | null>(null);
+  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
+
+  // Owner sheet state
+  const [selectedProjectForOwner, setSelectedProjectForOwner] = useState<Project | null>(null);
+  const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
 
   // Filter projects by search query
   const filteredProjects = useMemo(() => {
@@ -30,10 +39,50 @@ export function ProjectsSheetContent() {
     );
   }, [projects, searchQuery]);
 
-  const handleProjectPress = (projectId: string) => {
-    // Expand directly to project detail
-    expandProject(projectId);
-  };
+  // Get activity counts for each project (memoized map)
+  const projectActivityCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    projects.forEach((p) => {
+      counts[p.id] = getProjectActivities(p.id).length;
+    });
+    return counts;
+  }, [projects, getProjectActivities]);
+
+  const handleProjectPress = useCallback((project: Project) => {
+    expandProject(project.id);
+  }, [expandProject]);
+
+  const handleAgeTap = useCallback((project: Project) => {
+    setSelectedProjectForAge(project);
+    setAgeSheetOpen(true);
+  }, []);
+
+  const handleAgeSubmit = useCallback(
+    (status: ProjectStatus, reason: AgeUpdateReason, note?: string) => {
+      if (selectedProjectForAge) {
+        updateProjectAge(selectedProjectForAge.id, status, reason, note);
+      }
+    },
+    [selectedProjectForAge, updateProjectAge]
+  );
+
+  const handleActivityTap = useCallback((project: Project) => {
+    expandProject(project.id, true); // true = show activity tab
+  }, [expandProject]);
+
+  const handleOwnerTap = useCallback((project: Project) => {
+    setSelectedProjectForOwner(project);
+    setOwnerSheetOpen(true);
+  }, []);
+
+  const handleOwnersChange = useCallback(
+    (newOwners: User[]) => {
+      if (selectedProjectForOwner) {
+        updateProjectOwners(selectedProjectForOwner.id, newOwners);
+      }
+    },
+    [selectedProjectForOwner, updateProjectOwners]
+  );
 
   return (
     <>
@@ -57,11 +106,11 @@ export function ProjectsSheetContent() {
               width="full"
             />
           </View>
-          {searchQuery.length > 0 && (
+          {searchQuery.length > 0 ? (
             <Button variant="ghost" size="icon" onPress={() => setSearchQuery('')}>
               <Icon as={X} size={18} />
             </Button>
-          )}
+          ) : null}
         </HStack>
       </BottomSheetHeader>
 
@@ -74,60 +123,42 @@ export function ProjectsSheetContent() {
               </Text>
             </Surface>
           ) : (
-            filteredProjects.map((project) => {
-              const workflow = getWorkflowById(project.workflowId);
-              const stage = getStageById(project.workflowId, project.stageId);
-              const stageColor = stage ? getPinColor(stage.color) : '#6B7280';
-
-              return (
-                <Pressable key={project.id} onPress={() => handleProjectPress(project.id)}>
-                  {({ pressed }) => (
-                    <View style={{ opacity: pressed ? 0.7 : 1 }}>
-                      <Surface variant="card" padding="md">
-                        <VStack gap="xs">
-                          <HStack justify="between" align="center">
-                            <Text weight="semibold" numberOfLines={1} style={{ flex: 1 }}>
-                              {project.name}
-                            </Text>
-                            <Text
-                              size="sm"
-                              weight="semibold"
-                              style={{ color: getStatusHexColor(getStatusFromAge(project.ageResetAt)) }}
-                            >
-                              {formatAge(project.ageResetAt)}
-                            </Text>
-                          </HStack>
-                          <HStack gap="xs" align="center">
-                            <Icon as={MapPin} size={12} />
-                            <Text size="sm" tone="muted" numberOfLines={1} style={{ flex: 1 }}>
-                              {project.address}
-                            </Text>
-                          </HStack>
-                          {stage && (
-                            <HStack gap="xs" align="center">
-                              <View
-                                style={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: 4,
-                                  backgroundColor: stageColor,
-                                }}
-                              />
-                              <Text size="xs" tone="muted">
-                                {workflow?.name} · {stage.name}
-                              </Text>
-                            </HStack>
-                          )}
-                        </VStack>
-                      </Surface>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })
+            filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                activityCount={projectActivityCounts[project.id] ?? 0}
+                onPress={() => handleProjectPress(project)}
+                onAgeTap={() => handleAgeTap(project)}
+                onActivityTap={() => handleActivityTap(project)}
+                onOwnerTap={() => handleOwnerTap(project)}
+              />
+            ))
           )}
         </VStack>
       </BottomSheetScrollBody>
+
+      {/* Age Update Sheet */}
+      {selectedProjectForAge ? (
+        <AgeUpdateSheet
+          open={ageSheetOpen}
+          onOpenChange={setAgeSheetOpen}
+          project={selectedProjectForAge}
+          onSubmit={handleAgeSubmit}
+        />
+      ) : null}
+
+      {/* Owner Sheet */}
+      {selectedProjectForOwner ? (
+        <TeamMemberSheet
+          open={ownerSheetOpen}
+          onOpenChange={setOwnerSheetOpen}
+          role="owners"
+          currentMembers={selectedProjectForOwner.owners}
+          onSave={handleOwnersChange}
+          projectName={selectedProjectForOwner.name}
+        />
+      ) : null}
     </>
   );
 }

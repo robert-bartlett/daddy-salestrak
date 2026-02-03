@@ -7,8 +7,6 @@ import {
   FolderKanban,
   Activity,
   GitBranch,
-  MapPin,
-  MessageSquare,
   ChevronRight,
   ChevronLeft,
   Clock,
@@ -37,6 +35,8 @@ import {
   ActivityFilterSheet,
   type ActivityFilters,
 } from './_activity-filter-sheet';
+import { TeamMemberSheet } from './_team-member-sheet';
+import { ProjectCard } from './_project-card';
 import {
   formatAge,
   getStatusFromAge,
@@ -53,6 +53,7 @@ import {
   type Activity as ActivityType,
   type Workflow,
   type WorkflowStage,
+  type User as UserType,
 } from '@/lib/mock-data';
 
 type TabValue = 'today' | 'projects' | 'activities' | 'workflows';
@@ -128,101 +129,6 @@ function ProjectRow({ project, onPress }: ProjectRowProps) {
           </HStack>
         </HStack>
       </Surface>
-    </Pressable>
-  );
-}
-
-// ============================================================================
-// Projects Tab: Project Card (matches map sheet style)
-// ============================================================================
-
-type ProjectCardProps = {
-  project: Project;
-  activityCount: number;
-  onPress: () => void;
-  onAgeTap: () => void;
-  onActivityTap: () => void;
-};
-
-function ProjectCard({ project, activityCount, onPress, onAgeTap, onActivityTap }: ProjectCardProps) {
-  const ageText = formatAge(project.ageResetAt);
-  const status = getStatusFromAge(project.ageResetAt);
-  const statusColor = getStatusHexColor(status);
-
-  const workflow = getWorkflowById(project.workflowId);
-  const stage = getStageById(project.workflowId, project.stageId);
-  const stageColor = stage ? getPinColor(stage.color) : '#6B7280';
-
-  return (
-    <Pressable onPress={onPress}>
-      {({ pressed }) => (
-        <View style={{ opacity: pressed ? 0.7 : 1 }}>
-          <Surface variant="card" padding="md">
-            <HStack align="center">
-              <View style={{ flex: 1 }}>
-                <VStack gap="xs">
-                  {/* Project Name */}
-                  <Text weight="semibold" size="lg" numberOfLines={1}>
-                    {project.name}
-                  </Text>
-
-                  {/* Stage indicator */}
-                  {stage ? (
-                    <HStack gap="xs" align="center">
-                      <View
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: 4,
-                          backgroundColor: stageColor,
-                        }}
-                      />
-                      <Text size="sm" tone="muted" numberOfLines={1}>
-                        {workflow?.name} · {stage.name}
-                      </Text>
-                    </HStack>
-                  ) : null}
-
-                  {/* Age and Activity count - both tappable */}
-                  <HStack gap="sm" align="center">
-                    <Pressable
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        onAgeTap();
-                      }}
-                      style={{ paddingVertical: 4, paddingHorizontal: 8, marginLeft: -8, borderRadius: 6 }}
-                    >
-                      <HStack gap="xs" align="center">
-                        <Icon as={Clock} size={14} color={statusColor} />
-                        <Text size="sm" weight="medium" style={{ color: statusColor }}>
-                          {ageText}
-                        </Text>
-                      </HStack>
-                    </Pressable>
-                    <Pressable
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        onActivityTap();
-                      }}
-                      style={{ paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 }}
-                    >
-                      <HStack gap="xs" align="center">
-                        <Icon as={MessageSquare} size={14} />
-                        <Text size="sm" tone="muted">
-                          {activityCount}
-                        </Text>
-                      </HStack>
-                    </Pressable>
-                  </HStack>
-                </VStack>
-              </View>
-
-              {/* Chevron */}
-              <Icon as={ChevronRight} size={20} />
-            </HStack>
-          </Surface>
-        </View>
-      )}
     </Pressable>
   );
 }
@@ -339,7 +245,7 @@ function StageRow({ stage, projectCount, onPress }: StageRowProps) {
 
 export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   const { navigateToProfile } = useScreenNavigation();
-  const { projects, activities, updateProjectAge, getProjectById, getProjectActivities } = useProjects();
+  const { projects, activities, updateProjectAge, updateProjectOwners, getProjectById, getProjectActivities } = useProjects();
 
   const [activeTab, setActiveTab] = useState<TabValue>('today');
 
@@ -362,6 +268,10 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     dateRange: 'all',
   });
   const [activityFilterSheetOpen, setActivityFilterSheetOpen] = useState(false);
+
+  // Owner sheet state
+  const [selectedProjectForOwner, setSelectedProjectForOwner] = useState<Project | null>(null);
+  const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
 
   // Sort projects by age (oldest first, based on ageResetAt)
   const sortedProjectsByAge = useMemo(() => {
@@ -482,6 +392,22 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     setDetailSheetOpen(true);
   }, []);
 
+  // Projects tab: handle owner tap on project card (opens owner sheet)
+  const handleProjectCardOwnerTap = useCallback((project: Project) => {
+    setSelectedProjectForOwner(project);
+    setOwnerSheetOpen(true);
+  }, []);
+
+  // Handle owner change from sheet
+  const handleOwnersChange = useCallback(
+    (newOwners: UserType[]) => {
+      if (selectedProjectForOwner) {
+        updateProjectOwners(selectedProjectForOwner.id, newOwners);
+      }
+    },
+    [selectedProjectForOwner, updateProjectOwners]
+  );
+
   // Activities tab: handle activity press (opens detail sheet on Activity tab)
   const handleActivityPress = useCallback(
     (activity: ActivityType) => {
@@ -550,9 +476,10 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         onPress={() => handleProjectCardPress(item)}
         onAgeTap={() => handleProjectCardAgeTap(item)}
         onActivityTap={() => handleProjectCardActivityTap(item)}
+        onOwnerTap={() => handleProjectCardOwnerTap(item)}
       />
     ),
-    [handleProjectCardPress, handleProjectCardAgeTap, handleProjectCardActivityTap, projectActivityCounts]
+    [handleProjectCardPress, handleProjectCardAgeTap, handleProjectCardActivityTap, handleProjectCardOwnerTap, projectActivityCounts]
   );
 
   const renderActivityItem = useCallback(
@@ -925,6 +852,18 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         filters={activityFilters}
         onFiltersChange={setActivityFilters}
       />
+
+      {/* Owner Sheet */}
+      {selectedProjectForOwner ? (
+        <TeamMemberSheet
+          open={ownerSheetOpen}
+          onOpenChange={setOwnerSheetOpen}
+          role="owners"
+          currentMembers={selectedProjectForOwner.owners}
+          onSave={handleOwnersChange}
+          projectName={selectedProjectForOwner.name}
+        />
+      ) : null}
     </Box>
   );
 }
