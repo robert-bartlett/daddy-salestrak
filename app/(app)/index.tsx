@@ -95,12 +95,23 @@ export default function MapFirstScreen() {
 
   // My Work animation
   const myWorkProgress = useSharedValue(0);
+  const previousScreen = useRef(activeScreen);
 
   useEffect(() => {
-    myWorkProgress.value = withTiming(activeScreen === 'mywork' ? 1 : 0, {
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-    });
+    const isGoingToMyWork = activeScreen === 'mywork';
+    const comingFromProfile = previousScreen.current === 'profile';
+
+    // Skip animation when coming back from Profile
+    if (isGoingToMyWork && comingFromProfile) {
+      myWorkProgress.value = 1;
+    } else {
+      myWorkProgress.value = withTiming(isGoingToMyWork ? 1 : 0, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+
+    previousScreen.current = activeScreen;
   }, [activeScreen, myWorkProgress]);
 
   // Main content (map + nav bar) slides right when My Work is active
@@ -482,7 +493,7 @@ export default function MapFirstScreen() {
     </Box>
   );
 
-  // Profile is rendered as an overlay
+  // Profile is rendered as an overlay (includes all settings)
   if (activeScreen === 'profile') {
     return <ProfileScreen onBackPress={() => navigateToMyWork()} />;
   }
