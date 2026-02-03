@@ -89,7 +89,7 @@ function mapSheetReducer(state: MapSheetState, action: MapSheetAction): MapSheet
     case 'EXPAND_PROJECT':
       newState = {
         appState: { type: 'project-detail', projectId: action.projectId, showActivity: action.showActivity },
-        snapPoint: action.showActivity ? 'full' : 'half',
+        snapPoint: 'full',
       };
       break;
     case 'ENTER_ACTIVITY':

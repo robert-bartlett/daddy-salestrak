@@ -55,6 +55,7 @@ export default function MapFirstScreen() {
     snapPoint,
     isSheetVisible,
     openTab,
+    selectProject,
     expandProject,
     closeSheet,
     setSnapPoint,
@@ -159,7 +160,7 @@ export default function MapFirstScreen() {
   // Track when marker was last pressed to prevent map press from closing sheet
   const lastMarkerPressTime = useRef(0);
 
-  // Handle marker press
+  // Handle marker press - show preview card first
   const handleMarkerPress = useCallback(
     (projectId: string) => {
       lastMarkerPressTime.current = Date.now();
@@ -182,9 +183,9 @@ export default function MapFirstScreen() {
           300
         );
       }
-      expandProject(projectId);
+      selectProject(projectId);
     },
-    [projects, expandProject]
+    [projects, selectProject]
   );
 
   // Handle map press to create new project at location
