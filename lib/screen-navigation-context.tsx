@@ -4,7 +4,7 @@ import React, { createContext, useContext, useCallback, useMemo, useState } from
 // Types
 // ============================================================================
 
-export type ScreenPosition = 'search' | 'home' | 'inbox' | 'profile';
+export type ScreenPosition = 'search' | 'home' | 'inbox' | 'profile' | 'mywork';
 
 type ScreenNavigationContextValue = {
   /** Currently active screen */
@@ -17,6 +17,8 @@ type ScreenNavigationContextValue = {
   navigateToInbox: () => void;
   /** Navigate to the profile screen */
   navigateToProfile: () => void;
+  /** Navigate to the My Work screen */
+  navigateToMyWork: () => void;
   /** Navigate back to the home screen */
   navigateToHome: () => void;
   /** Clear the skip animation flag */
@@ -48,6 +50,10 @@ export function ScreenNavigationProvider({ children }: { children: React.ReactNo
     setActiveScreen('profile');
   }, []);
 
+  const navigateToMyWork = useCallback(() => {
+    setActiveScreen('mywork');
+  }, []);
+
   const navigateToHome = useCallback(() => {
     setActiveScreen('home');
   }, []);
@@ -63,10 +69,11 @@ export function ScreenNavigationProvider({ children }: { children: React.ReactNo
       navigateToSearch,
       navigateToInbox,
       navigateToProfile,
+      navigateToMyWork,
       navigateToHome,
       clearSkipAnimation,
     }),
-    [activeScreen, skipAnimation, navigateToSearch, navigateToInbox, navigateToProfile, navigateToHome, clearSkipAnimation]
+    [activeScreen, skipAnimation, navigateToSearch, navigateToInbox, navigateToProfile, navigateToMyWork, navigateToHome, clearSkipAnimation]
   );
 
   return (

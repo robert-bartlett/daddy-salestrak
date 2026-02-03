@@ -1,9 +1,16 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Easing,
+} from 'react-native-reanimated';
 import * as Location from 'expo-location';
-import { Crosshair, SlidersHorizontal, Search, Plus, Inbox } from 'lucide-react-native';
+import { Crosshair, SlidersHorizontal, Search, Plus, Inbox, Briefcase } from 'lucide-react-native';
 
 import { Box, Surface } from '@/components/ui/layout';
 import { HorizontalScreenContainer } from '@/components/ui/layout/horizontal-screen-container';
@@ -25,8 +32,10 @@ import { ProjectPreviewContent } from './components/_project-preview';
 import { ProjectDetailContent, NoteInputFooter } from './components/_project-detail';
 import { ProjectActivityContent } from './components/_project-activity';
 import { SearchScreen } from './components/_search-screen';
+import { SearchSheet } from './components/_search-sheet';
 import { InboxScreen } from './components/_inbox-screen';
 import { ProfileScreen } from './components/_profile-screen';
+import { MyWorkScreen } from './components/_my-work-screen';
 
 // Default region centered on Boise, ID (user's actual location)
 const DEFAULT_REGION: Region = {
@@ -41,13 +50,14 @@ const PIN_CENTER_OFFSET = 0.35;
 
 // Tab definitions
 const TABS: FloatingTab[] = [
-  { id: 'search', label: 'Search', icon: <Search /> },
+  { id: 'mywork', label: 'My Work', icon: <Briefcase /> },
   { id: 'add', label: 'Add', icon: <Plus /> },
   { id: 'inbox', label: 'Inbox', icon: <Inbox /> },
 ];
 
 export default function MapFirstScreen() {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const mapRef = useRef<MapView>(null);
   const { projects } = useProjects();
   const {
@@ -66,6 +76,7 @@ export default function MapFirstScreen() {
     navigateToSearch,
     navigateToInbox,
     navigateToProfile,
+    navigateToMyWork,
     navigateToHome,
     clearSkipAnimation,
   } = useScreenNavigation();
@@ -78,8 +89,29 @@ export default function MapFirstScreen() {
     longitude: -116.2942,
   });
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [isActivityViewActive, setIsActivityViewActive] = useState(false);
+
+  // My Work animation
+  const myWorkProgress = useSharedValue(0);
+
+  useEffect(() => {
+    myWorkProgress.value = withTiming(activeScreen === 'mywork' ? 1 : 0, {
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [activeScreen, myWorkProgress]);
+
+  // Main content (map + nav bar) slides right when My Work is active
+  const mainContentStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(myWorkProgress.value, [0, 1], [0, screenWidth]) }],
+  }));
+
+  // My Work slides in from left
+  const myWorkStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(myWorkProgress.value, [0, 1], [-screenWidth, 0]) }],
+  }));
 
   // Count active filters for display
   const activeFilterCount = useMemo(() => {
@@ -207,8 +239,8 @@ export default function MapFirstScreen() {
   const handleTabPress = useCallback(
     (tabId: string) => {
       switch (tabId) {
-        case 'search':
-          navigateToSearch();
+        case 'mywork':
+          navigateToMyWork();
           break;
         case 'add':
           openTab('add');
@@ -218,8 +250,13 @@ export default function MapFirstScreen() {
           break;
       }
     },
-    [navigateToSearch, navigateToInbox, openTab]
+    [navigateToMyWork, navigateToInbox, openTab]
   );
+
+  const handleSearchPress = useCallback(() => {
+    console.log('Search button pressed, opening sheet');
+    setSearchSheetOpen(true);
+  }, []);
 
   const handleFilter = useCallback(() => {
     setFilterSheetOpen(true);
@@ -369,6 +406,15 @@ export default function MapFirstScreen() {
         </Surface>
       </View>
 
+      {/* Search button - below center on user */}
+      <View style={{ position: 'absolute', top: insets.top + 108, right: 16 }}>
+        <Surface variant="card" padding="none" rounded="lg">
+          <Button variant="ghost" size="icon" onPress={handleSearchPress}>
+            <Icon as={Search} size={20} />
+          </Button>
+        </Surface>
+      </View>
+
       {/* Bottom Tab Bar */}
       <FloatingTabBar
         tabs={TABS}
@@ -438,22 +484,50 @@ export default function MapFirstScreen() {
 
   // Profile is rendered as an overlay
   if (activeScreen === 'profile') {
-    return <ProfileScreen onBackPress={() => navigateToSearch({ skipAnimation: true })} />;
+    return <ProfileScreen onBackPress={() => navigateToMyWork()} />;
   }
 
   return (
-    <HorizontalScreenContainer
-      activeIndex={screenIndex}
-      skipAnimation={skipAnimation}
-      onTransitionComplete={clearSkipAnimation}
-      leftScreen={
-        <SearchScreen
-          onBackPress={navigateToHome}
-          isActive={activeScreen === 'search'}
-        />
-      }
-      centerScreen={homeContent}
-      rightScreen={<InboxScreen onBackPress={navigateToHome} />}
-    />
+    <>
+      <View style={{ flex: 1 }}>
+        {/* My Work Screen - slides in from left */}
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: activeScreen === 'mywork' ? 1 : 0,
+            },
+            myWorkStyle,
+          ]}
+          pointerEvents={activeScreen === 'mywork' ? 'auto' : 'none'}
+        >
+          <MyWorkScreen onBackPress={navigateToHome} />
+        </Animated.View>
+
+        {/* Main content (map + horizontal screens) - slides right when My Work is active */}
+        <Animated.View style={[{ flex: 1 }, mainContentStyle]}>
+          <HorizontalScreenContainer
+            activeIndex={screenIndex}
+            skipAnimation={skipAnimation}
+            onTransitionComplete={clearSkipAnimation}
+            leftScreen={
+              <SearchScreen
+                onBackPress={navigateToHome}
+                isActive={activeScreen === 'search'}
+              />
+            }
+            centerScreen={homeContent}
+            rightScreen={<InboxScreen onBackPress={navigateToHome} />}
+          />
+        </Animated.View>
+      </View>
+
+      {/* Search Sheet - rendered at root level for proper portal behavior */}
+      <SearchSheet open={searchSheetOpen} onOpenChange={setSearchSheetOpen} />
+    </>
   );
 }
