@@ -83,7 +83,7 @@ function mapSheetReducer(state: MapSheetState, action: MapSheetAction): MapSheet
     case 'SELECT_PROJECT':
       newState = {
         appState: { type: 'pin-preview', projectId: action.projectId },
-        snapPoint: 'peek',
+        snapPoint: 'half',
       };
       break;
     case 'EXPAND_PROJECT':
@@ -194,11 +194,16 @@ export function useMapSheet() {
 // Snap Point Utilities
 // ============================================================================
 
-/** Convert snap point to pixel/percentage values for @gorhom/bottom-sheet */
+/**
+ * iOS 26-style sheet detents
+ * - small: Compact height for quick actions/previews
+ * - medium: Standard iOS medium detent (~50%)
+ * - large: iOS large detent, nearly full screen with slight top margin
+ */
 export const SNAP_POINTS = {
-  peek: 280,     // ~280px for preview card with address header and button
-  half: '50%',   // 50% for project detail
-  full: '90%',   // 90% for full details
+  peek: '25%',   // iOS small detent - compact view
+  half: '50%',   // iOS medium detent
+  full: '97%',   // iOS large detent - nearly full with top breathing room
 } as const;
 
 /** Get the numeric index for a snap point in the array */

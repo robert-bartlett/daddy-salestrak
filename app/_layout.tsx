@@ -5,6 +5,8 @@ import { Slot } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ProjectsProvider } from '@/lib/projects-context';
+import { ContactsProvider } from '@/lib/contacts-context';
+import { AccountsProvider } from '@/lib/accounts-context';
 import { WorkspaceProvider } from '@/lib/workspace-context';
 import { UserProvider } from '@/lib/user-context';
 import { SettingsProvider } from '@/lib/settings-context';
@@ -18,10 +20,14 @@ export default function RootLayout() {
         <UserProvider>
           <SettingsProvider>
             <ProjectsProvider>
-              <BottomSheetModalProvider>
-                <Slot />
-                <PortalHost />
-              </BottomSheetModalProvider>
+              <ContactsProvider>
+                <AccountsProvider>
+                  <BottomSheetModalProvider>
+                    <Slot />
+                    <PortalHost />
+                  </BottomSheetModalProvider>
+                </AccountsProvider>
+              </ContactsProvider>
             </ProjectsProvider>
           </SettingsProvider>
         </UserProvider>

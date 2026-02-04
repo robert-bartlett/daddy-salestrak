@@ -1,199 +1,212 @@
-import { useState } from 'react';
-import { View } from 'react-native';
-import { MapPin, User, Briefcase } from 'lucide-react-native';
+import { useState, useEffect, useRef } from 'react';
+import { Pressable } from 'react-native';
+import { FolderKanban, UserCircle, Building2, MapPin, ChevronRight } from 'lucide-react-native';
 
-import { BottomSheetScrollBody, BottomSheetHeader, BottomSheetFooter } from '@/components/ui/bottom-sheet';
-import { VStack, HStack } from '@/components/ui/layout';
+import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
+import { VStack, HStack, Surface } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { MOCK_WORKFLOWS, type Workflow } from '@/lib/mock-data';
-import { useProjects } from '@/lib/projects-context';
-import { useMapSheet } from '@/lib/map-sheet-context';
+import { useMapSheet, type Coordinates } from '@/lib/map-sheet-context';
+import { ProjectForm } from './_project-form';
+import { ContactForm } from './_contact-form';
+import { AccountForm } from './_account-form';
+
+type ViewState =
+  | { view: 'entity-selection' }
+  | { view: 'project-form' }
+  | { view: 'contact-form' }
+  | { view: 'account-form' };
+
+type EntityOption = {
+  id: string;
+  icon: typeof FolderKanban;
+  title: string;
+  description: string;
+  onPress: () => void;
+};
 
 export function AddSheetContent() {
-  const { addProject } = useProjects();
-  const { appState, closeSheet, selectProject } = useMapSheet();
+  const { appState, closeSheet, isSheetVisible, setSnapPoint } = useMapSheet();
 
   // Get coordinates from app state if available
   const coordinates = appState.type === 'tab' && appState.tab === 'add' ? appState.coordinates : undefined;
 
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
-  const [selectedStageId, setSelectedStageId] = useState<string | null>(null);
+  // View state - start with entity-selection, will be set by effect
+  const [viewState, setViewState] = useState<ViewState>({ view: 'entity-selection' });
 
-  const handleWorkflowChange = (value: string) => {
-    const workflow = MOCK_WORKFLOWS.find((w) => w.id === value);
-    setSelectedWorkflow(workflow ?? null);
-    setSelectedStageId(workflow?.stages[0]?.id ?? null);
+  // Track previous values to detect changes
+  const prevCoordinatesRef = useRef<Coordinates | undefined>(undefined);
+  const prevVisibleRef = useRef(false);
+
+  // Handle sheet visibility and coordinate changes
+  useEffect(() => {
+    const wasVisible = prevVisibleRef.current;
+    const isVisible = isSheetVisible;
+    const hadCoordinates = prevCoordinatesRef.current;
+    const hasCoordinates = coordinates;
+
+    // Sheet just opened
+    if (!wasVisible && isVisible) {
+      // If opened with coordinates (map tap), go to project form
+      // Otherwise, show entity selection
+      const initialView = hasCoordinates ? 'project-form' : 'entity-selection';
+      setViewState({ view: initialView });
+    }
+    // Sheet is visible and coordinates changed (new map tap while sheet is open)
+    else if (isVisible && hasCoordinates && !hadCoordinates) {
+      setViewState({ view: 'project-form' });
+    }
+    // Sheet just closed - reset for next time
+    else if (wasVisible && !isVisible) {
+      setViewState({ view: 'entity-selection' });
+    }
+
+    prevVisibleRef.current = isVisible;
+    prevCoordinatesRef.current = hasCoordinates;
+  }, [isSheetVisible, coordinates]);
+
+  // Navigate to a form
+  const navigateToForm = (view: 'project-form' | 'contact-form' | 'account-form') => {
+    setViewState({ view });
   };
 
-  const handleStageChange = (value: string) => {
-    setSelectedStageId(value);
-  };
-
-  const handleCreate = () => {
-    if (!name.trim() || !address.trim() || !selectedWorkflow || !selectedStageId) return;
-
-    const newProject = addProject({
-      name: name.trim(),
-      address: address.trim(),
-      workflowId: selectedWorkflow.id,
-      stageId: selectedStageId,
-      latitude: coordinates?.latitude,
-      longitude: coordinates?.longitude,
-    });
-
-    // Reset form
-    setName('');
-    setAddress('');
-    setSelectedWorkflow(null);
-    setSelectedStageId(null);
-
-    // Show the new project
-    selectProject(newProject.id);
+  const handleBack = () => {
+    // If we came from a map tap (coordinates present), back should close the sheet
+    // Otherwise, go back to entity selection
+    if (coordinates) {
+      closeSheet();
+    } else {
+      setViewState({ view: 'entity-selection' });
+    }
   };
 
   const handleCancel = () => {
-    // Reset form
-    setName('');
-    setAddress('');
-    setSelectedWorkflow(null);
-    setSelectedStageId(null);
+    setViewState({ view: 'entity-selection' });
     closeSheet();
   };
 
-  const isValid = name.trim().length > 0 && address.trim().length > 0 && selectedWorkflow !== null && selectedStageId !== null;
+  // Render the appropriate view based on state
+  if (viewState.view === 'project-form') {
+    return (
+      <ProjectForm
+        coordinates={coordinates}
+        onBack={handleBack}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
+  if (viewState.view === 'contact-form') {
+    return (
+      <ContactForm
+        onBack={handleBack}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
+  if (viewState.view === 'account-form') {
+    return (
+      <AccountForm
+        onBack={handleBack}
+        onCancel={handleCancel}
+      />
+    );
+  }
+
+  // Entity selection screen
+  const entityOptions: EntityOption[] = [
+    {
+      id: 'project',
+      icon: FolderKanban,
+      title: 'Project',
+      description: 'Track a job, lead, or property',
+      onPress: () => navigateToForm('project-form'),
+    },
+    {
+      id: 'contact',
+      icon: UserCircle,
+      title: 'Contact',
+      description: 'Add a person to your network',
+      onPress: () => navigateToForm('contact-form'),
+    },
+    {
+      id: 'account',
+      icon: Building2,
+      title: 'Account',
+      description: 'Create a company or organization',
+      onPress: () => navigateToForm('account-form'),
+    },
+  ];
 
   return (
     <>
       <BottomSheetHeader>
         <VStack gap="xs">
           <Text size="lg" weight="semibold">
-            New Project
+            Create New
           </Text>
           <Text size="sm" tone="muted">
-            Add a new lead or project to track
+            Choose what you want to create
           </Text>
         </VStack>
       </BottomSheetHeader>
 
-      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
-        <VStack gap="lg">
-          <VStack gap="md">
-            {/* Project Name */}
-            <VStack gap="xs">
-              <HStack gap="xs" align="center">
-                <Icon as={User} size={16} />
-                <Text weight="medium">Project Name</Text>
-              </HStack>
-              <Input
-                placeholder="e.g., Johnson Residence"
-                value={name}
-                onChangeText={setName}
-                width="full"
-              />
-            </VStack>
+      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 40 }}>
+        <VStack gap="md">
+          {entityOptions.map((option) => (
+            <EntityOptionCard key={option.id} option={option} />
+          ))}
 
-            {/* Address */}
-            <VStack gap="xs">
-              <HStack gap="xs" align="center">
-                <Icon as={MapPin} size={16} />
-                <Text weight="medium">Address</Text>
-              </HStack>
-              <Input
-                placeholder="Enter street address"
-                value={address}
-                onChangeText={setAddress}
-                width="full"
-              />
-              {coordinates ? (
-                <View className="flex-row items-center gap-2 rounded-lg bg-primary/10 px-3 py-2">
-                  <Icon as={MapPin} size={14} color="#22c55e" />
-                  <Text size="sm" tone="muted">
-                    Location selected from map
+          {/* Location indicator if coordinates are set */}
+          {coordinates ? (
+            <Surface variant="muted" padding="md" rounded="lg">
+              <HStack gap="sm" align="center">
+                <Icon as={MapPin} size={16} color="#22c55e" />
+                <VStack gap="xs">
+                  <Text size="sm" weight="medium">
+                    Location Selected
                   </Text>
-                </View>
-              ) : (
-                <Button variant="outline" size="sm">
-                  <Icon as={MapPin} size={14} />
-                  Use Current Location
-                </Button>
-              )}
-            </VStack>
-
-            {/* Workflow Selection */}
-            <VStack gap="xs">
-              <HStack gap="xs" align="center">
-                <Icon as={Briefcase} size={16} />
-                <Text weight="medium">Workflow</Text>
+                  <Text size="xs" tone="muted">
+                    New projects will use this map location
+                  </Text>
+                </VStack>
               </HStack>
-              <Select onValueChange={(option) => option && handleWorkflowChange(option.value)}>
-                <SelectTrigger fullWidth>
-                  <SelectValue placeholder="Select a workflow" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {MOCK_WORKFLOWS.map((workflow) => (
-                      <SelectItem key={workflow.id} label={workflow.name} value={workflow.id}>
-                        {workflow.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </VStack>
-
-            {/* Stage Selection (only shown if workflow is selected) */}
-            {selectedWorkflow && (
-              <VStack gap="xs">
-                <Text weight="medium">Starting Stage</Text>
-                <Select
-                  value={{
-                    value: selectedStageId ?? '',
-                    label:
-                      selectedWorkflow.stages.find((s) => s.id === selectedStageId)?.name ?? '',
-                  }}
-                  onValueChange={(option) => option && handleStageChange(option.value)}
-                >
-                  <SelectTrigger fullWidth>
-                    <SelectValue placeholder="Select starting stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {selectedWorkflow.stages.map((stage) => (
-                        <SelectItem key={stage.id} label={stage.name} value={stage.id}>
-                          {stage.name}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </VStack>
-            )}
-          </VStack>
-
-          {/* Actions */}
-          <VStack gap="sm">
-            <Button onPress={handleCreate} disabled={!isValid}>
-              Create Project
-            </Button>
-            <Button variant="ghost" onPress={handleCancel}>
-              Cancel
-            </Button>
-          </VStack>
+            </Surface>
+          ) : null}
         </VStack>
       </BottomSheetScrollBody>
     </>
+  );
+}
+
+function EntityOptionCard({ option }: { option: EntityOption }) {
+  const { icon: IconComponent, title, description, onPress } = option;
+
+  return (
+    <Pressable onPress={onPress}>
+      {({ pressed }) => (
+        <Surface
+          variant="outline"
+          padding="md"
+          rounded="lg"
+        >
+          <HStack gap="md" align="center" justify="between">
+            <HStack gap="md" align="center">
+              <Surface variant="muted" padding="sm" rounded="md">
+                <Icon as={IconComponent} size={24} />
+              </Surface>
+              <VStack gap="xs">
+                <Text weight="semibold">{title}</Text>
+                <Text size="sm" tone="muted">
+                  {description}
+                </Text>
+              </VStack>
+            </HStack>
+            <Icon as={ChevronRight} size={20} />
+          </HStack>
+        </Surface>
+      )}
+    </Pressable>
   );
 }

@@ -265,7 +265,6 @@ export default function MapFirstScreen() {
   );
 
   const handleSearchPress = useCallback(() => {
-    console.log('Search button pressed, opening sheet');
     setSearchSheetOpen(true);
   }, []);
 
@@ -293,6 +292,9 @@ export default function MapFirstScreen() {
 
   // Check which sheet should be visible
   const showDetailSheet = appState.type === 'project-detail' || appState.type === 'project-activity';
+
+  // Sheet should cover the tab bar for detail views and add tab
+  const sheetCoversTabBar = showDetailSheet || appState.type === 'tab';
 
   // Handle sheet snap changes
   const handleSnapIndexChange = useCallback(
@@ -447,7 +449,7 @@ export default function MapFirstScreen() {
         snapIndex={getSnapIndex(snapPoint)}
         onSnapIndexChange={handleSnapIndexChange}
         enablePanDownToClose
-        bottomInset={showDetailSheet ? 0 : PILL_HEIGHT + insets.bottom}
+        bottomInset={sheetCoversTabBar ? 0 : PILL_HEIGHT + insets.bottom}
         contentKey={
           appState.type === 'pin-preview' || appState.type === 'project-detail' || appState.type === 'project-activity'
             ? appState.projectId

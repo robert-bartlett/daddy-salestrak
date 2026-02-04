@@ -29,6 +29,7 @@ type ProjectsContextValue = {
     stageId: string;
     latitude?: number;
     longitude?: number;
+    customFields?: ProjectCustomFields;
   }) => Project;
   addNote: (projectId: string, note: string) => void;
   updateProjectAge: (
@@ -85,7 +86,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addProject = useCallback(
-    (data: { name: string; address: string; workflowId: string; stageId: string; latitude?: number; longitude?: number }): Project => {
+    (data: { name: string; address: string; workflowId: string; stageId: string; latitude?: number; longitude?: number; customFields?: ProjectCustomFields }): Project => {
       const now = new Date();
       // Default to Boise area if no coordinates provided
       const defaultLat = 43.6339;
@@ -108,7 +109,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
         ageHistory: [],
         createdAt: now,
         updatedAt: now,
-        customFields: {},
+        customFields: data.customFields ?? {},
       };
 
       setProjects((prev) => [newProject, ...prev]);
