@@ -41,7 +41,8 @@
         {
           "locationWhenInUsePermission": "Show your location on the map."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
