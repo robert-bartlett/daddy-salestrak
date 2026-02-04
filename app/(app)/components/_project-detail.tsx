@@ -31,6 +31,7 @@ import { StageSelectSheet } from './_stage-select-sheet';
 import { WorkflowSelectSheet } from './_workflow-select-sheet';
 import { TeamMemberSheet } from './_team-member-sheet';
 import { ProjectActionsSheet } from './_project-actions-sheet';
+import { CustomFieldsSection } from './_custom-fields-section';
 
 type ProjectDetailContentProps = {
   projectId: string;
@@ -99,6 +100,7 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
     addNote,
     toggleFavorite,
     unarchiveProject,
+    updateCustomField,
   } = useProjects();
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#0A84FF';
@@ -478,6 +480,13 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
                   <Text size="xs" style={{ color: '#fff' }}>Tap to navigate</Text>
                 </View>
               </Pressable>
+
+              {/* Custom Fields Section */}
+              <CustomFieldsSection
+                customFields={project.customFields}
+                onFieldChange={(key, value) => updateCustomField(project.id, key, value)}
+                colors={colors}
+              />
 
               {/* More Actions - at bottom of details */}
               <Pressable

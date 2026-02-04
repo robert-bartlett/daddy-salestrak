@@ -69,6 +69,7 @@ export function AgeUpdateSheet({ open, onOpenChange, project, onSubmit }: AgeUpd
         open={open}
         onOpenChange={onOpenChange}
         snapPoints={[480]}
+        stackBehavior="push"
         footer={
           <HStack gap="sm">
             <View style={{ flex: 1 }}>

@@ -888,6 +888,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
             }
           }}
           snapPoints={['50%', '90%']}
+          stackBehavior="push"
           footer={
             detailShowsActivity ? (
               <NoteInputFooter projectId={detailProject.id} />

@@ -11,6 +11,7 @@ import {
   type AgeUpdateReason,
   type AgeUpdate,
   type User,
+  type ProjectCustomFields,
 } from './mock-data';
 import { calculateAgeInDays, getStatusLabel, getReasonLabel } from './age-utils';
 
@@ -46,6 +47,7 @@ type ProjectsContextValue = {
   deleteProject: (projectId: string) => void;
   markActivityRead: (activityId: string) => void;
   markAllActivitiesRead: () => void;
+  updateCustomField: (projectId: string, key: string, value: string | number | Date | null) => void;
 };
 
 const ProjectsContext = createContext<ProjectsContextValue | null>(null);
@@ -106,6 +108,7 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
         ageHistory: [],
         createdAt: now,
         updatedAt: now,
+        customFields: {},
       };
 
       setProjects((prev) => [newProject, ...prev]);
@@ -465,6 +468,32 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const updateCustomField = useCallback(
+    (projectId: string, key: string, value: string | number | Date | null) => {
+      const now = new Date();
+
+      setProjects((prev) =>
+        prev.map((project) => {
+          if (project.id !== projectId) return project;
+
+          const updatedCustomFields = { ...project.customFields };
+          if (value === null || value === '') {
+            delete updatedCustomFields[key];
+          } else {
+            updatedCustomFields[key] = value;
+          }
+
+          return {
+            ...project,
+            customFields: updatedCustomFields,
+            updatedAt: now,
+          };
+        })
+      );
+    },
+    []
+  );
+
   const value = useMemo(
     () => ({
       projects,
@@ -486,8 +515,9 @@ export function ProjectsProvider({ children }: { children: React.ReactNode }) {
       deleteProject,
       markActivityRead,
       markAllActivitiesRead,
+      updateCustomField,
     }),
-    [projects, activities, getFavoriteProjects, getArchivedProjects, getProjectById, getProjectActivities, addProject, addNote, updateProjectAge, updateProjectStage, updateProjectWorkflow, updateProjectOwners, updateProjectAssignees, toggleFavorite, archiveProject, unarchiveProject, deleteProject, markActivityRead, markAllActivitiesRead]
+    [projects, activities, getFavoriteProjects, getArchivedProjects, getProjectById, getProjectActivities, addProject, addNote, updateProjectAge, updateProjectStage, updateProjectWorkflow, updateProjectOwners, updateProjectAssignees, toggleFavorite, archiveProject, unarchiveProject, deleteProject, markActivityRead, markAllActivitiesRead, updateCustomField]
   );
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;

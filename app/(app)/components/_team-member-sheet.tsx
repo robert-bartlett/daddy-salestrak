@@ -361,6 +361,7 @@ export function TeamMemberSheet({
       onOpenChange={onOpenChange}
       snapPoints={SNAP_POINTS as unknown as string[]}
       onSnapIndexChange={setSnapIndex}
+      stackBehavior="push"
     >
       {/* Header */}
       <View

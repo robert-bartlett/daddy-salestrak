@@ -98,6 +98,7 @@ export function WorkflowSelectSheet({
         onOpenChange={handleClose}
         snapPoints={['50%', '70%']}
         footer={footerContent}
+        stackBehavior="push"
       >
         <BottomSheetHeader>
           <BottomSheetTitle>Move to {pendingWorkflowData.name}</BottomSheetTitle>
@@ -139,6 +140,7 @@ export function WorkflowSelectSheet({
       open={open}
       onOpenChange={handleClose}
       enableDynamicSizing
+      stackBehavior="push"
     >
       <BottomSheetHeader>
         <BottomSheetTitle>Select Workflow</BottomSheetTitle>

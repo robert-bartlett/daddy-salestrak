@@ -4,6 +4,58 @@
 // Types
 // ============================================================================
 
+// Custom field types for projects
+export type CustomFieldType = 'text' | 'phone' | 'email' | 'date' | 'currency' | 'dropdown';
+
+export type CustomFieldDefinition = {
+  key: string;
+  label: string;
+  type: CustomFieldType;
+  required: boolean;
+  options?: string[]; // For dropdown type
+};
+
+// All 26 custom fields for projects
+export const PROJECT_CUSTOM_FIELDS: CustomFieldDefinition[] = [
+  // Required field first
+  { key: 'leadSource', label: 'Lead Source', type: 'dropdown', required: true, options: ['Referral', 'Door Knock', 'Online', 'Trade Show', 'Other'] },
+
+  // Dropdowns
+  { key: 'bidType', label: 'Bid Type', type: 'dropdown', required: false, options: ['Standard', 'Emergency', 'Supplemental'] },
+  { key: 'insuranceCarrier', label: 'Insurance Carrier', type: 'dropdown', required: false, options: ['State Farm', 'Allstate', 'Progressive', 'USAA', 'Liberty Mutual', 'Farmers', 'Nationwide', 'Other'] },
+  { key: 'jobType', label: 'Job Type', type: 'dropdown', required: false, options: ['Residential', 'Commercial'] },
+  { key: 'region', label: 'Region', type: 'dropdown', required: false, options: ['North', 'South', 'East', 'West', 'Central'] },
+
+  // Text fields
+  { key: 'claimNumber', label: 'Claim Number', type: 'text', required: false },
+  { key: 'companyName', label: 'Company Name', type: 'text', required: false },
+  { key: 'roofLinkId', label: 'Rooflink ID', type: 'text', required: false },
+  { key: 'roofLinkJob', label: 'Rooflink Job', type: 'text', required: false },
+
+  // Contact fields
+  { key: 'customerCell', label: 'Customer Cell', type: 'phone', required: false },
+  { key: 'customerPhone', label: 'Customer Phone', type: 'phone', required: false },
+  { key: 'customerEmail', label: 'Customer Email', type: 'email', required: false },
+
+  // Currency
+  { key: 'deductible', label: 'Deductible', type: 'currency', required: false },
+
+  // Date fields (13 total)
+  { key: 'closed', label: 'Closed', type: 'date', required: false },
+  { key: 'customerInvoiceSent', label: 'Customer Invoice Sent', type: 'date', required: false },
+  { key: 'dateApproved', label: 'Date Approved', type: 'date', required: false },
+  { key: 'dateFinalInspectionComplete', label: 'Date Final Inspection Complete', type: 'date', required: false },
+  { key: 'dateInspectionCompleted', label: 'Date Inspection Completed', type: 'date', required: false },
+  { key: 'dateMidpointInspectionComplete', label: 'Date Midpoint Inspection Complete', type: 'date', required: false },
+  { key: 'dateRoofScheduled', label: 'Date Roof Scheduled', type: 'date', required: false },
+  { key: 'dateSigned', label: 'Date Signed', type: 'date', required: false },
+  { key: 'preContractSigned', label: 'Pre Contract Signed', type: 'date', required: false },
+  { key: 'preferredInspectionDate', label: 'Preferred Inspection Date', type: 'date', required: false },
+  { key: 'rdRequested', label: 'RD Requested', type: 'date', required: false },
+  { key: 'roofComplete', label: 'Roof Complete', type: 'date', required: false },
+  { key: 'roofLinkCreationDate', label: 'Rooflink Creation Date', type: 'date', required: false },
+];
+
 export type WorkflowStage = {
   id: string;
   name: string;
@@ -59,6 +111,8 @@ export type Activity = {
   metadata?: Record<string, unknown>;
 };
 
+export type ProjectCustomFields = Record<string, string | number | Date | null>;
+
 export type Project = {
   id: string;
   name: string;
@@ -78,6 +132,7 @@ export type Project = {
   archivedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  customFields: ProjectCustomFields;
 };
 
 // Badge color type from the UI library
@@ -246,6 +301,12 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(45),
     updatedAt: daysAgo(2),
+    customFields: {
+      leadSource: 'Referral',
+      jobType: 'Residential',
+      customerCell: '(208) 555-1234',
+      deductible: 1500,
+    },
   },
   {
     id: 'proj-2',
@@ -265,6 +326,13 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(30),
     updatedAt: daysAgo(1),
+    customFields: {
+      leadSource: 'Door Knock',
+      insuranceCarrier: 'State Farm',
+      claimNumber: 'CLM-2024-001234',
+      deductible: 2500,
+      dateInspectionCompleted: daysAgo(25),
+    },
   },
   {
     id: 'proj-3',
@@ -284,6 +352,12 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(15),
     updatedAt: daysAgo(0),
+    customFields: {
+      leadSource: 'Online',
+      jobType: 'Residential',
+      dateSigned: daysAgo(10),
+      dateRoofScheduled: daysAgo(-5), // 5 days in the future
+    },
   },
   {
     id: 'proj-4',
@@ -303,6 +377,11 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(60),
     updatedAt: daysAgo(5),
+    customFields: {
+      leadSource: 'Trade Show',
+      companyName: 'Wilson Enterprises LLC',
+      jobType: 'Commercial',
+    },
   },
   {
     id: 'proj-5',
@@ -322,6 +401,13 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(90),
     updatedAt: daysAgo(3),
+    customFields: {
+      leadSource: 'Referral',
+      companyName: 'Chen Holdings',
+      jobType: 'Commercial',
+      region: 'West',
+      deductible: 10000,
+    },
   },
   {
     id: 'proj-6',
@@ -341,6 +427,10 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(7),
     updatedAt: daysAgo(1),
+    customFields: {
+      leadSource: 'Door Knock',
+      preferredInspectionDate: daysAgo(-2), // 2 days in the future
+    },
   },
   {
     id: 'proj-7',
@@ -360,6 +450,7 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(22),
     updatedAt: daysAgo(22),
+    customFields: {},
   },
   {
     id: 'proj-8',
@@ -379,6 +470,11 @@ export const MOCK_PROJECTS: Project[] = [
     isArchived: false,
     createdAt: daysAgo(3),
     updatedAt: daysAgo(0),
+    customFields: {
+      leadSource: 'Other',
+      customerEmail: 'anderson@email.com',
+      customerPhone: '(208) 555-9876',
+    },
   },
 ];
 

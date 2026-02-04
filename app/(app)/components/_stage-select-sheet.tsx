@@ -42,6 +42,7 @@ export function StageSelectSheet({
       open={open}
       onOpenChange={onOpenChange}
       snapPoints={['50%', '85%']}
+      stackBehavior="push"
     >
       <BottomSheetHeader>
         <BottomSheetTitle>Change Stage</BottomSheetTitle>
