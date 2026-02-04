@@ -268,64 +268,66 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
 
           {/* Widget Grid - shown when viewing details */}
           {activeTab === 'details' && (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-              {/* Age Widget - Half width */}
-              <Pressable
-                onPress={() => setAgeSheetOpen(true)}
-                style={{
-                  width: '47%',
-                  backgroundColor: colors.cardBg,
-                  borderRadius: 16,
-                  padding: 16,
-                }}
-              >
-                <VStack gap="sm">
-                  <HStack justify="between" align="center">
-                    <Icon as={Clock} size={20} color={getStatusHexColor(getStatusFromAge(project.ageResetAt))} />
-                    <Icon as={ChevronRight} size={16} color={colors.textMuted} />
-                  </HStack>
-                  <VStack gap="xs">
-                    <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Age
-                    </Text>
-                    <Text size="xl" weight="bold" style={{ color: getStatusHexColor(getStatusFromAge(project.ageResetAt)) }}>
-                      {formatAge(project.ageResetAt)}
-                    </Text>
+            <VStack gap="sm">
+              {/* Age + Stage Row */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {/* Age Widget */}
+                <Pressable
+                  onPress={() => setAgeSheetOpen(true)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 16,
+                    padding: 16,
+                  }}
+                >
+                  <VStack gap="sm">
+                    <HStack justify="between" align="center">
+                      <Icon as={Clock} size={20} color={getStatusHexColor(getStatusFromAge(project.ageResetAt))} />
+                      <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+                    </HStack>
+                    <VStack gap="xs">
+                      <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Age
+                      </Text>
+                      <Text size="xl" weight="bold" style={{ color: getStatusHexColor(getStatusFromAge(project.ageResetAt)) }}>
+                        {formatAge(project.ageResetAt)}
+                      </Text>
+                    </VStack>
                   </VStack>
-                </VStack>
-              </Pressable>
+                </Pressable>
 
-              {/* Stage Widget - Half width */}
-              <Pressable
-                onPress={() => setStageSheetOpen(true)}
-                style={{
-                  width: '47%',
-                  backgroundColor: colors.cardBg,
-                  borderRadius: 16,
-                  padding: 16,
-                }}
-              >
-                <VStack gap="sm">
-                  <HStack justify="between" align="center">
-                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: stageColor }} />
-                    <Icon as={ChevronRight} size={16} color={colors.textMuted} />
-                  </HStack>
-                  <VStack gap="xs">
-                    <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Stage
-                    </Text>
-                    <Text size="lg" weight="semibold" style={{ color: colors.text }} numberOfLines={1}>
-                      {stage?.name ?? 'None'}
-                    </Text>
+                {/* Stage Widget */}
+                <Pressable
+                  onPress={() => setStageSheetOpen(true)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 16,
+                    padding: 16,
+                  }}
+                >
+                  <VStack gap="sm">
+                    <HStack justify="between" align="center">
+                      <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: stageColor }} />
+                      <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+                    </HStack>
+                    <VStack gap="xs">
+                      <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Stage
+                      </Text>
+                      <Text size="lg" weight="semibold" style={{ color: colors.text }} numberOfLines={1}>
+                        {stage?.name ?? 'None'}
+                      </Text>
+                    </VStack>
                   </VStack>
-                </VStack>
-              </Pressable>
+                </Pressable>
+              </View>
 
               {/* Workflow Widget - Full width */}
               <Pressable
                 onPress={() => setWorkflowSheetOpen(true)}
                 style={{
-                  width: '100%',
                   backgroundColor: colors.cardBg,
                   borderRadius: 16,
                   padding: 16,
@@ -344,89 +346,91 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
                 </HStack>
               </Pressable>
 
-              {/* Owners Widget - Half width */}
-              <Pressable
-                onPress={() => setOwnersSheetOpen(true)}
-                style={{
-                  width: '47%',
-                  backgroundColor: colors.cardBg,
-                  borderRadius: 16,
-                  padding: 16,
-                }}
-              >
-                <VStack gap="sm">
-                  <HStack justify="between" align="center">
-                    <Icon as={Users} size={20} color={colors.accent} />
-                    <Icon as={ChevronRight} size={16} color={colors.textMuted} />
-                  </HStack>
-                  <VStack gap="xs">
-                    <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Owners
-                    </Text>
-                    {project.owners.length > 0 ? (
-                      <HStack gap="xs">
-                        {project.owners.slice(0, 3).map((owner) => (
-                          <Avatar key={owner.id} size="sm" alt={owner.name}>
-                            <AvatarFallback>
-                              <Text size="xs" style={{ color: colors.text }}>{owner.initials}</Text>
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {project.owners.length > 3 && (
-                          <Text size="sm" style={{ color: colors.textMuted }}>+{project.owners.length - 3}</Text>
-                        )}
-                      </HStack>
-                    ) : (
-                      <Text size="sm" style={{ color: colors.textMuted }}>None</Text>
-                    )}
+              {/* Owners + Assignees Row */}
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {/* Owners Widget */}
+                <Pressable
+                  onPress={() => setOwnersSheetOpen(true)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 16,
+                    padding: 16,
+                  }}
+                >
+                  <VStack gap="sm">
+                    <HStack justify="between" align="center">
+                      <Icon as={Users} size={20} color={colors.accent} />
+                      <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+                    </HStack>
+                    <VStack gap="xs">
+                      <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Owners
+                      </Text>
+                      {project.owners.length > 0 ? (
+                        <HStack gap="xs">
+                          {project.owners.slice(0, 3).map((owner) => (
+                            <Avatar key={owner.id} size="sm" alt={owner.name}>
+                              <AvatarFallback>
+                                <Text size="xs" style={{ color: colors.text }}>{owner.initials}</Text>
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {project.owners.length > 3 && (
+                            <Text size="sm" style={{ color: colors.textMuted }}>+{project.owners.length - 3}</Text>
+                          )}
+                        </HStack>
+                      ) : (
+                        <Text size="sm" style={{ color: colors.textMuted }}>None</Text>
+                      )}
+                    </VStack>
                   </VStack>
-                </VStack>
-              </Pressable>
+                </Pressable>
 
-              {/* Assignees Widget - Half width */}
-              <Pressable
-                onPress={() => setAssigneesSheetOpen(true)}
-                style={{
-                  width: '47%',
-                  backgroundColor: colors.cardBg,
-                  borderRadius: 16,
-                  padding: 16,
-                }}
-              >
-                <VStack gap="sm">
-                  <HStack justify="between" align="center">
-                    <Icon as={Users} size={20} color={colors.textSecondary} />
-                    <Icon as={ChevronRight} size={16} color={colors.textMuted} />
-                  </HStack>
-                  <VStack gap="xs">
-                    <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      Assignees
-                    </Text>
-                    {project.assignees.length > 0 ? (
-                      <HStack gap="xs">
-                        {project.assignees.slice(0, 3).map((assignee) => (
-                          <Avatar key={assignee.id} size="sm" alt={assignee.name}>
-                            <AvatarFallback>
-                              <Text size="xs" style={{ color: colors.text }}>{assignee.initials}</Text>
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {project.assignees.length > 3 && (
-                          <Text size="sm" style={{ color: colors.textMuted }}>+{project.assignees.length - 3}</Text>
-                        )}
-                      </HStack>
-                    ) : (
-                      <Text size="sm" style={{ color: colors.textMuted }}>None</Text>
-                    )}
+                {/* Assignees Widget */}
+                <Pressable
+                  onPress={() => setAssigneesSheetOpen(true)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.cardBg,
+                    borderRadius: 16,
+                    padding: 16,
+                  }}
+                >
+                  <VStack gap="sm">
+                    <HStack justify="between" align="center">
+                      <Icon as={Users} size={20} color={colors.textSecondary} />
+                      <Icon as={ChevronRight} size={16} color={colors.textMuted} />
+                    </HStack>
+                    <VStack gap="xs">
+                      <Text size="xs" style={{ color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                        Assignees
+                      </Text>
+                      {project.assignees.length > 0 ? (
+                        <HStack gap="xs">
+                          {project.assignees.slice(0, 3).map((assignee) => (
+                            <Avatar key={assignee.id} size="sm" alt={assignee.name}>
+                              <AvatarFallback>
+                                <Text size="xs" style={{ color: colors.text }}>{assignee.initials}</Text>
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {project.assignees.length > 3 && (
+                            <Text size="sm" style={{ color: colors.textMuted }}>+{project.assignees.length - 3}</Text>
+                          )}
+                        </HStack>
+                      ) : (
+                        <Text size="sm" style={{ color: colors.textMuted }}>None</Text>
+                      )}
+                    </VStack>
                   </VStack>
-                </VStack>
-              </Pressable>
+                </Pressable>
+              </View>
 
               {/* Map Preview Widget - Full width */}
               <Pressable
                 onPress={handleNavigate}
                 style={{
-                  width: '100%',
                   height: 140,
                   borderRadius: 16,
                   overflow: 'hidden',
@@ -479,7 +483,6 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
               <Pressable
                 onPress={() => setActionsSheetOpen(true)}
                 style={{
-                  width: '100%',
                   backgroundColor: colors.cardBg,
                   borderRadius: 16,
                   padding: 16,
@@ -493,7 +496,7 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
                   <Icon as={ChevronRight} size={16} color={colors.textMuted} />
                 </HStack>
               </Pressable>
-            </View>
+            </VStack>
           )}
 
           {/* Activity View - shown when viewing activity */}
