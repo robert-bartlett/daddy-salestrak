@@ -1,8 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import {
-  Map,
-  User,
   CalendarCheck,
   FolderKanban,
   Activity,
@@ -565,19 +563,9 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   return (
     <Box fill background="default">
       <Header
-        title="My Work"
+        title="Home"
         safeAreaTop
         background="default"
-        left={
-          <Button variant="ghost" size="icon" onPress={navigateToProfile}>
-            <Icon as={User} size={22} />
-          </Button>
-        }
-        right={
-          <Button variant="ghost" size="icon" onPress={onBackPress}>
-            <Icon as={Map} size={22} />
-          </Button>
-        }
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">

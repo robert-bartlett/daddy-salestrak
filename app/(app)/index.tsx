@@ -10,7 +10,16 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Location from 'expo-location';
-import { Crosshair, SlidersHorizontal, Search, Plus, Inbox, Briefcase } from 'lucide-react-native';
+import {
+  Crosshair,
+  SlidersHorizontal,
+  Search,
+  Plus,
+  Inbox,
+  Home,
+  Map,
+  UserCircle,
+} from 'lucide-react-native';
 
 import { Box, Surface } from '@/components/ui/layout';
 import { HorizontalScreenContainer } from '@/components/ui/layout/horizontal-screen-container';
@@ -48,11 +57,23 @@ const DEFAULT_REGION: Region = {
 // Sheet takes up roughly 40% of screen, so offset the pin to be in the top 60%
 const PIN_CENTER_OFFSET = 0.35;
 
-// Tab definitions
-const TABS: FloatingTab[] = [
-  { id: 'mywork', label: 'My Work', icon: <Briefcase /> },
+// Tab configurations for each screen
+const MAP_TABS: FloatingTab[] = [
+  { id: 'home', label: 'Home', icon: <Home /> },
   { id: 'add', label: 'Add', icon: <Plus /> },
   { id: 'inbox', label: 'Inbox', icon: <Inbox /> },
+];
+
+const HOME_TABS: FloatingTab[] = [
+  { id: 'profile', label: 'Profile', icon: <UserCircle /> },
+  { id: 'add', label: 'Add', icon: <Plus /> },
+  { id: 'map', label: 'Map', icon: <Map /> },
+];
+
+const INBOX_TABS: FloatingTab[] = [
+  { id: 'map', label: 'Map', icon: <Map /> },
+  { id: 'add', label: 'Add', icon: <Plus /> },
+  { id: 'filter', label: 'Filter', icon: <SlidersHorizontal /> },
 ];
 
 export default function MapFirstScreen() {
@@ -89,9 +110,22 @@ export default function MapFirstScreen() {
     longitude: -116.2942,
   });
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [inboxFilterSheetOpen, setInboxFilterSheetOpen] = useState(false);
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [isActivityViewActive, setIsActivityViewActive] = useState(false);
+
+  // Get tabs based on active screen
+  const currentTabs = useMemo(() => {
+    switch (activeScreen) {
+      case 'mywork':
+        return HOME_TABS;
+      case 'inbox':
+        return INBOX_TABS;
+      default:
+        return MAP_TABS;
+    }
+  }, [activeScreen]);
 
   // My Work animation
   const myWorkProgress = useSharedValue(0);
@@ -250,18 +284,31 @@ export default function MapFirstScreen() {
   const handleTabPress = useCallback(
     (tabId: string) => {
       switch (tabId) {
-        case 'mywork':
+        // Map screen tabs
+        case 'home':
           navigateToMyWork();
-          break;
-        case 'add':
-          openTab('add');
           break;
         case 'inbox':
           navigateToInbox();
           break;
+        // Shared tab (available on all screens)
+        case 'add':
+          openTab('add');
+          break;
+        // Home screen tabs
+        case 'profile':
+          navigateToProfile();
+          break;
+        case 'map':
+          navigateToHome();
+          break;
+        // Inbox screen tabs
+        case 'filter':
+          setInboxFilterSheetOpen(true);
+          break;
       }
     },
-    [navigateToMyWork, navigateToInbox, openTab]
+    [navigateToMyWork, navigateToInbox, navigateToProfile, navigateToHome, openTab]
   );
 
   const handleSearchPress = useCallback(() => {
@@ -310,8 +357,8 @@ export default function MapFirstScreen() {
   // Convert activeScreen to index for HorizontalScreenContainer
   const screenIndex = activeScreen === 'search' ? -1 : activeScreen === 'inbox' ? 1 : 0;
 
-  // Hide tab bar when not on home screen
-  const tabBarHidden = activeScreen !== 'home';
+  // Hide tab bar only for search and profile screens (tab bar is dynamic on other screens)
+  const tabBarHidden = activeScreen === 'search' || activeScreen === 'profile';
 
   // Home screen content (map + overlays)
   const homeContent = (
@@ -428,14 +475,6 @@ export default function MapFirstScreen() {
         </Surface>
       </View>
 
-      {/* Bottom Tab Bar */}
-      <FloatingTabBar
-        tabs={TABS}
-        activeTab={activeTab}
-        onTabPress={handleTabPress}
-        hidden={tabBarHidden}
-      />
-
       {/* Bottom Sheet - only for Add tab and project previews/details */}
       <PersistentBottomSheet
         open={isSheetVisible}
@@ -534,10 +573,24 @@ export default function MapFirstScreen() {
               />
             }
             centerScreen={homeContent}
-            rightScreen={<InboxScreen onBackPress={navigateToHome} />}
+            rightScreen={
+              <InboxScreen
+                onBackPress={navigateToHome}
+                filterSheetOpen={inboxFilterSheetOpen}
+                onFilterSheetOpenChange={setInboxFilterSheetOpen}
+              />
+            }
           />
         </Animated.View>
       </View>
+
+      {/* Bottom Tab Bar - rendered at root level so it's visible on all screens */}
+      <FloatingTabBar
+        tabs={currentTabs}
+        activeTab={activeTab}
+        onTabPress={handleTabPress}
+        hidden={tabBarHidden}
+      />
 
       {/* Search Sheet - rendered at root level for proper portal behavior */}
       <SearchSheet open={searchSheetOpen} onOpenChange={setSearchSheetOpen} />

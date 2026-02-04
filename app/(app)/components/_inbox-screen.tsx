@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Pressable, View, FlatList } from 'react-native';
 import {
-  Map,
   MessageSquare,
   ArrowRightLeft,
   Calendar,
@@ -31,6 +30,10 @@ type InboxTab = 'all' | 'notes' | 'activity';
 type InboxScreenProps = {
   /** Callback when back button is pressed */
   onBackPress: () => void;
+  /** External control to open filter sheet */
+  filterSheetOpen?: boolean;
+  /** Callback when filter sheet open state changes */
+  onFilterSheetOpenChange?: (open: boolean) => void;
 };
 
 const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
@@ -191,9 +194,17 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   archive: 'Archived',
 };
 
-export function InboxScreen({ onBackPress }: InboxScreenProps) {
+export function InboxScreen({
+  onBackPress,
+  filterSheetOpen: externalFilterSheetOpen,
+  onFilterSheetOpenChange,
+}: InboxScreenProps) {
   const [activeTab, setActiveTab] = useState<InboxTab>('all');
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [internalFilterSheetOpen, setInternalFilterSheetOpen] = useState(false);
+
+  // Use external control if provided, otherwise use internal state
+  const filterSheetOpen = externalFilterSheetOpen ?? internalFilterSheetOpen;
+  const setFilterSheetOpen = onFilterSheetOpenChange ?? setInternalFilterSheetOpen;
   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Set<ActivityType>>(new Set(ALL_ACTIVITY_TYPES));
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -292,11 +303,6 @@ export function InboxScreen({ onBackPress }: InboxScreenProps) {
         title="Inbox"
         safeAreaTop
         background="default"
-        left={
-          <Button variant="ghost" size="icon" onPress={onBackPress}>
-            <Icon as={Map} size={22} />
-          </Button>
-        }
         right={
           unreadAll > 0 ? (
             <Button variant="ghost" size="sm" onPress={handleMarkAllRead}>
