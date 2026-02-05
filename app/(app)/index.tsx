@@ -1,5 +1,5 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
-import { View, useWindowDimensions } from 'react-native';
+import { View, useWindowDimensions, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import Animated, {
@@ -32,6 +32,7 @@ import { useMapSheet, getSnapPointsArray, getSnapIndex } from '@/lib/map-sheet-c
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
 import { useAccentColors } from '@/lib/theme-context';
+import { useUniversalSearch } from '@/lib/universal-search-context';
 import { getStageById } from '@/lib/mock-data';
 import { getPinColor } from '@/lib/map-colors';
 import { getStatusFromAge } from '@/lib/age-utils';
@@ -41,7 +42,7 @@ import { ProjectPreviewContent } from './components/_project-preview';
 import { ProjectDetailContent, NoteInputFooter } from './components/_project-detail';
 import { ProjectActivityContent } from './components/_project-activity';
 import { SearchScreen } from './components/_search-screen';
-import { SearchSheet } from './components/_search-sheet';
+import { CommandPalette } from './components/_command-palette';
 import { InboxScreen } from './components/_inbox-screen';
 import { ProfileScreen } from './components/_profile-screen';
 import { MyWorkScreen } from './components/_my-work-screen';
@@ -103,6 +104,7 @@ export default function MapFirstScreen() {
   } = useScreenNavigation();
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#3b82f6';
+  const { open: openSearch } = useUniversalSearch();
 
   // Local state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>({
@@ -111,9 +113,23 @@ export default function MapFirstScreen() {
   });
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [inboxFilterSheetOpen, setInboxFilterSheetOpen] = useState(false);
-  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [isActivityViewActive, setIsActivityViewActive] = useState(false);
+
+  // Keyboard shortcut for Cmd+K on web
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault();
+        openSearch();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openSearch]);
 
   // Get tabs based on active screen
   const currentTabs = useMemo(() => {
@@ -312,8 +328,8 @@ export default function MapFirstScreen() {
   );
 
   const handleSearchPress = useCallback(() => {
-    setSearchSheetOpen(true);
-  }, []);
+    openSearch();
+  }, [openSearch]);
 
   const handleFilter = useCallback(() => {
     setFilterSheetOpen(true);
@@ -340,13 +356,13 @@ export default function MapFirstScreen() {
   // Check which sheet should be visible
   const showDetailSheet = appState.type === 'project-detail' || appState.type === 'project-activity';
 
-  // Sheet should cover the tab bar for detail views and add tab
-  const sheetCoversTabBar = showDetailSheet || appState.type === 'tab';
+  // Sheet should cover the tab bar for all project sheets (preview, detail, activity) and add tab
+  const sheetCoversTabBar = showDetailSheet || appState.type === 'tab' || appState.type === 'pin-preview';
 
   // Handle sheet snap changes
   const handleSnapIndexChange = useCallback(
     (index: number) => {
-      const snapPoints: Array<'peek' | 'half' | 'full'> = ['peek', 'half', 'full'];
+      const snapPoints: Array<'small' | 'medium' | 'large'> = ['small', 'medium', 'large'];
       if (index >= 0 && index < snapPoints.length) {
         setSnapPoint(snapPoints[index]);
       }
@@ -475,62 +491,6 @@ export default function MapFirstScreen() {
         </Surface>
       </View>
 
-      {/* Bottom Sheet - only for Add tab and project previews/details */}
-      <PersistentBottomSheet
-        open={isSheetVisible}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeSheet();
-            setIsActivityViewActive(false);
-          }
-        }}
-        snapPoints={getSnapPointsArray()}
-        snapIndex={getSnapIndex(snapPoint)}
-        onSnapIndexChange={handleSnapIndexChange}
-        enablePanDownToClose
-        bottomInset={sheetCoversTabBar ? 0 : PILL_HEIGHT + insets.bottom}
-        contentKey={
-          appState.type === 'pin-preview' || appState.type === 'project-detail' || appState.type === 'project-activity'
-            ? appState.projectId
-            : appState.type === 'tab'
-              ? appState.tab
-              : 'default'
-        }
-        footer={
-          // Only show footer when viewing activity tab (isActivityViewActive) or project-activity state
-          // Don't render footer at all when hidden to avoid the gray background showing over modal sheets
-          (appState.type === 'project-detail' || appState.type === 'project-activity') &&
-          (isActivityViewActive || appState.type === 'project-activity')
-            ? <NoteInputFooter
-                projectId={appState.projectId}
-                onFocus={() => setSnapPoint('full')}
-              />
-            : undefined
-        }
-      >
-        {appState.type === 'project-activity' ? (
-          <ProjectActivityContent projectId={appState.projectId} hideFooter />
-        ) : appState.type === 'project-detail' ? (
-          <ProjectDetailContent
-            projectId={appState.projectId}
-            showActivity={appState.showActivity}
-            hideFooter
-            onActiveTabChange={(tab) => {
-              setIsActivityViewActive(tab === 'activity');
-            }}
-          />
-        ) : (
-          renderPreviewContent()
-        )}
-      </PersistentBottomSheet>
-
-      {/* Filter Sheet */}
-      <MapFilterSheet
-        open={filterSheetOpen}
-        onOpenChange={setFilterSheetOpen}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
     </Box>
   );
 
@@ -584,6 +544,61 @@ export default function MapFirstScreen() {
         </Animated.View>
       </View>
 
+      {/* Bottom Sheet - rendered at root level so it appears above the tab bar */}
+      <PersistentBottomSheet
+        open={isSheetVisible}
+        onOpenChange={(open) => {
+          if (!open) {
+            closeSheet();
+            setIsActivityViewActive(false);
+          }
+        }}
+        snapPoints={getSnapPointsArray()}
+        snapIndex={getSnapIndex(snapPoint)}
+        onSnapIndexChange={handleSnapIndexChange}
+        enablePanDownToClose
+        bottomInset={sheetCoversTabBar ? 0 : PILL_HEIGHT + insets.bottom}
+        contentKey={
+          appState.type === 'pin-preview' || appState.type === 'project-detail' || appState.type === 'project-activity'
+            ? appState.projectId
+            : appState.type === 'tab'
+              ? appState.tab
+              : 'default'
+        }
+        footer={
+          (appState.type === 'project-detail' || appState.type === 'project-activity') &&
+          (isActivityViewActive || appState.type === 'project-activity')
+            ? <NoteInputFooter
+                projectId={appState.projectId}
+                onFocus={() => setSnapPoint('large')}
+              />
+            : undefined
+        }
+      >
+        {appState.type === 'project-activity' ? (
+          <ProjectActivityContent projectId={appState.projectId} hideFooter />
+        ) : appState.type === 'project-detail' ? (
+          <ProjectDetailContent
+            projectId={appState.projectId}
+            showActivity={appState.showActivity}
+            hideFooter
+            onActiveTabChange={(tab) => {
+              setIsActivityViewActive(tab === 'activity');
+            }}
+          />
+        ) : (
+          renderPreviewContent()
+        )}
+      </PersistentBottomSheet>
+
+      {/* Filter Sheet */}
+      <MapFilterSheet
+        open={filterSheetOpen}
+        onOpenChange={setFilterSheetOpen}
+        filters={filters}
+        onFiltersChange={setFilters}
+      />
+
       {/* Bottom Tab Bar - rendered at root level so it's visible on all screens */}
       <FloatingTabBar
         tabs={currentTabs}
@@ -592,8 +607,8 @@ export default function MapFirstScreen() {
         hidden={tabBarHidden}
       />
 
-      {/* Search Sheet - rendered at root level for proper portal behavior */}
-      <SearchSheet open={searchSheetOpen} onOpenChange={setSearchSheetOpen} />
+      {/* Command Palette - universal search */}
+      <CommandPalette />
     </>
   );
 }

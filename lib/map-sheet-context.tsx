@@ -1,4 +1,10 @@
 import React, { createContext, useContext, useCallback, useMemo, useReducer } from 'react';
+import {
+  IOS_SHEET_DETENTS,
+  FULL_RANGE_SNAP_POINTS,
+  getDetentIndex,
+  type SheetDetent,
+} from './sheet-config';
 
 // ============================================================================
 // Types
@@ -18,7 +24,10 @@ export type AppState =
   | { type: 'project-detail'; projectId: string; showActivity?: boolean }
   | { type: 'project-activity'; projectId: string };
 
-export type SheetSnapPoint = 'peek' | 'half' | 'full';
+// Map internal names to iOS standard detent names
+export type SheetSnapPoint = 'small' | 'medium' | 'large';
+// Keep backwards compatibility aliases
+export type { SheetDetent };
 
 type MapSheetState = {
   appState: AppState;
@@ -63,7 +72,7 @@ type MapSheetContextValue = {
 
 const initialState: MapSheetState = {
   appState: { type: 'default' },
-  snapPoint: 'half',
+  snapPoint: 'medium',
 };
 
 function mapSheetReducer(state: MapSheetState, action: MapSheetAction): MapSheetState {
@@ -77,37 +86,37 @@ function mapSheetReducer(state: MapSheetState, action: MapSheetAction): MapSheet
     case 'OPEN_TAB':
       newState = {
         appState: { type: 'tab', tab: action.tab, coordinates: action.coordinates },
-        snapPoint: 'half',
+        snapPoint: 'medium',
       };
       break;
     case 'SELECT_PROJECT':
       newState = {
         appState: { type: 'pin-preview', projectId: action.projectId },
-        snapPoint: 'half',
+        snapPoint: 'medium',
       };
       break;
     case 'EXPAND_PROJECT':
       newState = {
         appState: { type: 'project-detail', projectId: action.projectId, showActivity: action.showActivity },
-        snapPoint: 'full',
+        snapPoint: 'large',
       };
       break;
     case 'ENTER_ACTIVITY':
       newState = {
         appState: { type: 'project-activity', projectId: action.projectId },
-        snapPoint: 'full',
+        snapPoint: 'large',
       };
       break;
     case 'EXIT_ACTIVITY':
       newState = {
         appState: { type: 'project-detail', projectId: action.projectId },
-        snapPoint: 'half',
+        snapPoint: 'medium',
       };
       break;
     case 'CLOSE_SHEET':
       newState = {
         appState: { type: 'default' },
-        snapPoint: 'half',
+        snapPoint: 'medium',
       };
       break;
     case 'SET_SNAP_POINT':
@@ -194,25 +203,15 @@ export function useMapSheet() {
 // Snap Point Utilities
 // ============================================================================
 
-/**
- * iOS 26-style sheet detents
- * - small: Compact height for quick actions/previews
- * - medium: Standard iOS medium detent (~50%)
- * - large: iOS large detent, nearly full screen with slight top margin
- */
-export const SNAP_POINTS = {
-  peek: '25%',   // iOS small detent - compact view
-  half: '50%',   // iOS medium detent
-  full: '97%',   // iOS large detent - nearly full with top breathing room
-} as const;
+// Re-export iOS sheet detents from centralized config
+export { IOS_SHEET_DETENTS, FULL_RANGE_SNAP_POINTS } from './sheet-config';
 
 /** Get the numeric index for a snap point in the array */
 export function getSnapIndex(snapPoint: SheetSnapPoint): number {
-  const order: SheetSnapPoint[] = ['peek', 'half', 'full'];
-  return order.indexOf(snapPoint);
+  return getDetentIndex(snapPoint, FULL_RANGE_SNAP_POINTS);
 }
 
 /** Get snap points array for bottom sheet */
 export function getSnapPointsArray(): (string | number)[] {
-  return [SNAP_POINTS.peek, SNAP_POINTS.half, SNAP_POINTS.full];
+  return FULL_RANGE_SNAP_POINTS;
 }

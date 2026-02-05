@@ -76,7 +76,7 @@ const FloatingTabBar = React.memo(
               left: 0,
               right: 0,
               zIndex: 10,
-              backgroundColor: 'rgba(22, 22, 24, 0.97)',
+              backgroundColor: '#161618',
               borderTopWidth: 0.5,
               borderTopColor: 'rgba(255, 255, 255, 0.1)',
               paddingBottom: insets.bottom,

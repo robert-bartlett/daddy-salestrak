@@ -10,6 +10,7 @@ import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider, useTheme } from '@/lib/theme-context';
 import { MapSheetProvider } from '@/lib/map-sheet-context';
 import { ScreenNavigationProvider } from '@/lib/screen-navigation-context';
+import { UniversalSearchProvider } from '@/lib/universal-search-context';
 
 export default function AppLayout() {
   return (
@@ -29,8 +30,10 @@ function AppContent() {
       <NavThemeProvider value={NAV_THEME[colorMode]}>
         <MapSheetProvider>
           <ScreenNavigationProvider>
-            <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
-            <Stack screenOptions={{ headerShown: false }} />
+            <UniversalSearchProvider>
+              <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
+              <Stack screenOptions={{ headerShown: false }} />
+            </UniversalSearchProvider>
           </ScreenNavigationProvider>
         </MapSheetProvider>
       </NavThemeProvider>

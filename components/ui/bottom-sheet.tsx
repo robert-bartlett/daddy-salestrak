@@ -14,9 +14,10 @@ import GorhomBottomSheet, {
 } from '@gorhom/bottom-sheet';
 import { cn } from '@/lib/utils';
 import { Text, wrapTextChildren } from '@/components/ui/text';
+import { DEFAULT_MODAL_SNAP_POINTS, FULL_RANGE_SNAP_POINTS } from '@/lib/sheet-config';
 
-// Default snap points for sheets
-const DEFAULT_SNAP_POINTS = ['50%', '90%'];
+// Re-export sheet config for convenience
+export { IOS_SHEET_DETENTS, DEFAULT_MODAL_SNAP_POINTS, FULL_RANGE_SNAP_POINTS } from '@/lib/sheet-config';
 
 type BottomSheetProps = {
   /** Whether the sheet is open */
@@ -63,7 +64,7 @@ const BottomSheet = React.forwardRef<GorhomBottomSheet, BottomSheetProps>(
     {
       open,
       onOpenChange,
-      snapPoints = DEFAULT_SNAP_POINTS,
+      snapPoints = DEFAULT_MODAL_SNAP_POINTS,
       initialSnapIndex = 0,
       enableDynamicSizing = false,
       closeOnBackdropPress = true,
@@ -304,7 +305,7 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
     {
       open,
       onOpenChange,
-      snapPoints = DEFAULT_SNAP_POINTS,
+      snapPoints = DEFAULT_MODAL_SNAP_POINTS,
       initialSnapIndex = 0,
       enableDynamicSizing = false,
       closeOnBackdropPress = true,
@@ -493,7 +494,7 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
     {
       open,
       onOpenChange,
-      snapPoints = DEFAULT_SNAP_POINTS,
+      snapPoints = DEFAULT_MODAL_SNAP_POINTS,
       snapIndex = 0,
       onSnapIndexChange,
       enablePanDownToClose = true,

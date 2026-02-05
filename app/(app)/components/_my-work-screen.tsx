@@ -26,6 +26,7 @@ import {
   BottomSheetHeader,
   BottomSheetTitle,
 } from '@/components/ui/bottom-sheet';
+import { SearchTrigger } from '@/components/ui/search-trigger';
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
 import { AgeUpdateSheet } from './_age-update-sheet';
@@ -566,6 +567,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
         title="Home"
         safeAreaTop
         background="default"
+        right={<SearchTrigger />}
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1">

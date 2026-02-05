@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Linking, Platform, View, Pressable } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import {
@@ -118,6 +118,12 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
   // Tab state - initialize based on showActivity prop
   const [activeTab, setActiveTab] = useState(showActivity ? 'activity' : 'details');
   const [noteText, setNoteText] = useState('');
+
+  // Notify parent of initial tab state on mount
+  useEffect(() => {
+    const initialTab = showActivity ? 'activity' : 'details';
+    onActiveTabChange?.(initialTab);
+  }, []);
 
   const handleSendNote = () => {
     if (!project || !noteText.trim()) return;

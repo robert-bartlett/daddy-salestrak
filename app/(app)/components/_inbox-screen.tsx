@@ -20,6 +20,7 @@ import { Icon } from '@/components/ui/icon';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { BottomSheetModal } from '@/components/ui/bottom-sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { SearchTrigger } from '@/components/ui/search-trigger';
 import { useProjects } from '@/lib/projects-context';
 import { useAccentColors } from '@/lib/theme-context';
 import { type Activity, type ActivityType } from '@/lib/mock-data';
@@ -209,6 +210,7 @@ export function InboxScreen({
   const [selectedTypes, setSelectedTypes] = useState<Set<ActivityType>>(new Set(ALL_ACTIVITY_TYPES));
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectSheetOpen, setProjectSheetOpen] = useState(false);
+  const [isActivityViewActive, setIsActivityViewActive] = useState(true);
   const { activities, getProjectById, markAllActivitiesRead, markActivityRead } = useProjects();
   const accentColors = useAccentColors();
 
@@ -303,6 +305,7 @@ export function InboxScreen({
         title="Inbox"
         safeAreaTop
         background="default"
+        left={<SearchTrigger />}
         right={
           unreadAll > 0 ? (
             <Button variant="ghost" size="sm" onPress={handleMarkAllRead}>
@@ -490,12 +493,22 @@ export function InboxScreen({
       {/* Project Detail Sheet - opens when clicking an inbox item */}
       <BottomSheetModal
         open={projectSheetOpen}
-        onOpenChange={setProjectSheetOpen}
+        onOpenChange={(open) => {
+          setProjectSheetOpen(open);
+          if (!open) {
+            setIsActivityViewActive(true);
+          }
+        }}
         snapPoints={['50%', '90%']}
-        footer={selectedProjectId ? <NoteInputFooter projectId={selectedProjectId} /> : undefined}
+        footer={selectedProjectId && isActivityViewActive ? <NoteInputFooter projectId={selectedProjectId} /> : undefined}
       >
         {selectedProjectId && (
-          <ProjectDetailContent projectId={selectedProjectId} showActivity hideFooter />
+          <ProjectDetailContent
+            projectId={selectedProjectId}
+            showActivity
+            hideFooter
+            onActiveTabChange={(tab) => setIsActivityViewActive(tab === 'activity')}
+          />
         )}
       </BottomSheetModal>
     </Box>
