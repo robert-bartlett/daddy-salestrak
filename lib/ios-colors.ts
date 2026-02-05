@@ -60,23 +60,41 @@ export function getIOSColors(colorScheme: ColorScheme | null | undefined) {
 
 /**
  * iOS Sheet-specific colors
+ *
+ * Native iOS formSheet modals use an elevated surface that sits above
+ * the underlying content. In dark mode this is a raised gray (#1c1c1e),
+ * in light mode it's typically white or grouped gray.
  */
 export function getIOSSheetColors(colorScheme: ColorScheme | null | undefined) {
   const colors = getIOSColors(colorScheme);
+  const isDark = colorScheme === 'dark';
 
   return {
-    // Sheet background
-    background: colors.systemGroupedBackground,
-    // Card/cell background
-    cardBackground: colors.secondarySystemGroupedBackground,
+    // Sheet surface background (native formSheet uses elevated surface)
+    // Dark: #1c1c1e (secondarySystemBackground) - elevated gray
+    // Light: #f2f2f7 (systemGroupedBackground) - grouped gray
+    background: isDark ? colors.secondarySystemBackground : colors.systemGroupedBackground,
+
+    // Card/row backgrounds within the sheet
+    // Dark: #2c2c2e (tertiarySystemBackground) - slightly lighter than sheet
+    // Light: #ffffff - white cards on gray background
+    cardBackground: isDark ? colors.tertiarySystemBackground : '#ffffff',
+    rowBackground: isDark ? colors.tertiarySystemBackground : '#ffffff',
+
     // Text colors
     title: colors.label,
     subtitle: colors.secondaryLabel,
+
     // Grabber handle
     grabber: colors.grabberIndicator,
+
     // Separator
     separator: colors.separator,
+
     // Icon background
     iconBackground: colors.tertiarySystemFill,
+
+    // Accent color (iOS blue)
+    accent: colors.systemBlue,
   };
 }

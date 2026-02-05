@@ -1,15 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Pressable, ScrollView, useColorScheme } from 'react-native';
+import { View, Pressable, useColorScheme } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { FolderKanban, UserCircle, Building2, MapPin, ChevronRight } from 'lucide-react-native';
 
-import { VStack, HStack, Surface } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
 import { ProjectForm } from './components/_project-form';
 import { ContactForm } from './components/_contact-form';
 import { AccountForm } from './components/_account-form';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 type ViewState =
   | { view: 'entity-selection' }
@@ -58,9 +59,9 @@ export default function AddSheet() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Get color scheme for proper theming (needed early for placeholder)
+  // Get color scheme for proper theming
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const sheetColors = getIOSSheetColors(colorScheme);
 
   const handleDismiss = useCallback(() => {
     router.back();
@@ -81,9 +82,7 @@ export default function AddSheet() {
 
   // Wait for mount before rendering forms to avoid "state update on unmounted component"
   if (!isMounted) {
-    // iOS systemGroupedBackground color
-    const placeholderBg = isDark ? '#000000' : '#f2f2f7';
-    return <View style={{ flex: 1, backgroundColor: placeholderBg }} />;
+    return <View style={{ flex: 1, backgroundColor: sheetColors.background }} />;
   }
 
   // Render project form
@@ -148,26 +147,24 @@ export default function AddSheet() {
     },
   ];
 
-  // iOS System Colors per Apple HIG
-  // https://developer.apple.com/design/human-interface-guidelines/color
+  // Use iOS sheet colors from centralized config
   const colors = {
-    // Sheet background: systemGroupedBackground
-    sheetBackground: isDark ? '#000000' : '#f2f2f7',
-    // Card background: secondarySystemGroupedBackground
-    cardBackground: isDark ? '#1c1c1e' : '#ffffff',
-    // Text colors
-    label: isDark ? '#ffffff' : '#000000',
-    secondaryLabel: isDark ? '#ebebf5' : '#3c3c43',
-    tertiaryLabel: isDark ? '#ebebf54d' : '#3c3c4399',
-    // Separator
-    separator: isDark ? '#38383a' : '#c6c6c8',
-    // System fill for icon backgrounds
-    tertiaryFill: isDark ? '#767680' : '#767680',
+    sheetBackground: sheetColors.background,
+    cardBackground: sheetColors.cardBackground,
+    label: sheetColors.title,
+    secondaryLabel: sheetColors.subtitle,
+    tertiaryLabel: sheetColors.subtitle,
+    separator: sheetColors.separator,
+    tertiaryFill: sheetColors.iconBackground,
   };
 
-  // Entity selection screen with iOS system colors
+  // Entity selection screen with liquid glass effect
   return (
-    <View style={{ flex: 1, backgroundColor: colors.sheetBackground }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       <View style={{ paddingHorizontal: 16, paddingTop: 20, gap: 16 }}>
         {/* Header */}
         <Text size="lg" weight="semibold" style={{ color: colors.label }}>
@@ -204,7 +201,7 @@ export default function AddSheet() {
           </View>
         ) : null}
       </View>
-    </View>
+    </BlurView>
   );
 }
 

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Surface, Header } from '@/components/ui/layout';
+import { BOTTOM_OFFSET } from '@/components/ui/layout/floating-tabs';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -597,7 +598,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                 data={sortedProjectsByAge}
                 renderItem={renderTodayProjectRow}
                 keyExtractor={keyExtractor}
-                contentContainerStyle={{ padding: 16, gap: 8 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                 showsVerticalScrollIndicator={false}
               />
             )}
@@ -628,7 +629,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                 data={sortedProjectsAlphabetically}
                 renderItem={renderProjectCard}
                 keyExtractor={keyExtractor}
-                contentContainerStyle={{ padding: 16, gap: 8 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                 showsVerticalScrollIndicator={false}
               />
             )}
@@ -659,7 +660,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                 data={favoriteProjects}
                 renderItem={renderProjectCard}
                 keyExtractor={keyExtractor}
-                contentContainerStyle={{ padding: 16, gap: 8 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                 showsVerticalScrollIndicator={false}
               />
             )}
@@ -722,7 +723,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                 data={filteredActivities}
                 renderItem={renderActivityItem}
                 keyExtractor={activityKeyExtractor}
-                contentContainerStyle={{ padding: 16, gap: 8 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                 showsVerticalScrollIndicator={false}
               />
             )}
@@ -767,7 +768,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                   data={workflowCounts}
                   renderItem={renderWorkflowRow}
                   keyExtractor={workflowKeyExtractor}
-                  contentContainerStyle={{ padding: 16, gap: 8 }}
+                  contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                   showsVerticalScrollIndicator={false}
                 />
               )
@@ -796,7 +797,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                   data={currentWorkflowStageCounts}
                   renderItem={renderStageRow}
                   keyExtractor={stageKeyExtractor}
-                  contentContainerStyle={{ padding: 16, gap: 8 }}
+                  contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                   showsVerticalScrollIndicator={false}
                 />
               )
@@ -825,7 +826,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                   data={currentStageProjects}
                   renderItem={renderProjectCard}
                   keyExtractor={keyExtractor}
-                  contentContainerStyle={{ padding: 16, gap: 8 }}
+                  contentContainerStyle={{ padding: 16, paddingBottom: BOTTOM_OFFSET + 16, gap: 8 }}
                   showsVerticalScrollIndicator={false}
                 />
               )

@@ -3,7 +3,7 @@ import '@/global.css';
 import { ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View } from 'react-native';
+import { View, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { NAV_THEME } from '@/lib/theme';
@@ -13,6 +13,7 @@ import { ScreenNavigationProvider } from '@/lib/screen-navigation-context';
 import { UniversalSearchProvider } from '@/lib/universal-search-context';
 import { SheetProvider } from '@/lib/sheet-context';
 import { NATIVE_SHEET_DETENTS } from '@/lib/sheet-config';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 export default function AppLayout() {
   return (
@@ -24,25 +25,29 @@ export default function AppLayout() {
   );
 }
 
-// Common formSheet options for native iOS sheets
-const nativeSheetOptions = {
-  presentation: 'formSheet' as const,
-  headerShown: false,
-  sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.standard],
-  sheetInitialDetentIndex: 0,
-  sheetGrabberVisible: true,
-  sheetExpandsWhenScrolledToEdge: true,
-  sheetCornerRadius: -1,
-};
-
-// Compact sheet options (for selection sheets that stack)
-const compactSheetOptions = {
-  ...nativeSheetOptions,
-  sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.compact],
-};
-
 function AppContent() {
   const { colorMode, themeClass } = useTheme();
+  const colorScheme = useColorScheme();
+  const colors = getIOSSheetColors(colorScheme);
+
+  // Common formSheet options for native iOS sheets
+  // contentStyle sets the background of the sheet content area
+  const nativeSheetOptions = {
+    presentation: 'formSheet' as const,
+    headerShown: false,
+    sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.standard],
+    sheetInitialDetentIndex: 0,
+    sheetGrabberVisible: true,
+    sheetExpandsWhenScrolledToEdge: true,
+    sheetCornerRadius: -1,
+    contentStyle: { backgroundColor: colors.background },
+  };
+
+  // Compact sheet options (for selection sheets that stack)
+  const compactSheetOptions = {
+    ...nativeSheetOptions,
+    sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.compact],
+  };
 
   return (
     <View className={`flex-1 ${themeClass}`}>

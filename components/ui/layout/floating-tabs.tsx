@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Platform, Pressable, View, type ViewProps } from 'react-native';
+import { Platform, Pressable, View, useColorScheme, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useAnimatedStyle,
   withTiming,
@@ -32,8 +33,9 @@ type FloatingTabBarProps = Omit<ViewProps, 'className' | 'style'> & {
 // Constants
 // ============================================================================
 
+// Floating pill height
 const TAB_BAR_HEIGHT = Platform.select({
-  ios: 84,
+  ios: 64,
   android: 64,
   default: 64,
 });
@@ -45,26 +47,35 @@ const ANIMATION_DURATION = 250;
 // ============================================================================
 
 /**
- * BottomTabBar - Find My-style fixed bottom tab bar
+ * FloatingTabBar - Floating pill-style tab bar with native iOS glass effect
  *
- * A standard iOS-style bottom tab bar that sits at the bottom of the screen.
- * Can animate out when hidden.
+ * Matches iOS 18+ floating tab bar design:
+ * - Pill shape with rounded corners
+ * - Floats above content with margin
+ * - Dark chrome material blur for dark mode
+ * - Selected state with subtle background indicator
  */
 const FloatingTabBar = React.memo(
   React.forwardRef<View, FloatingTabBarProps>(
     ({ tabs, activeTab, onTabPress, hidden = false, ...props }, ref) => {
       const insets = useSafeAreaInsets();
+      const colorScheme = useColorScheme();
+      const isDark = colorScheme === 'dark';
+
+      // iOS standard: floating pill sits just above the home indicator
+      // Use safe area inset directly, minimum 8pt on devices without home indicator
+      const bottomOffset = Math.max(insets.bottom, 8);
 
       // Animated style for hide/show
       const containerStyle = useAnimatedStyle(() => {
-        const translateY = withTiming(hidden ? TAB_BAR_HEIGHT + insets.bottom : 0, {
+        const translateY = withTiming(hidden ? TAB_BAR_HEIGHT + bottomOffset + 20 : 0, {
           duration: ANIMATION_DURATION,
         });
 
         return {
           transform: [{ translateY }],
         };
-      }, [hidden, insets.bottom]);
+      }, [hidden, bottomOffset]);
 
       return (
         <Animated.View
@@ -72,41 +83,61 @@ const FloatingTabBar = React.memo(
           style={[
             {
               position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: bottomOffset,
+              alignSelf: 'center',
               zIndex: 10,
-              backgroundColor: '#161618',
-              borderTopWidth: 0.5,
-              borderTopColor: 'rgba(255, 255, 255, 0.1)',
-              paddingBottom: insets.bottom,
-              height: TAB_BAR_HEIGHT + insets.bottom,
+              borderRadius: TAB_BAR_HEIGHT / 2,
+              borderCurve: 'continuous',
+              overflow: 'hidden',
+              // Liquid glass shadow - soft, diffuse for depth
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 20,
+              elevation: 16,
             },
             containerStyle,
           ]}
           {...props}
         >
-          <View
+          {/* iOS 26 Liquid Glass effect */}
+          <BlurView
+            intensity={100}
+            tint="dark"
             style={{
-              flex: 1,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-around',
-              paddingHorizontal: 8,
+              height: TAB_BAR_HEIGHT,
+              borderRadius: TAB_BAR_HEIGHT / 2,
+              borderCurve: 'continuous',
+              // Slightly tinted glass
+              backgroundColor: 'rgba(30, 30, 30, 0.25)',
+              // Specular highlight border
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.18)',
             }}
           >
-            {tabs.map((tab) => {
-              const isActive = tab.id === activeTab;
-              return (
-                <TabItem
-                  key={tab.id}
-                  tab={tab}
-                  isActive={isActive}
-                  onPress={() => onTabPress(tab.id)}
-                />
-              );
-            })}
-          </View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 8,
+                gap: 6,
+              }}
+            >
+              {tabs.map((tab) => {
+                const isActive = tab.id === activeTab;
+                return (
+                  <TabItem
+                    key={tab.id}
+                    tab={tab}
+                    isActive={isActive}
+                    onPress={() => onTabPress(tab.id)}
+                  />
+                );
+              })}
+            </View>
+          </BlurView>
         </Animated.View>
       );
     }
@@ -125,20 +156,24 @@ type TabItemProps = {
 };
 
 const TabItem = React.memo(({ tab, isActive, onPress }: TabItemProps) => {
-  // Active color - iOS blue
-  const activeColor = '#0A84FF';
+  // Colors for dark mode floating tab bar
+  const activeColor = '#FFFFFF';
   const inactiveColor = 'rgba(255, 255, 255, 0.5)';
+  const activeBgColor = 'rgba(255, 255, 255, 0.18)';
 
   return (
     <Pressable
       onPress={onPress}
       style={{
-        flex: 1,
-        flexDirection: 'column',
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 6,
-        gap: 4,
+        paddingVertical: 12,
+        paddingHorizontal: isActive ? 20 : 18,
+        gap: 8,
+        borderRadius: 24,
+        borderCurve: 'continuous',
+        backgroundColor: isActive ? activeBgColor : 'transparent',
       }}
       accessibilityRole="tab"
       accessibilityState={{ selected: isActive }}
@@ -152,23 +187,28 @@ const TabItem = React.memo(({ tab, isActive, onPress }: TabItemProps) => {
             color: isActive ? activeColor : inactiveColor,
           })}
       </View>
-      {/* Label */}
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '500',
-          color: isActive ? activeColor : inactiveColor,
-        }}
-      >
-        {tab.label}
-      </Text>
+      {/* Label - only show for active tab */}
+      {isActive ? (
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '600',
+            color: activeColor,
+          }}
+        >
+          {tab.label}
+        </Text>
+      ) : null}
     </Pressable>
   );
 });
 TabItem.displayName = 'TabItem';
 
-// Export TAB_BAR_HEIGHT for use in other components
-const BOTTOM_OFFSET = 0; // No offset needed for fixed tab bar
+// Export for use in other components
+// PILL_HEIGHT is the height of the floating pill itself
+// BOTTOM_OFFSET is the total space needed at the bottom (pill + margin + safe area)
+const PILL_HEIGHT = TAB_BAR_HEIGHT;
+const BOTTOM_OFFSET = TAB_BAR_HEIGHT + 32; // pill height + bottom margin
 
-export { FloatingTabBar, TAB_BAR_HEIGHT as PILL_HEIGHT, BOTTOM_OFFSET };
+export { FloatingTabBar, PILL_HEIGHT, BOTTOM_OFFSET };
 export type { FloatingTabBarProps };

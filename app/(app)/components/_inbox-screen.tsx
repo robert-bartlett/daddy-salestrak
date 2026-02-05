@@ -14,6 +14,7 @@ import {
 } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Header } from '@/components/ui/layout';
+import { BOTTOM_OFFSET } from '@/components/ui/layout/floating-tabs';
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -375,7 +376,7 @@ export function InboxScreen({
         ItemSeparatorComponent={() => (
           <View className="mx-4 h-px bg-border" />
         )}
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: BOTTOM_OFFSET + 16 }}
         ListEmptyComponent={
           <Box padding="xl">
             <VStack gap="sm" align="center">

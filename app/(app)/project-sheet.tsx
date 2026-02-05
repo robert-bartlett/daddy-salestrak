@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { View, useColorScheme, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { ChevronLeft, MapPin } from 'lucide-react-native';
 
 import { HStack } from '@/components/ui/layout';
@@ -43,7 +44,6 @@ export default function ProjectSheet() {
   // Get color scheme for iOS styling
   const colorScheme = useColorScheme();
   const colors = getIOSSheetColors(colorScheme);
-  const isDark = colorScheme === 'dark';
 
   // Get sheet context for opening native sheets
   const { openAgeUpdateSheet, openTeamMemberSheet } = useSheetContext();
@@ -131,25 +131,38 @@ export default function ProjectSheet() {
 
   // Placeholder while mounting
   if (!isMounted) {
-    const placeholderBg = isDark ? '#000000' : '#f2f2f7';
-    return <View style={{ flex: 1, backgroundColor: placeholderBg }} />;
+    return (
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+      />
+    );
   }
 
   // Project not found
   if (!project) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)', padding: 20 }}
+      >
         <Text style={{ color: colors.subtitle }}>Project not found</Text>
-      </View>
+      </BlurView>
     );
   }
 
   const activityCount = getProjectActivities(project.id).length;
 
-  // Preview View - Compact card-style preview
+  // Preview View - Compact card-style preview with liquid glass
   if (viewState === 'preview') {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+      >
         <View style={{ padding: 16, paddingTop: 20, gap: 16 }}>
           {/* Address Header */}
           <HStack gap="sm" align="center">
@@ -196,13 +209,17 @@ export default function ProjectSheet() {
             )}
           </Pressable>
         </View>
-      </View>
+      </BlurView>
     );
   }
 
-  // Detail View - Full project details with tabs
+  // Detail View - Full project details with tabs and liquid glass
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Back Button Header */}
       <View
         style={{
@@ -243,7 +260,7 @@ export default function ProjectSheet() {
           style={{
             borderTopWidth: 0.5,
             borderTopColor: colors.separator,
-            backgroundColor: colors.background,
+            backgroundColor: 'rgba(30, 30, 30, 0.5)',
             padding: 16,
             paddingBottom: 16 + insets.bottom,
           }}
@@ -251,6 +268,6 @@ export default function ProjectSheet() {
           <NoteInputFooter projectId={project.id} />
         </View>
       ) : null}
-    </View>
+    </BlurView>
   );
 }
