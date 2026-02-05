@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Linking, Platform, View, Pressable } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -26,11 +26,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { getWorkflowById, getStageById, type Activity } from '@/lib/mock-data';
 import { useProjects } from '@/lib/projects-context';
+import { useSheetContext } from '@/lib/sheet-context';
 import { formatAge, getStatusFromAge, getStatusHexColor } from '@/lib/age-utils';
-import { AgeUpdateSheet } from '../components/_age-update-sheet';
-import { StageSelectSheet } from '../components/_stage-select-sheet';
-import { WorkflowSelectSheet } from '../components/_workflow-select-sheet';
-import { TeamMemberSheet } from '../components/_team-member-sheet';
 
 export default function ProjectDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -43,14 +40,13 @@ export default function ProjectDetailScreen() {
     updateProjectOwners,
     updateProjectAssignees,
   } = useProjects();
+  const {
+    openAgeUpdateSheet,
+    openStageSelectSheet,
+    openWorkflowSelectSheet,
+    openTeamMemberSheet,
+  } = useSheetContext();
   const project = getProjectById(id);
-
-  // Sheet states
-  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
-  const [stageSheetOpen, setStageSheetOpen] = useState(false);
-  const [workflowSheetOpen, setWorkflowSheetOpen] = useState(false);
-  const [ownersSheetOpen, setOwnersSheetOpen] = useState(false);
-  const [assigneesSheetOpen, setAssigneesSheetOpen] = useState(false);
 
   // Tab state
   const [activeTab, setActiveTab] = useState('details');
@@ -72,7 +68,7 @@ export default function ProjectDetailScreen() {
   const stage = getStageById(project.workflowId, project.stageId);
   const activities = getProjectActivities(project.id);
 
-  const handleNavigate = () => {
+  const handleNavigate = useCallback(() => {
     const address = encodeURIComponent(project.address);
     const url = Platform.select({
       ios: `maps://app?daddr=${address}`,
@@ -80,40 +76,71 @@ export default function ProjectDetailScreen() {
       default: `https://maps.google.com/maps?daddr=${address}`,
     });
     Linking.openURL(url);
-  };
+  }, [project.address]);
 
-  const handleAgeUpdate = (
-    status: Parameters<typeof updateProjectAge>[1],
-    reason: Parameters<typeof updateProjectAge>[2],
-    note?: string
-  ) => {
-    updateProjectAge(project.id, status, reason, note);
-  };
+  const handleOpenAgeSheet = useCallback(() => {
+    openAgeUpdateSheet({
+      projectId: project.id,
+      project,
+      onSubmit: (status, reason, note) => {
+        updateProjectAge(project.id, status, reason, note);
+      },
+    });
+  }, [project, openAgeUpdateSheet, updateProjectAge]);
 
-  const handleStageChange = (stageId: string) => {
-    updateProjectStage(project.id, stageId);
-  };
+  const handleOpenStageSheet = useCallback(() => {
+    const workflow = getWorkflowById(project.workflowId);
+    if (workflow) {
+      openStageSelectSheet({
+        workflow,
+        currentStageId: project.stageId,
+        onSelectStage: (stageId) => {
+          updateProjectStage(project.id, stageId);
+        },
+      });
+    }
+  }, [project, openStageSelectSheet, updateProjectStage]);
 
-  const handleWorkflowChange = (workflowId: string, stageId: string) => {
-    updateProjectWorkflow(project.id, workflowId, stageId);
-  };
+  const handleOpenWorkflowSheet = useCallback(() => {
+    openWorkflowSelectSheet({
+      currentWorkflowId: project.workflowId,
+      currentStageId: project.stageId,
+      onSelectWorkflow: (workflowId, stageId) => {
+        updateProjectWorkflow(project.id, workflowId, stageId);
+      },
+    });
+  }, [project, openWorkflowSelectSheet, updateProjectWorkflow]);
 
-  const handleOwnersChange = (owners: typeof project.owners) => {
-    updateProjectOwners(project.id, owners);
-  };
+  const handleOpenOwnersSheet = useCallback(() => {
+    openTeamMemberSheet({
+      role: 'owners',
+      currentMembers: project.owners,
+      projectName: project.name,
+      onSave: (owners) => {
+        updateProjectOwners(project.id, owners);
+      },
+    });
+  }, [project, openTeamMemberSheet, updateProjectOwners]);
 
-  const handleAssigneesChange = (assignees: typeof project.assignees) => {
-    updateProjectAssignees(project.id, assignees);
-  };
+  const handleOpenAssigneesSheet = useCallback(() => {
+    openTeamMemberSheet({
+      role: 'assignees',
+      currentMembers: project.assignees,
+      projectName: project.name,
+      onSave: (assignees) => {
+        updateProjectAssignees(project.id, assignees);
+      },
+    });
+  }, [project, openTeamMemberSheet, updateProjectAssignees]);
 
-  const handleCopyLink = async () => {
+  const handleCopyLink = useCallback(async () => {
     const link = `salestrak://projects/${project.id}`;
     await Clipboard.setStringAsync(link);
-  };
+  }, [project.id]);
 
-  const handleMore = () => {
+  const handleMore = useCallback(() => {
     // TODO: Open more options menu
-  };
+  }, []);
 
   return (
     <Screen safeArea="none">
@@ -164,7 +191,7 @@ export default function ProjectDetailScreen() {
                 <Surface variant="card" padding="md">
                   <VStack gap="md">
                     {/* Workflow - Tappable */}
-                    <Pressable onPress={() => setWorkflowSheetOpen(true)}>
+                    <Pressable onPress={handleOpenWorkflowSheet}>
                       <HStack justify="between" align="center">
                         <Text size="sm" tone="muted">Workflow</Text>
                         <HStack gap="xs" align="center">
@@ -177,15 +204,15 @@ export default function ProjectDetailScreen() {
                     <Separator />
 
                     {/* Stage - Tappable */}
-                    <Pressable onPress={() => setStageSheetOpen(true)}>
+                    <Pressable onPress={handleOpenStageSheet}>
                       <HStack justify="between" align="center">
                         <Text size="sm" tone="muted">Stage</Text>
                         <HStack gap="xs" align="center">
-                          {stage && (
+                          {stage ? (
                             <Badge variant="color" color={stage.color} size="lg">
                               <Text>{stage.name}</Text>
                             </Badge>
-                          )}
+                          ) : null}
                           <Icon as={ChevronRight} size={16} />
                         </HStack>
                       </HStack>
@@ -197,7 +224,7 @@ export default function ProjectDetailScreen() {
                     <HStack justify="between" align="center">
                       <Text size="sm" tone="muted">Age</Text>
                       <HStack gap="sm" align="center">
-                        <Button variant="secondary" size="xs" onPress={() => setAgeSheetOpen(true)}>
+                        <Button variant="secondary" size="xs" onPress={handleOpenAgeSheet}>
                           <Icon as={Clock} size={14} color={getStatusHexColor(getStatusFromAge(project.ageResetAt))} />
                           <Text>{formatAge(project.ageResetAt)}</Text>
                         </Button>
@@ -211,7 +238,7 @@ export default function ProjectDetailScreen() {
                 <VStack gap="sm">
                   <HStack justify="between" align="center">
                     <Text weight="semibold">Team</Text>
-                    <Button variant="ghost" size="sm" onPress={() => setOwnersSheetOpen(true)}>
+                    <Button variant="ghost" size="sm" onPress={handleOpenOwnersSheet}>
                       <Icon as={Users} size={16} />
                       Manage
                     </Button>
@@ -219,7 +246,7 @@ export default function ProjectDetailScreen() {
                   <Surface variant="card" padding="md">
                     <VStack gap="md">
                       {/* Owners */}
-                      <Pressable onPress={() => setOwnersSheetOpen(true)}>
+                      <Pressable onPress={handleOpenOwnersSheet}>
                         <HStack justify="between" align="center">
                           <VStack gap="xs">
                             <Text size="sm" tone="muted">
@@ -251,7 +278,7 @@ export default function ProjectDetailScreen() {
                       <Separator />
 
                       {/* Assignees */}
-                      <Pressable onPress={() => setAssigneesSheetOpen(true)}>
+                      <Pressable onPress={handleOpenAssigneesSheet}>
                         <HStack justify="between" align="center">
                           <VStack gap="xs">
                             <Text size="sm" tone="muted">
@@ -327,49 +354,6 @@ export default function ProjectDetailScreen() {
         }
       />
 
-      {/* Sheets */}
-      <AgeUpdateSheet
-        open={ageSheetOpen}
-        onOpenChange={setAgeSheetOpen}
-        project={project}
-        onSubmit={handleAgeUpdate}
-      />
-
-      {workflow && (
-        <StageSelectSheet
-          open={stageSheetOpen}
-          onOpenChange={setStageSheetOpen}
-          workflow={workflow}
-          currentStageId={project.stageId}
-          onSelectStage={handleStageChange}
-        />
-      )}
-
-      <WorkflowSelectSheet
-        open={workflowSheetOpen}
-        onOpenChange={setWorkflowSheetOpen}
-        currentWorkflowId={project.workflowId}
-        currentStageId={project.stageId}
-        onSelectWorkflow={handleWorkflowChange}
-      />
-
-      <TeamMemberSheet
-        open={ownersSheetOpen}
-        onOpenChange={setOwnersSheetOpen}
-        role="owners"
-        currentMembers={project.owners}
-        onSave={handleOwnersChange}
-        projectName={project.name}
-      />
-
-      <TeamMemberSheet
-        open={assigneesSheetOpen}
-        onOpenChange={setAssigneesSheetOpen}
-        role="assignees"
-        currentMembers={project.assignees}
-        onSave={handleAssigneesChange}
-        projectName={project.name}
-      />
     </Screen>
   );
 }

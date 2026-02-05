@@ -10,23 +10,15 @@ import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { useProjects } from '@/lib/projects-context';
 import { useMapSheet } from '@/lib/map-sheet-context';
+import { useSheetContext } from '@/lib/sheet-context';
 import { type Project, type ProjectStatus, type AgeUpdateReason, type User } from '@/lib/mock-data';
-import { AgeUpdateSheet } from './_age-update-sheet';
-import { TeamMemberSheet } from './_team-member-sheet';
 import { ProjectCard } from './_project-card';
 
 export function ProjectsSheetContent() {
   const { projects, updateProjectAge, updateProjectOwners, getProjectActivities } = useProjects();
   const { expandProject } = useMapSheet();
+  const { openAgeUpdateSheet, openTeamMemberSheet } = useSheetContext();
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Age sheet state
-  const [selectedProjectForAge, setSelectedProjectForAge] = useState<Project | null>(null);
-  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
-
-  // Owner sheet state
-  const [selectedProjectForOwner, setSelectedProjectForOwner] = useState<Project | null>(null);
-  const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
 
   // Filter projects by search query
   const filteredProjects = useMemo(() => {
@@ -53,36 +45,29 @@ export function ProjectsSheetContent() {
   }, [expandProject]);
 
   const handleAgeTap = useCallback((project: Project) => {
-    setSelectedProjectForAge(project);
-    setAgeSheetOpen(true);
-  }, []);
-
-  const handleAgeSubmit = useCallback(
-    (status: ProjectStatus, reason: AgeUpdateReason, note?: string) => {
-      if (selectedProjectForAge) {
-        updateProjectAge(selectedProjectForAge.id, status, reason, note);
-      }
-    },
-    [selectedProjectForAge, updateProjectAge]
-  );
+    openAgeUpdateSheet({
+      projectId: project.id,
+      project,
+      onSubmit: (status, reason, note) => {
+        updateProjectAge(project.id, status, reason, note);
+      },
+    });
+  }, [openAgeUpdateSheet, updateProjectAge]);
 
   const handleActivityTap = useCallback((project: Project) => {
     expandProject(project.id, true); // true = show activity tab
   }, [expandProject]);
 
   const handleOwnerTap = useCallback((project: Project) => {
-    setSelectedProjectForOwner(project);
-    setOwnerSheetOpen(true);
-  }, []);
-
-  const handleOwnersChange = useCallback(
-    (newOwners: User[]) => {
-      if (selectedProjectForOwner) {
-        updateProjectOwners(selectedProjectForOwner.id, newOwners);
-      }
-    },
-    [selectedProjectForOwner, updateProjectOwners]
-  );
+    openTeamMemberSheet({
+      role: 'owners',
+      currentMembers: project.owners,
+      projectName: project.name,
+      onSave: (newOwners) => {
+        updateProjectOwners(project.id, newOwners);
+      },
+    });
+  }, [openTeamMemberSheet, updateProjectOwners]);
 
   return (
     <>
@@ -137,28 +122,6 @@ export function ProjectsSheetContent() {
           )}
         </VStack>
       </BottomSheetScrollBody>
-
-      {/* Age Update Sheet */}
-      {selectedProjectForAge ? (
-        <AgeUpdateSheet
-          open={ageSheetOpen}
-          onOpenChange={setAgeSheetOpen}
-          project={selectedProjectForAge}
-          onSubmit={handleAgeSubmit}
-        />
-      ) : null}
-
-      {/* Owner Sheet */}
-      {selectedProjectForOwner ? (
-        <TeamMemberSheet
-          open={ownerSheetOpen}
-          onOpenChange={setOwnerSheetOpen}
-          role="owners"
-          currentMembers={selectedProjectForOwner.owners}
-          onSave={handleOwnersChange}
-          projectName={selectedProjectForOwner.name}
-        />
-      ) : null}
     </>
   );
 }

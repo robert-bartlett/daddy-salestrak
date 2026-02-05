@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Linking, Platform, View, Pressable } from 'react-native';
+import { Linking, Platform, View, Pressable, ScrollView } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import {
   MapPin,
@@ -23,14 +23,10 @@ import { Icon } from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useProjects } from '@/lib/projects-context';
+import { useSheetContext } from '@/lib/sheet-context';
 import { getWorkflowById, getStageById, type Activity as ActivityType } from '@/lib/mock-data';
 import { formatAge, getStatusFromAge, getStatusHexColor } from '@/lib/age-utils';
 import { getPinColor } from '@/lib/map-colors';
-import { AgeUpdateSheet } from './_age-update-sheet';
-import { StageSelectSheet } from './_stage-select-sheet';
-import { WorkflowSelectSheet } from './_workflow-select-sheet';
-import { TeamMemberSheet } from './_team-member-sheet';
-import { ProjectActionsSheet } from './_project-actions-sheet';
 import { CustomFieldsSection } from './_custom-fields-section';
 
 type ProjectDetailContentProps = {
@@ -41,6 +37,8 @@ type ProjectDetailContentProps = {
   hideFooter?: boolean;
   /** Callback when the active tab changes (details/activity) */
   onActiveTabChange?: (tab: 'details' | 'activity') => void;
+  /** If true, use native ScrollView instead of BottomSheetScrollBody (for native iOS sheets) */
+  useNativeScroll?: boolean;
 };
 
 // Exported footer component for external use
@@ -88,7 +86,7 @@ export function NoteInputFooter({ projectId, onFocus, hidden = false }: NoteInpu
   );
 }
 
-export function ProjectDetailContent({ projectId, showActivity = false, hideFooter = false, onActiveTabChange }: ProjectDetailContentProps) {
+export function ProjectDetailContent({ projectId, showActivity = false, hideFooter = false, onActiveTabChange, useNativeScroll = false }: ProjectDetailContentProps) {
   const {
     getProjectById,
     getProjectActivities,
@@ -105,15 +103,16 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#0A84FF';
 
-  const project = getProjectById(projectId);
+  // Get sheet context for opening native sheets
+  const {
+    openAgeUpdateSheet,
+    openStageSelectSheet,
+    openWorkflowSelectSheet,
+    openTeamMemberSheet,
+    openProjectActionsSheet,
+  } = useSheetContext();
 
-  // Sheet states
-  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
-  const [stageSheetOpen, setStageSheetOpen] = useState(false);
-  const [workflowSheetOpen, setWorkflowSheetOpen] = useState(false);
-  const [ownersSheetOpen, setOwnersSheetOpen] = useState(false);
-  const [assigneesSheetOpen, setAssigneesSheetOpen] = useState(false);
-  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
+  const project = getProjectById(projectId);
 
   // Tab state - initialize based on showActivity prop
   const [activeTab, setActiveTab] = useState(showActivity ? 'activity' : 'details');
@@ -131,11 +130,24 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
     setNoteText('');
   };
 
+  // Scroll wrapper that uses native ScrollView or BottomSheetScrollBody based on context
+  const ScrollWrapper = useNativeScroll
+    ? ({ children, contentContainerStyle }: { children: React.ReactNode; contentContainerStyle?: object }) => (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[{ paddingHorizontal: 16 }, contentContainerStyle]}
+          showsVerticalScrollIndicator={false}
+        >
+          {children}
+        </ScrollView>
+      )
+    : BottomSheetScrollBody;
+
   if (!project) {
     return (
-      <BottomSheetScrollBody>
+      <ScrollWrapper>
         <Text style={{ color: 'rgba(255, 255, 255, 0.5)' }}>Project not found</Text>
-      </BottomSheetScrollBody>
+      </ScrollWrapper>
     );
   }
 
@@ -200,7 +212,7 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
   return (
     <>
 
-      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollWrapper contentContainerStyle={{ paddingBottom: 40 }}>
         <VStack gap="lg">
           {/* Project Header */}
           <HStack justify="between" align="start">
@@ -281,7 +293,11 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {/* Age Widget */}
                 <Pressable
-                  onPress={() => setAgeSheetOpen(true)}
+                  onPress={() => openAgeUpdateSheet({
+                    projectId: project.id,
+                    project,
+                    onSubmit: handleAgeUpdate,
+                  })}
                   style={{
                     flex: 1,
                     backgroundColor: colors.cardBg,
@@ -307,7 +323,11 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
 
                 {/* Stage Widget */}
                 <Pressable
-                  onPress={() => setStageSheetOpen(true)}
+                  onPress={() => workflow && openStageSelectSheet({
+                    workflow,
+                    currentStageId: project.stageId,
+                    onSelectStage: handleStageChange,
+                  })}
                   style={{
                     flex: 1,
                     backgroundColor: colors.cardBg,
@@ -334,7 +354,11 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
 
               {/* Workflow Widget - Full width */}
               <Pressable
-                onPress={() => setWorkflowSheetOpen(true)}
+                onPress={() => openWorkflowSelectSheet({
+                  currentWorkflowId: project.workflowId,
+                  currentStageId: project.stageId,
+                  onSelectWorkflow: handleWorkflowChange,
+                })}
                 style={{
                   backgroundColor: colors.cardBg,
                   borderRadius: 16,
@@ -358,7 +382,12 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 {/* Owners Widget */}
                 <Pressable
-                  onPress={() => setOwnersSheetOpen(true)}
+                  onPress={() => openTeamMemberSheet({
+                    role: 'owners',
+                    currentMembers: project.owners,
+                    projectName: project.name,
+                    onSave: handleOwnersChange,
+                  })}
                   style={{
                     flex: 1,
                     backgroundColor: colors.cardBg,
@@ -397,7 +426,12 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
 
                 {/* Assignees Widget */}
                 <Pressable
-                  onPress={() => setAssigneesSheetOpen(true)}
+                  onPress={() => openTeamMemberSheet({
+                    role: 'assignees',
+                    currentMembers: project.assignees,
+                    projectName: project.name,
+                    onSave: handleAssigneesChange,
+                  })}
                   style={{
                     flex: 1,
                     backgroundColor: colors.cardBg,
@@ -496,7 +530,9 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
 
               {/* More Actions - at bottom of details */}
               <Pressable
-                onPress={() => setActionsSheetOpen(true)}
+                onPress={() => openProjectActionsSheet({
+                  project,
+                })}
                 style={{
                   backgroundColor: colors.cardBg,
                   borderRadius: 16,
@@ -529,7 +565,7 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
             </VStack>
           )}
         </VStack>
-      </BottomSheetScrollBody>
+      </ScrollWrapper>
 
       {/* Note input footer (when viewing activity and not hidden) */}
       {activeTab === 'activity' && !hideFooter && (
@@ -556,55 +592,6 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
         </BottomSheetFooter>
       )}
 
-      {/* Sheets */}
-      <AgeUpdateSheet
-        open={ageSheetOpen}
-        onOpenChange={setAgeSheetOpen}
-        project={project}
-        onSubmit={handleAgeUpdate}
-      />
-
-      {workflow && (
-        <StageSelectSheet
-          open={stageSheetOpen}
-          onOpenChange={setStageSheetOpen}
-          workflow={workflow}
-          currentStageId={project.stageId}
-          onSelectStage={handleStageChange}
-        />
-      )}
-
-      <WorkflowSelectSheet
-        open={workflowSheetOpen}
-        onOpenChange={setWorkflowSheetOpen}
-        currentWorkflowId={project.workflowId}
-        currentStageId={project.stageId}
-        onSelectWorkflow={handleWorkflowChange}
-      />
-
-      <TeamMemberSheet
-        open={ownersSheetOpen}
-        onOpenChange={setOwnersSheetOpen}
-        role="owners"
-        currentMembers={project.owners}
-        onSave={handleOwnersChange}
-        projectName={project.name}
-      />
-
-      <TeamMemberSheet
-        open={assigneesSheetOpen}
-        onOpenChange={setAssigneesSheetOpen}
-        role="assignees"
-        currentMembers={project.assignees}
-        onSave={handleAssigneesChange}
-        projectName={project.name}
-      />
-
-      <ProjectActionsSheet
-        open={actionsSheetOpen}
-        onOpenChange={setActionsSheetOpen}
-        project={project}
-      />
     </>
   );
 }

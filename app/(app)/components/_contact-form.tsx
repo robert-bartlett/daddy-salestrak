@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { View, Pressable, TextInput } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import { View, Pressable, TextInput, useColorScheme } from 'react-native';
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,7 +8,6 @@ import {
   Mail,
   Building2,
   Tag,
-  Check,
 } from 'lucide-react-native';
 
 import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
@@ -17,35 +16,33 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { CONTACT_TYPES, type ContactType } from '@/lib/mock-data';
 import { useContacts } from '@/lib/contacts-context';
 import { useMapSheet } from '@/lib/map-sheet-context';
+import { useSheetContext } from '@/lib/sheet-context';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 type ContactFormProps = {
   onBack: () => void;
   onCancel: () => void;
 };
 
-// Colors for the dark theme (matching project detail)
-const COLORS = {
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.5)',
-  textSecondary: 'rgba(255, 255, 255, 0.7)',
-  cardBg: 'rgba(255, 255, 255, 0.08)',
-  border: 'rgba(255, 255, 255, 0.1)',
-  accent: '#3b82f6',
-};
-
 export function ContactForm({ onBack, onCancel }: ContactFormProps) {
+  const colorScheme = useColorScheme();
+  const colors = getIOSSheetColors(colorScheme);
   const { addContact } = useContacts();
   const { closeSheet } = useMapSheet();
+  const { openListSelectSheet } = useSheetContext();
+
+  // Colors for the form
+  const COLORS = {
+    text: colors.title,
+    textMuted: colors.subtitle,
+    textSecondary: colors.subtitle,
+    cardBg: colors.rowBackground,
+    border: colors.separator,
+    accent: '#0A84FF',
+  };
 
   // Form state
   const [firstName, setFirstName] = useState('');
@@ -61,7 +58,6 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
   const [phoneEditing, setPhoneEditing] = useState(false);
   const [emailEditing, setEmailEditing] = useState(false);
   const [companyEditing, setCompanyEditing] = useState(false);
-  const [typeSheetOpen, setTypeSheetOpen] = useState(false);
 
   // Input refs
   const firstNameInputRef = useRef<TextInput>(null);
@@ -70,10 +66,14 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
   const emailInputRef = useRef<TextInput>(null);
   const companyInputRef = useRef<TextInput>(null);
 
-  const handleTypeSelect = (value: ContactType) => {
-    setType(value);
-    setTypeSheetOpen(false);
-  };
+  const handleOpenTypeSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Contact Type',
+      items: CONTACT_TYPES.map((ct) => ({ id: ct.value, label: ct.label })),
+      selectedId: type,
+      onSelect: (id) => setType(id as ContactType),
+    });
+  }, [openListSelectSheet, type]);
 
   const handleCreate = () => {
     if (!firstName.trim() || !lastName.trim()) return;
@@ -225,7 +225,7 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
 
           {/* Type Widget - Full Width */}
           <Pressable
-            onPress={() => setTypeSheetOpen(true)}
+            onPress={handleOpenTypeSheet}
             style={{
               backgroundColor: COLORS.cardBg,
               borderRadius: 16,
@@ -405,46 +405,6 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
           </View>
         </VStack>
       </BottomSheetScrollBody>
-
-      {/* Type Selection Sheet */}
-      <Sheet open={typeSheetOpen} onOpenChange={setTypeSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Contact Type</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {CONTACT_TYPES.map((contactType) => {
-                const isSelected = type === contactType.value;
-                return (
-                  <Pressable
-                    key={contactType.value}
-                    onPress={() => handleTypeSelect(contactType.value)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                    }}
-                  >
-                    <Text
-                      size="base"
-                      weight={isSelected ? 'medium' : 'regular'}
-                      style={{ color: COLORS.text }}
-                    >
-                      {contactType.label}
-                    </Text>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

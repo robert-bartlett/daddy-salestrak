@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { View, Pressable, TextInput } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import { View, Pressable, TextInput, useColorScheme } from 'react-native';
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,7 +8,6 @@ import {
   Phone,
   Mail,
   Tag,
-  Check,
 } from 'lucide-react-native';
 
 import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
@@ -17,35 +16,33 @@ import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ACCOUNT_TYPES, type AccountType } from '@/lib/mock-data';
 import { useAccounts } from '@/lib/accounts-context';
 import { useMapSheet } from '@/lib/map-sheet-context';
+import { useSheetContext } from '@/lib/sheet-context';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 type AccountFormProps = {
   onBack: () => void;
   onCancel: () => void;
 };
 
-// Colors for the dark theme (matching project detail)
-const COLORS = {
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.5)',
-  textSecondary: 'rgba(255, 255, 255, 0.7)',
-  cardBg: 'rgba(255, 255, 255, 0.08)',
-  border: 'rgba(255, 255, 255, 0.1)',
-  accent: '#3b82f6',
-};
-
 export function AccountForm({ onBack, onCancel }: AccountFormProps) {
+  const colorScheme = useColorScheme();
+  const colors = getIOSSheetColors(colorScheme);
   const { addAccount } = useAccounts();
   const { closeSheet } = useMapSheet();
+  const { openListSelectSheet } = useSheetContext();
+
+  // Colors for the form
+  const COLORS = {
+    text: colors.title,
+    textMuted: colors.subtitle,
+    textSecondary: colors.subtitle,
+    cardBg: colors.rowBackground,
+    border: colors.separator,
+    accent: '#0A84FF',
+  };
 
   // Form state
   const [name, setName] = useState('');
@@ -59,7 +56,6 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
   const [addressEditing, setAddressEditing] = useState(false);
   const [phoneEditing, setPhoneEditing] = useState(false);
   const [emailEditing, setEmailEditing] = useState(false);
-  const [typeSheetOpen, setTypeSheetOpen] = useState(false);
 
   // Input refs
   const nameInputRef = useRef<TextInput>(null);
@@ -67,10 +63,14 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
   const phoneInputRef = useRef<TextInput>(null);
   const emailInputRef = useRef<TextInput>(null);
 
-  const handleTypeSelect = (value: AccountType) => {
-    setType(value);
-    setTypeSheetOpen(false);
-  };
+  const handleOpenTypeSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Account Type',
+      items: ACCOUNT_TYPES.map((at) => ({ id: at.value, label: at.label })),
+      selectedId: type,
+      onSelect: (id) => setType(id as AccountType),
+    });
+  }, [openListSelectSheet, type]);
 
   const handleCreate = () => {
     if (!name.trim()) return;
@@ -168,7 +168,7 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
 
             {/* Type Widget */}
             <Pressable
-              onPress={() => setTypeSheetOpen(true)}
+              onPress={handleOpenTypeSheet}
               style={{
                 flex: 1,
                 backgroundColor: COLORS.cardBg,
@@ -351,46 +351,6 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
           </View>
         </VStack>
       </BottomSheetScrollBody>
-
-      {/* Type Selection Sheet */}
-      <Sheet open={typeSheetOpen} onOpenChange={setTypeSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Account Type</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {ACCOUNT_TYPES.map((accountType) => {
-                const isSelected = type === accountType.value;
-                return (
-                  <Pressable
-                    key={accountType.value}
-                    onPress={() => handleTypeSelect(accountType.value)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                    }}
-                  >
-                    <Text
-                      size="base"
-                      weight={isSelected ? 'medium' : 'regular'}
-                      style={{ color: COLORS.text }}
-                    >
-                      {accountType.label}
-                    </Text>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import { View, useWindowDimensions, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT, Region } from 'react-native-maps';
 import Animated, {
@@ -27,25 +28,27 @@ import { FloatingTabBar, type FloatingTab, PILL_HEIGHT } from '@/components/ui/l
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
-import { PersistentBottomSheet } from '@/components/ui/bottom-sheet';
-import { useMapSheet, getSnapPointsArray, getSnapIndex } from '@/lib/map-sheet-context';
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
 import { useAccentColors } from '@/lib/theme-context';
 import { useUniversalSearch } from '@/lib/universal-search-context';
+import { useSheetContext, type MapFilters, type InboxFilters } from '@/lib/sheet-context';
 import { getStageById } from '@/lib/mock-data';
 import { getPinColor } from '@/lib/map-colors';
 import { getStatusFromAge } from '@/lib/age-utils';
-import { MapFilterSheet, DEFAULT_FILTERS, type MapFilters } from './components/_map-filter-sheet';
-import { AddSheetContent } from './components/_add-sheet';
-import { ProjectPreviewContent } from './components/_project-preview';
-import { ProjectDetailContent, NoteInputFooter } from './components/_project-detail';
-import { ProjectActivityContent } from './components/_project-activity';
 import { SearchScreen } from './components/_search-screen';
 import { CommandPalette } from './components/_command-palette';
 import { InboxScreen } from './components/_inbox-screen';
 import { ProfileScreen } from './components/_profile-screen';
 import { MyWorkScreen } from './components/_my-work-screen';
+
+const DEFAULT_FILTERS: MapFilters = {
+  workflows: [],
+  ageStatuses: [],
+  assignees: [],
+  owners: [],
+  showArchived: false,
+};
 
 // Default region centered on Boise, ID (user's actual location)
 const DEFAULT_REGION: Region = {
@@ -83,16 +86,6 @@ export default function MapFirstScreen() {
   const mapRef = useRef<MapView>(null);
   const { projects } = useProjects();
   const {
-    appState,
-    snapPoint,
-    isSheetVisible,
-    openTab,
-    selectProject,
-    expandProject,
-    closeSheet,
-    setSnapPoint,
-  } = useMapSheet();
-  const {
     activeScreen,
     skipAnimation,
     navigateToSearch,
@@ -105,16 +98,19 @@ export default function MapFirstScreen() {
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#3b82f6';
   const { open: openSearch } = useUniversalSearch();
+  const { openMapFilterSheet, openInboxFilterSheet } = useSheetContext();
+  const router = useRouter();
 
   // Local state
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>({
     latitude: 43.6339,
     longitude: -116.2942,
   });
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [inboxFilterSheetOpen, setInboxFilterSheetOpen] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
-  const [isActivityViewActive, setIsActivityViewActive] = useState(false);
+  const [inboxFilters, setInboxFilters] = useState<InboxFilters>({
+    showUnreadOnly: false,
+    selectedTypes: ['note', 'stage_change', 'age_update', 'assignment', 'created', 'favorite', 'archive'],
+  });
 
   // Keyboard shortcut for Cmd+K on web
   useEffect(() => {
@@ -226,17 +222,6 @@ export default function MapFirstScreen() {
     })();
   }, []);
 
-  // Sync activity view state when appState changes
-  useEffect(() => {
-    if (appState.type === 'project-activity') {
-      setIsActivityViewActive(true);
-    } else if (appState.type === 'project-detail') {
-      setIsActivityViewActive(appState.showActivity ?? false);
-    } else {
-      setIsActivityViewActive(false);
-    }
-  }, [appState]);
-
   const handleCenterOnUser = useCallback(() => {
     if (userLocation && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -253,7 +238,7 @@ export default function MapFirstScreen() {
   // Track when marker was last pressed to prevent map press from closing sheet
   const lastMarkerPressTime = useRef(0);
 
-  // Handle marker press - show preview card first
+  // Handle marker press - open native project sheet
   const handleMarkerPress = useCallback(
     (projectId: string) => {
       lastMarkerPressTime.current = Date.now();
@@ -276,9 +261,13 @@ export default function MapFirstScreen() {
           300
         );
       }
-      selectProject(projectId);
+      // Navigate to native project sheet
+      router.push({
+        pathname: '/project-sheet',
+        params: { id: projectId },
+      });
     },
-    [projects, selectProject]
+    [projects, router]
   );
 
   // Handle map press to create new project at location
@@ -291,9 +280,13 @@ export default function MapFirstScreen() {
       }
 
       const { latitude, longitude } = event.nativeEvent.coordinate;
-      openTab('add', { latitude, longitude });
+      // Navigate to native add sheet with coordinates
+      router.push({
+        pathname: '/add-sheet',
+        params: { lat: latitude.toString(), lng: longitude.toString() },
+      });
     },
-    [openTab]
+    [router]
   );
 
   // Handle tab press - routes to screen navigation or opens sheet
@@ -307,9 +300,9 @@ export default function MapFirstScreen() {
         case 'inbox':
           navigateToInbox();
           break;
-        // Shared tab (available on all screens)
+        // Shared tab (available on all screens) - opens native iOS sheet
         case 'add':
-          openTab('add');
+          router.push('/add-sheet');
           break;
         // Home screen tabs
         case 'profile':
@@ -320,11 +313,14 @@ export default function MapFirstScreen() {
           break;
         // Inbox screen tabs
         case 'filter':
-          setInboxFilterSheetOpen(true);
+          openInboxFilterSheet({
+            filters: inboxFilters,
+            onFiltersChange: setInboxFilters,
+          });
           break;
       }
     },
-    [navigateToMyWork, navigateToInbox, navigateToProfile, navigateToHome, openTab]
+    [navigateToMyWork, navigateToInbox, navigateToProfile, navigateToHome, router, openInboxFilterSheet, inboxFilters]
   );
 
   const handleSearchPress = useCallback(() => {
@@ -332,43 +328,14 @@ export default function MapFirstScreen() {
   }, [openSearch]);
 
   const handleFilter = useCallback(() => {
-    setFilterSheetOpen(true);
-  }, []);
+    openMapFilterSheet({
+      filters,
+      onFiltersChange: setFilters,
+    });
+  }, [openMapFilterSheet, filters]);
 
-  // Get active tab for tab bar based on current app state
-  const activeTab = appState.type === 'tab' ? appState.tab : null;
-
-  // Preview sheet content (only add and pin preview now)
-  const renderPreviewContent = () => {
-    switch (appState.type) {
-      case 'tab':
-        if (appState.tab === 'add') {
-          return <AddSheetContent />;
-        }
-        return null;
-      case 'pin-preview':
-        return <ProjectPreviewContent projectId={appState.projectId} />;
-      default:
-        return null;
-    }
-  };
-
-  // Check which sheet should be visible
-  const showDetailSheet = appState.type === 'project-detail' || appState.type === 'project-activity';
-
-  // Sheet should cover the tab bar for all project sheets (preview, detail, activity) and add tab
-  const sheetCoversTabBar = showDetailSheet || appState.type === 'tab' || appState.type === 'pin-preview';
-
-  // Handle sheet snap changes
-  const handleSnapIndexChange = useCallback(
-    (index: number) => {
-      const snapPoints: Array<'small' | 'medium' | 'large'> = ['small', 'medium', 'large'];
-      if (index >= 0 && index < snapPoints.length) {
-        setSnapPoint(snapPoints[index]);
-      }
-    },
-    [setSnapPoint]
-  );
+  // Get active tab for tab bar - no persistent active state for 'add' since it uses native sheets
+  const activeTab = null;
 
   // Convert activeScreen to index for HorizontalScreenContainer
   const screenIndex = activeScreen === 'search' ? -1 : activeScreen === 'inbox' ? 1 : 0;
@@ -536,68 +503,13 @@ export default function MapFirstScreen() {
             rightScreen={
               <InboxScreen
                 onBackPress={navigateToHome}
-                filterSheetOpen={inboxFilterSheetOpen}
-                onFilterSheetOpenChange={setInboxFilterSheetOpen}
+                filters={inboxFilters}
+                onFiltersChange={setInboxFilters}
               />
             }
           />
         </Animated.View>
       </View>
-
-      {/* Bottom Sheet - rendered at root level so it appears above the tab bar */}
-      <PersistentBottomSheet
-        open={isSheetVisible}
-        onOpenChange={(open) => {
-          if (!open) {
-            closeSheet();
-            setIsActivityViewActive(false);
-          }
-        }}
-        snapPoints={getSnapPointsArray()}
-        snapIndex={getSnapIndex(snapPoint)}
-        onSnapIndexChange={handleSnapIndexChange}
-        enablePanDownToClose
-        bottomInset={sheetCoversTabBar ? 0 : PILL_HEIGHT + insets.bottom}
-        contentKey={
-          appState.type === 'pin-preview' || appState.type === 'project-detail' || appState.type === 'project-activity'
-            ? appState.projectId
-            : appState.type === 'tab'
-              ? appState.tab
-              : 'default'
-        }
-        footer={
-          (appState.type === 'project-detail' || appState.type === 'project-activity') &&
-          (isActivityViewActive || appState.type === 'project-activity')
-            ? <NoteInputFooter
-                projectId={appState.projectId}
-                onFocus={() => setSnapPoint('large')}
-              />
-            : undefined
-        }
-      >
-        {appState.type === 'project-activity' ? (
-          <ProjectActivityContent projectId={appState.projectId} hideFooter />
-        ) : appState.type === 'project-detail' ? (
-          <ProjectDetailContent
-            projectId={appState.projectId}
-            showActivity={appState.showActivity}
-            hideFooter
-            onActiveTabChange={(tab) => {
-              setIsActivityViewActive(tab === 'activity');
-            }}
-          />
-        ) : (
-          renderPreviewContent()
-        )}
-      </PersistentBottomSheet>
-
-      {/* Filter Sheet */}
-      <MapFilterSheet
-        open={filterSheetOpen}
-        onOpenChange={setFilterSheetOpen}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
 
       {/* Bottom Tab Bar - rendered at root level so it's visible on all screens */}
       <FloatingTabBar

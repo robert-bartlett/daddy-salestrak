@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GorhomBottomSheet, {
   BottomSheetBackdrop,
@@ -15,6 +15,7 @@ import GorhomBottomSheet, {
 import { cn } from '@/lib/utils';
 import { Text, wrapTextChildren } from '@/components/ui/text';
 import { DEFAULT_MODAL_SNAP_POINTS, FULL_RANGE_SNAP_POINTS } from '@/lib/sheet-config';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 // Re-export sheet config for convenience
 export { IOS_SHEET_DETENTS, DEFAULT_MODAL_SNAP_POINTS, FULL_RANGE_SNAP_POINTS } from '@/lib/sheet-config';
@@ -75,6 +76,8 @@ const BottomSheet = React.forwardRef<GorhomBottomSheet, BottomSheetProps>(
   ) => {
     const internalRef = React.useRef<GorhomBottomSheet>(null);
     const sheetRef = (ref as React.RefObject<GorhomBottomSheet>) || internalRef;
+    const colorScheme = useColorScheme();
+    const colors = getIOSSheetColors(colorScheme);
 
     // Handle open/close state changes
     React.useEffect(() => {
@@ -109,10 +112,6 @@ const BottomSheet = React.forwardRef<GorhomBottomSheet, BottomSheetProps>(
       [closeOnBackdropPress]
     );
 
-    // Match nav bar styling for seamless appearance - solid background, no transparency
-    const backgroundColor = '#161618';
-    const handleIndicatorColor = 'rgba(255, 255, 255, 0.3)';
-
     return (
       <GorhomBottomSheet
         ref={sheetRef}
@@ -122,17 +121,19 @@ const BottomSheet = React.forwardRef<GorhomBottomSheet, BottomSheetProps>(
         enablePanDownToClose={enablePanDownToClose}
         onChange={handleSheetChanges}
         backdropComponent={renderBackdrop}
-        handleIndicatorStyle={{ backgroundColor: handleIndicatorColor }}
+        handleIndicatorStyle={{
+          backgroundColor: colors.grabber,
+          width: 36,
+          height: 5,
+        }}
         backgroundStyle={{
-          backgroundColor,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
+          backgroundColor: colors.background,
         }}
         style={{
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
           elevation: 8,
         }}
       >
@@ -246,15 +247,19 @@ type BottomSheetFooterProps = React.ComponentProps<typeof View>;
 const BottomSheetFooter = React.forwardRef<View, BottomSheetFooterProps>(
   ({ className, children, ...props }, ref) => {
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const colors = getIOSSheetColors(colorScheme);
 
     return (
       <View
         ref={ref}
-        className={cn(Platform.OS !== 'web' && 'dark', 'border-t border-border', className)}
+        className={cn(Platform.OS !== 'web' && 'dark', className)}
         style={{
           padding: 16,
           paddingBottom: 16 + insets.bottom,
-          backgroundColor: '#161618',
+          backgroundColor: colors.background,
+          borderTopWidth: 0.5,
+          borderTopColor: colors.separator,
         }}
         {...props}
       >
@@ -321,6 +326,8 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
     const internalRef = React.useRef<GorhomBottomSheetModal>(null);
     const sheetRef = ref ? (ref as React.RefObject<GorhomBottomSheetModal>) : internalRef;
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const colors = getIOSSheetColors(colorScheme);
 
     // Handle open/close state changes
     React.useEffect(() => {
@@ -360,7 +367,7 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
           disappearsOnIndex={-1}
           appearsOnIndex={0}
           pressBehavior={closeOnBackdropPress ? 'close' : 'none'}
-          opacity={0.6}
+          opacity={0.5}
         />
       ),
       [closeOnBackdropPress]
@@ -377,9 +384,9 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
               style={{
                 padding: 16,
                 paddingBottom: 16 + insets.bottom,
-                backgroundColor: '#161618',
-                borderTopWidth: 1,
-                borderTopColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: colors.background,
+                borderTopWidth: 0.5,
+                borderTopColor: colors.separator,
               }}
             >
               {footer}
@@ -387,12 +394,8 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
           </GorhomBottomSheetFooter>
         );
       },
-      [footer, insets.bottom]
+      [footer, insets.bottom, colors]
     );
-
-    // Match nav bar styling for seamless appearance - solid background, no transparency
-    const backgroundColor = '#161618';
-    const handleIndicatorColor = 'rgba(255, 255, 255, 0.3)';
 
     return (
       <GorhomBottomSheetModal
@@ -411,18 +414,20 @@ const BottomSheetModal = React.forwardRef<GorhomBottomSheetModal, BottomSheetMod
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
-        handleIndicatorStyle={{ backgroundColor: handleIndicatorColor }}
+        handleIndicatorStyle={{
+          backgroundColor: colors.grabber,
+          width: 36,
+          height: 5,
+        }}
         backgroundStyle={{
-          backgroundColor,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
+          backgroundColor: colors.background,
         }}
         style={{
           zIndex: 1000,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
           elevation: 1000,
         }}
       >
@@ -510,6 +515,8 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
     const isClosingRef = React.useRef(false);
     const prevContentKeyRef = React.useRef(contentKey);
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const colors = getIOSSheetColors(colorScheme);
 
     // Handle open/close state changes and content key changes
     React.useEffect(() => {
@@ -534,14 +541,10 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
     // Handle sheet state changes
     const handleSheetChanges = React.useCallback(
       (index: number) => {
-        console.log('Sheet onChange - index:', index, 'isClosingRef:', isClosingRef.current);
         if (index === -1) {
           // Only notify if this was a user-initiated close (not programmatic)
           if (!isClosingRef.current) {
-            console.log('User-initiated close, calling onOpenChange(false)');
             onOpenChange(false);
-          } else {
-            console.log('Programmatic close, NOT calling onOpenChange');
           }
         } else {
           onSnapIndexChange?.(index);
@@ -561,9 +564,9 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
               style={{
                 padding: 16,
                 paddingBottom: bottomInset > 0 ? 16 : 16 + insets.bottom,
-                backgroundColor: '#161618',
-                borderTopWidth: 1,
-                borderTopColor: 'rgba(255, 255, 255, 0.1)',
+                backgroundColor: colors.background,
+                borderTopWidth: 0.5,
+                borderTopColor: colors.separator,
               }}
             >
               {footer}
@@ -571,12 +574,8 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
           </GorhomBottomSheetFooter>
         );
       },
-      [footer, bottomInset, insets.bottom]
+      [footer, bottomInset, insets.bottom, colors]
     );
-
-    // Match nav bar styling for seamless appearance - solid background, no transparency
-    const backgroundColor = '#161618';
-    const handleIndicatorColor = 'rgba(255, 255, 255, 0.3)';
 
     return (
       <GorhomBottomSheet
@@ -593,11 +592,13 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
-        handleIndicatorStyle={{ backgroundColor: handleIndicatorColor }}
+        handleIndicatorStyle={{
+          backgroundColor: colors.grabber,
+          width: 36,
+          height: 5,
+        }}
         backgroundStyle={{
-          backgroundColor,
-          borderTopLeftRadius: 12,
-          borderTopRightRadius: 12,
+          backgroundColor: colors.background,
         }}
         containerStyle={{
           zIndex: 100,
@@ -605,9 +606,9 @@ const PersistentBottomSheet = React.forwardRef<GorhomBottomSheet, PersistentBott
         }}
         style={{
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
         }}
       >
         {/* Wrapper View to apply dark mode class on native platforms. */}

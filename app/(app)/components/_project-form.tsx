@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
-import { View, Pressable, TextInput, Keyboard } from 'react-native';
+import { useState, useRef, useCallback } from 'react';
+import { View, Pressable, TextInput, useColorScheme } from 'react-native';
 import {
   MapPin,
   ChevronLeft,
@@ -10,23 +10,15 @@ import {
   Briefcase,
   Users,
   UserCircle,
-  Check,
 } from 'lucide-react-native';
 
-import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
-import { VStack, HStack, Surface } from '@/components/ui/layout';
+import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { BottomSheetHeader, BottomSheetScrollBody } from '@/components/ui/bottom-sheet';
 import { CustomFieldRow } from './_custom-field-row';
 import {
   MOCK_WORKFLOWS,
@@ -40,6 +32,8 @@ import {
 } from '@/lib/mock-data';
 import { useProjects } from '@/lib/projects-context';
 import { useMapSheet, type Coordinates } from '@/lib/map-sheet-context';
+import { useSheetContext } from '@/lib/sheet-context';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 
 type ProjectFormProps = {
   coordinates?: Coordinates;
@@ -47,19 +41,22 @@ type ProjectFormProps = {
   onCancel: () => void;
 };
 
-// Colors for the dark theme (matching project detail)
-const COLORS = {
-  text: '#FFFFFF',
-  textMuted: 'rgba(255, 255, 255, 0.5)',
-  textSecondary: 'rgba(255, 255, 255, 0.7)',
-  cardBg: 'rgba(255, 255, 255, 0.08)',
-  border: 'rgba(255, 255, 255, 0.1)',
-  accent: '#3b82f6',
-};
-
 export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps) {
+  const colorScheme = useColorScheme();
+  const colors = getIOSSheetColors(colorScheme);
   const { addProject } = useProjects();
   const { selectProject } = useMapSheet();
+  const { openListSelectSheet } = useSheetContext();
+
+  // Colors for the form
+  const COLORS = {
+    text: colors.title,
+    textMuted: colors.subtitle,
+    textSecondary: colors.subtitle,
+    cardBg: colors.rowBackground,
+    border: colors.separator,
+    accent: '#0A84FF',
+  };
 
   // Form state
   const [name, setName] = useState('');
@@ -74,14 +71,9 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
   const [customFields, setCustomFields] = useState<ProjectCustomFields>({});
   const [showAllFields, setShowAllFields] = useState(false);
 
-  // Sheet states for widget interactions
-  const [projectTypeSheetOpen, setProjectTypeSheetOpen] = useState(false);
-  const [workflowSheetOpen, setWorkflowSheetOpen] = useState(false);
-  const [stageSheetOpen, setStageSheetOpen] = useState(false);
+  // Editing states
   const [nameEditing, setNameEditing] = useState(false);
   const [addressEditing, setAddressEditing] = useState(false);
-  const [ownersSheetOpen, setOwnersSheetOpen] = useState(false);
-  const [assigneesSheetOpen, setAssigneesSheetOpen] = useState(false);
 
   const nameInputRef = useRef<TextInput>(null);
   const addressInputRef = useRef<TextInput>(null);
@@ -97,23 +89,74 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
 
   const hiddenCount = PROJECT_CUSTOM_FIELDS.length - visibleFields.length;
 
-  const handleProjectTypeSelect = (projectType: ProjectType) => {
-    setSelectedProjectType(projectType);
-    setProjectTypeSheetOpen(false);
-  };
+  const handleOpenProjectTypeSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Project Type',
+      items: PROJECT_TYPES.map((pt) => ({ id: pt.id, label: pt.name })),
+      selectedId: selectedProjectType?.id ?? null,
+      onSelect: (id) => {
+        const pt = PROJECT_TYPES.find((p) => p.id === id);
+        if (pt) setSelectedProjectType(pt);
+      },
+    });
+  }, [openListSelectSheet, selectedProjectType]);
 
-  const handleWorkflowSelect = (workflow: Workflow) => {
-    setSelectedWorkflow(workflow);
-    setSelectedStageId(workflow.stages[0]?.id ?? null);
-    setWorkflowSheetOpen(false);
-  };
+  const handleOpenWorkflowSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Workflow',
+      items: MOCK_WORKFLOWS.map((w) => ({ id: w.id, label: w.name })),
+      selectedId: selectedWorkflow?.id ?? null,
+      onSelect: (id) => {
+        const workflow = MOCK_WORKFLOWS.find((w) => w.id === id);
+        if (workflow) {
+          setSelectedWorkflow(workflow);
+          setSelectedStageId(workflow.stages[0]?.id ?? null);
+        }
+      },
+    });
+  }, [openListSelectSheet, selectedWorkflow]);
 
-  const handleStageSelect = (stageId: string) => {
-    setSelectedStageId(stageId);
-    setStageSheetOpen(false);
-  };
+  const handleOpenStageSheet = useCallback(() => {
+    if (!selectedWorkflow) return;
+    openListSelectSheet({
+      title: 'Starting Stage',
+      items: selectedWorkflow.stages.map((s) => ({ id: s.id, label: s.name, color: s.color })),
+      selectedId: selectedStageId,
+      onSelect: (id) => setSelectedStageId(id),
+    });
+  }, [openListSelectSheet, selectedWorkflow, selectedStageId]);
 
-  const handleCustomFieldChange = (key: string, value: string | number | Date | null) => {
+  const handleOpenOwnersSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Select Owners',
+      items: MOCK_USERS.map((u) => ({ id: u.id, label: u.name, sublabel: u.initials })),
+      selectedId: null,
+      allowMultiple: true,
+      selectedIds: selectedOwners.map((o) => o.id),
+      onSelect: () => {},
+      onSelectMultiple: (ids) => {
+        const owners = MOCK_USERS.filter((u) => ids.includes(u.id));
+        setSelectedOwners(owners);
+      },
+    });
+  }, [openListSelectSheet, selectedOwners]);
+
+  const handleOpenAssigneesSheet = useCallback(() => {
+    openListSelectSheet({
+      title: 'Select Assignees',
+      items: MOCK_USERS.map((u) => ({ id: u.id, label: u.name, sublabel: u.initials })),
+      selectedId: null,
+      allowMultiple: true,
+      selectedIds: selectedAssignees.map((a) => a.id),
+      onSelect: () => {},
+      onSelectMultiple: (ids) => {
+        const assignees = MOCK_USERS.filter((u) => ids.includes(u.id));
+        setSelectedAssignees(assignees);
+      },
+    });
+  }, [openListSelectSheet, selectedAssignees]);
+
+  const handleCustomFieldChange = useCallback((key: string, value: string | number | Date | null) => {
     setCustomFields((prev) => {
       const updated = { ...prev };
       if (value === null || value === '') {
@@ -123,27 +166,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
       }
       return updated;
     });
-  };
-
-  const handleToggleOwner = (user: User) => {
-    setSelectedOwners((prev) => {
-      const exists = prev.some((u) => u.id === user.id);
-      if (exists) {
-        return prev.filter((u) => u.id !== user.id);
-      }
-      return [...prev, user];
-    });
-  };
-
-  const handleToggleAssignee = (user: User) => {
-    setSelectedAssignees((prev) => {
-      const exists = prev.some((u) => u.id === user.id);
-      if (exists) {
-        return prev.filter((u) => u.id !== user.id);
-      }
-      return [...prev, user];
-    });
-  };
+  }, []);
 
   const handleCreate = () => {
     // Validate required fields
@@ -210,7 +233,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {/* Project Type Widget */}
             <Pressable
-              onPress={() => setProjectTypeSheetOpen(true)}
+              onPress={handleOpenProjectTypeSheet}
               style={{
                 flex: 1,
                 backgroundColor: COLORS.cardBg,
@@ -241,7 +264,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
 
             {/* Workflow Widget */}
             <Pressable
-              onPress={() => setWorkflowSheetOpen(true)}
+              onPress={handleOpenWorkflowSheet}
               style={{
                 flex: 1,
                 backgroundColor: COLORS.cardBg,
@@ -277,7 +300,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
           {/* Stage Widget - Only shows when workflow is selected */}
           {selectedWorkflow ? (
             <Pressable
-              onPress={() => setStageSheetOpen(true)}
+              onPress={handleOpenStageSheet}
               style={{
                 backgroundColor: COLORS.cardBg,
                 borderRadius: 12,
@@ -422,7 +445,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {/* Owners Widget */}
             <Pressable
-              onPress={() => setOwnersSheetOpen(true)}
+              onPress={handleOpenOwnersSheet}
               style={{
                 flex: 1,
                 backgroundColor: COLORS.cardBg,
@@ -461,7 +484,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
 
             {/* Assignees Widget */}
             <Pressable
-              onPress={() => setAssigneesSheetOpen(true)}
+              onPress={handleOpenAssigneesSheet}
               style={{
                 flex: 1,
                 backgroundColor: COLORS.cardBg,
@@ -589,242 +612,6 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
           </View>
         </VStack>
       </BottomSheetScrollBody>
-
-      {/* Project Type Selection Sheet */}
-      <Sheet open={projectTypeSheetOpen} onOpenChange={setProjectTypeSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Project Type</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {PROJECT_TYPES.map((projectType) => {
-                const isSelected = selectedProjectType?.id === projectType.id;
-                return (
-                  <Pressable
-                    key={projectType.id}
-                    onPress={() => handleProjectTypeSelect(projectType)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                    }}
-                  >
-                    <Text
-                      size="base"
-                      weight={isSelected ? 'medium' : 'regular'}
-                      style={{ color: COLORS.text }}
-                    >
-                      {projectType.name}
-                    </Text>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-
-      {/* Workflow Selection Sheet */}
-      <Sheet open={workflowSheetOpen} onOpenChange={setWorkflowSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Workflow</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {MOCK_WORKFLOWS.map((workflow) => {
-                const isSelected = selectedWorkflow?.id === workflow.id;
-                return (
-                  <Pressable
-                    key={workflow.id}
-                    onPress={() => handleWorkflowSelect(workflow)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
-                    }}
-                  >
-                    <Text
-                      size="base"
-                      weight={isSelected ? 'medium' : 'regular'}
-                      style={{ color: COLORS.text }}
-                    >
-                      {workflow.name}
-                    </Text>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-
-      {/* Stage Selection Sheet */}
-      {selectedWorkflow ? (
-        <Sheet open={stageSheetOpen} onOpenChange={setStageSheetOpen}>
-          <SheetContent side="bottom" showCloseButton={false}>
-            <SheetHeader>
-              <SheetTitle>Starting Stage</SheetTitle>
-            </SheetHeader>
-            <ScrollArea maxHeight={400}>
-              <View style={{ paddingBottom: 32 }}>
-                {selectedWorkflow.stages.map((stage) => {
-                  const isSelected = selectedStageId === stage.id;
-                  return (
-                    <Pressable
-                      key={stage.id}
-                      onPress={() => handleStageSelect(stage.id)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingHorizontal: 16,
-                        paddingVertical: 14,
-                      }}
-                    >
-                      <HStack gap="md" align="center">
-                        <View
-                          style={{
-                            width: 12,
-                            height: 12,
-                            borderRadius: 6,
-                            backgroundColor: stage.color,
-                          }}
-                        />
-                        <Text
-                          size="base"
-                          weight={isSelected ? 'medium' : 'regular'}
-                          style={{ color: COLORS.text }}
-                        >
-                          {stage.name}
-                        </Text>
-                      </HStack>
-                      {isSelected ? (
-                        <Icon as={Check} size={20} color={COLORS.accent} />
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
-      ) : null}
-
-      {/* Owners Selection Sheet */}
-      <Sheet open={ownersSheetOpen} onOpenChange={setOwnersSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Select Owners</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {MOCK_USERS.map((user) => {
-                const isSelected = selectedOwners.some((u) => u.id === user.id);
-                return (
-                  <Pressable
-                    key={user.id}
-                    onPress={() => handleToggleOwner(user)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                    }}
-                  >
-                    <HStack gap="md" align="center">
-                      <Avatar size="sm" alt={user.name}>
-                        <AvatarFallback>
-                          <Text size="xs" style={{ color: COLORS.text }}>{user.initials}</Text>
-                        </AvatarFallback>
-                      </Avatar>
-                      <VStack gap="xs">
-                        <Text
-                          size="base"
-                          weight={isSelected ? 'medium' : 'regular'}
-                          style={{ color: COLORS.text }}
-                        >
-                          {user.name}
-                        </Text>
-                        <Text size="sm" style={{ color: COLORS.textMuted }}>
-                          {user.email}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
-
-      {/* Assignees Selection Sheet */}
-      <Sheet open={assigneesSheetOpen} onOpenChange={setAssigneesSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <SheetHeader>
-            <SheetTitle>Select Assignees</SheetTitle>
-          </SheetHeader>
-          <ScrollArea maxHeight={400}>
-            <View style={{ paddingBottom: 32 }}>
-              {MOCK_USERS.map((user) => {
-                const isSelected = selectedAssignees.some((u) => u.id === user.id);
-                return (
-                  <Pressable
-                    key={user.id}
-                    onPress={() => handleToggleAssignee(user)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingHorizontal: 16,
-                      paddingVertical: 12,
-                    }}
-                  >
-                    <HStack gap="md" align="center">
-                      <Avatar size="sm" alt={user.name}>
-                        <AvatarFallback>
-                          <Text size="xs" style={{ color: COLORS.text }}>{user.initials}</Text>
-                        </AvatarFallback>
-                      </Avatar>
-                      <VStack gap="xs">
-                        <Text
-                          size="base"
-                          weight={isSelected ? 'medium' : 'regular'}
-                          style={{ color: COLORS.text }}
-                        >
-                          {user.name}
-                        </Text>
-                        <Text size="sm" style={{ color: COLORS.textMuted }}>
-                          {user.email}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                    {isSelected ? (
-                      <Icon as={Check} size={20} color={COLORS.accent} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
     </>
   );
 }

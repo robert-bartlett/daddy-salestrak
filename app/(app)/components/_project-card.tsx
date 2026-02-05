@@ -1,7 +1,7 @@
-import { Pressable, View } from 'react-native';
+import { Pressable, View, useColorScheme } from 'react-native';
 import { Clock, MessageSquare, User, Star } from 'lucide-react-native';
 
-import { VStack, HStack, Surface } from '@/components/ui/layout';
+import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -28,6 +28,9 @@ export function ProjectCard({
   onOwnerTap,
   onLongPress,
 }: ProjectCardProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const ageText = formatAge(project.ageResetAt);
   const status = getStatusFromAge(project.ageResetAt);
   const statusColor = getStatusHexColor(status);
@@ -36,11 +39,25 @@ export function ProjectCard({
   const stage = getStageById(project.workflowId, project.stageId);
   const stageColor = stage ? getPinColor(stage.color) : '#6B7280';
 
+  // iOS system colors
+  const cardBackground = isDark ? '#1c1c1e' : '#ffffff';
+  const cardBorder = isDark ? '#38383a' : '#c6c6c8';
+  const separatorColor = isDark ? '#48484a' : '#c6c6c8';
+
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress} delayLongPress={400}>
       {({ pressed }) => (
         <View style={{ opacity: pressed ? 0.7 : 1 }}>
-          <Surface variant="outline" padding="md">
+          <View
+            style={{
+              backgroundColor: cardBackground,
+              borderRadius: 12,
+              borderCurve: 'continuous',
+              borderWidth: 0.5,
+              borderColor: cardBorder,
+              padding: 16,
+            }}
+          >
             <VStack gap="xs">
               {/* Project Name with Favorite Indicator */}
               <HStack gap="xs" align="center">
@@ -71,10 +88,10 @@ export function ProjectCard({
 
               {/* Separator */}
               <View
-                className="bg-border"
                 style={{
-                  height: 1,
-                  marginVertical: 4,
+                  height: 0.5,
+                  marginVertical: 6,
+                  backgroundColor: separatorColor,
                 }}
               />
 
@@ -138,7 +155,7 @@ export function ProjectCard({
                 </Pressable>
               </HStack>
             </VStack>
-          </Surface>
+          </View>
         </View>
       )}
     </Pressable>

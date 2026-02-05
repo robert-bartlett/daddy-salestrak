@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Pressable, View, FlatList } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   MessageSquare,
   ArrowRightLeft,
@@ -17,24 +18,21 @@ import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Icon } from '@/components/ui/icon';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { BottomSheetModal } from '@/components/ui/bottom-sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SearchTrigger } from '@/components/ui/search-trigger';
 import { useProjects } from '@/lib/projects-context';
-import { useAccentColors } from '@/lib/theme-context';
+import { useSheetContext, type InboxFilters } from '@/lib/sheet-context';
 import { type Activity, type ActivityType } from '@/lib/mock-data';
-import { ProjectDetailContent, NoteInputFooter } from './_project-detail';
 
 type InboxTab = 'all' | 'notes' | 'activity';
 
 type InboxScreenProps = {
   /** Callback when back button is pressed */
   onBackPress: () => void;
-  /** External control to open filter sheet */
-  filterSheetOpen?: boolean;
-  /** Callback when filter sheet open state changes */
-  onFilterSheetOpenChange?: (open: boolean) => void;
+  /** Current inbox filters */
+  filters?: InboxFilters;
+  /** Callback when filters change */
+  onFiltersChange?: (filters: InboxFilters) => void;
 };
 
 const ACTIVITY_ICONS: Record<ActivityType, typeof MessageSquare> = {
@@ -195,24 +193,26 @@ const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   archive: 'Archived',
 };
 
+const DEFAULT_INBOX_FILTERS: InboxFilters = {
+  showUnreadOnly: false,
+  selectedTypes: ALL_ACTIVITY_TYPES,
+};
+
 export function InboxScreen({
   onBackPress,
-  filterSheetOpen: externalFilterSheetOpen,
-  onFilterSheetOpenChange,
+  filters: externalFilters,
+  onFiltersChange,
 }: InboxScreenProps) {
+  const router = useRouter();
+  const { openInboxFilterSheet } = useSheetContext();
   const [activeTab, setActiveTab] = useState<InboxTab>('all');
-  const [internalFilterSheetOpen, setInternalFilterSheetOpen] = useState(false);
 
-  // Use external control if provided, otherwise use internal state
-  const filterSheetOpen = externalFilterSheetOpen ?? internalFilterSheetOpen;
-  const setFilterSheetOpen = onFilterSheetOpenChange ?? setInternalFilterSheetOpen;
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<Set<ActivityType>>(new Set(ALL_ACTIVITY_TYPES));
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectSheetOpen, setProjectSheetOpen] = useState(false);
-  const [isActivityViewActive, setIsActivityViewActive] = useState(true);
+  // Use external filters if provided, otherwise use internal state
+  const filters = externalFilters ?? DEFAULT_INBOX_FILTERS;
+  const showUnreadOnly = filters.showUnreadOnly;
+  const selectedTypes = new Set(filters.selectedTypes);
+
   const { activities, getProjectById, markAllActivitiesRead, markActivityRead } = useProjects();
-  const accentColors = useAccentColors();
 
   // Sort activities by timestamp (newest first)
   const sortedActivities = useMemo(() => {
@@ -252,35 +252,26 @@ export function InboxScreen({
 
   const hasActiveFilters = showUnreadOnly || selectedTypes.size < ALL_ACTIVITY_TYPES.length;
 
-  const toggleActivityType = (type: ActivityType) => {
-    setSelectedTypes((prev) => {
-      const next = new Set(prev);
-      if (next.has(type)) {
-        // Don't allow deselecting all types
-        if (next.size > 1) {
-          next.delete(type);
-        }
-      } else {
-        next.add(type);
-      }
-      return next;
+  const handleOpenFilterSheet = useCallback(() => {
+    openInboxFilterSheet({
+      filters,
+      onFiltersChange: (newFilters) => {
+        onFiltersChange?.(newFilters);
+      },
     });
-  };
+  }, [openInboxFilterSheet, filters, onFiltersChange]);
 
-  const clearFilters = () => {
-    setShowUnreadOnly(false);
-    setSelectedTypes(new Set(ALL_ACTIVITY_TYPES));
-  };
-
-  const handleActivityPress = (activity: Activity) => {
+  const handleActivityPress = useCallback((activity: Activity) => {
     // Mark as read
     if (!activity.read) {
       markActivityRead(activity.id);
     }
-    // Open project detail sheet within inbox
-    setSelectedProjectId(activity.projectId);
-    setProjectSheetOpen(true);
-  };
+    // Open native project sheet
+    router.push({
+      pathname: '/project-sheet',
+      params: { id: activity.projectId, view: 'detail' },
+    });
+  }, [markActivityRead, router]);
 
   const handleMarkAllRead = () => {
     markAllActivitiesRead?.();
@@ -366,12 +357,12 @@ export function InboxScreen({
 
           {/* Filter button */}
           <View className="relative">
-            <Button variant="ghost" size="icon" onPress={() => setFilterSheetOpen(true)}>
+            <Button variant="ghost" size="icon" onPress={handleOpenFilterSheet}>
               <Icon as={SlidersHorizontal} size={18} />
             </Button>
-            {hasActiveFilters && (
+            {hasActiveFilters ? (
               <View className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-primary" />
-            )}
+            ) : null}
           </View>
         </HStack>
       </Box>
@@ -394,123 +385,6 @@ export function InboxScreen({
           </Box>
         }
       />
-
-      {/* Filter Sheet */}
-      <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-        <SheetContent side="bottom" showCloseButton={false}>
-          <Box padding="lg">
-            <VStack gap="lg">
-              {/* Header */}
-              <Text size="lg" weight="semibold">Filters</Text>
-
-              {/* Unread only filter */}
-              <Pressable onPress={() => setShowUnreadOnly(!showUnreadOnly)}>
-                {({ pressed }) => (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.7 : 1 }}>
-                    <View className="flex-1">
-                      <Text weight="medium">Unread only</Text>
-                      <Text size="sm" tone="muted">
-                        Show only unread notifications
-                      </Text>
-                    </View>
-                    <View
-                      className="h-6 w-6 items-center justify-center rounded-md"
-                      style={{
-                        backgroundColor: showUnreadOnly ? accentColors?.primary : 'transparent',
-                        borderWidth: showUnreadOnly ? 0 : 1,
-                        borderColor: showUnreadOnly ? 'transparent' : 'rgba(255,255,255,0.2)',
-                      }}
-                    >
-                      {showUnreadOnly && <Icon as={Check} size={16} color="#fff" />}
-                    </View>
-                  </View>
-                )}
-              </Pressable>
-
-              {/* Activity type filters */}
-              <VStack gap="sm">
-                <Text size="sm" weight="medium" tone="muted">
-                  Activity types
-                </Text>
-                {ALL_ACTIVITY_TYPES.map((type) => {
-                  const IconComponent = ACTIVITY_ICONS[type];
-                  const colorClass = ACTIVITY_COLORS[type];
-                  const isSelected = selectedTypes.has(type);
-
-                  return (
-                    <Pressable key={type} onPress={() => toggleActivityType(type)}>
-                      {({ pressed }) => (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, opacity: pressed ? 0.7 : 1 }}>
-                          <View className="h-8 w-8 items-center justify-center rounded-full bg-muted">
-                            <Icon as={IconComponent} size={16} className={colorClass} />
-                          </View>
-                          <View className="flex-1">
-                            <Text weight="medium">{ACTIVITY_TYPE_LABELS[type]}</Text>
-                          </View>
-                          <View
-                            className="h-6 w-6 items-center justify-center rounded-md"
-                            style={{
-                              backgroundColor: isSelected ? accentColors?.primary : 'transparent',
-                              borderWidth: isSelected ? 0 : 1,
-                              borderColor: isSelected ? 'transparent' : 'rgba(255,255,255,0.2)',
-                            }}
-                          >
-                            {isSelected && <Icon as={Check} size={16} color="#fff" />}
-                          </View>
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </VStack>
-
-              {/* Footer buttons */}
-              <HStack gap="sm">
-                <Button
-                  variant="outline"
-                  onPress={clearFilters}
-                  disabled={!hasActiveFilters}
-                  style={{ flex: 1, opacity: hasActiveFilters ? 1 : 0.5 }}
-                >
-                  <Text>Clear all</Text>
-                </Button>
-                <Button
-                  variant="default"
-                  onPress={() => setFilterSheetOpen(false)}
-                  style={{
-                    flex: 1,
-                    backgroundColor: accentColors?.primary,
-                  }}
-                >
-                  <Text style={{ color: '#fff' }}>Done</Text>
-                </Button>
-              </HStack>
-            </VStack>
-          </Box>
-        </SheetContent>
-      </Sheet>
-
-      {/* Project Detail Sheet - opens when clicking an inbox item */}
-      <BottomSheetModal
-        open={projectSheetOpen}
-        onOpenChange={(open) => {
-          setProjectSheetOpen(open);
-          if (!open) {
-            setIsActivityViewActive(true);
-          }
-        }}
-        snapPoints={['50%', '90%']}
-        footer={selectedProjectId && isActivityViewActive ? <NoteInputFooter projectId={selectedProjectId} /> : undefined}
-      >
-        {selectedProjectId && (
-          <ProjectDetailContent
-            projectId={selectedProjectId}
-            showActivity
-            hideFooter
-            onActiveTabChange={(tab) => setIsActivityViewActive(tab === 'activity')}
-          />
-        )}
-      </BottomSheetModal>
     </Box>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   CalendarCheck,
   FolderKanban,
@@ -20,29 +21,17 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  BottomSheetModal,
-  BottomSheetScrollBody,
-  BottomSheetHeader,
-  BottomSheetTitle,
-} from '@/components/ui/bottom-sheet';
 import { SearchTrigger } from '@/components/ui/search-trigger';
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
-import { AgeUpdateSheet } from './_age-update-sheet';
-import { ProjectDetailContent, NoteInputFooter } from './_project-detail';
-import {
-  ActivityFilterSheet,
-  type ActivityFilters,
-} from './_activity-filter-sheet';
-import { TeamMemberSheet } from './_team-member-sheet';
+import { useSheetContext, type DateRange } from '@/lib/sheet-context';
 import { ProjectCard } from './_project-card';
-import { ProjectActionsSheet } from './_project-actions-sheet';
 import {
   formatAge,
   getStatusFromAge,
   getStatusHexColor,
 } from '@/lib/age-utils';
+import type { ActivityType } from '@/lib/mock-data';
 import { getPinColor } from '@/lib/map-colors';
 import {
   MOCK_WORKFLOWS,
@@ -51,7 +40,7 @@ import {
   type Project,
   type ProjectStatus,
   type AgeUpdateReason,
-  type Activity as ActivityType,
+  type Activity as ActivityItemType,
   type Workflow,
   type WorkflowStage,
   type User as UserType,
@@ -244,21 +233,18 @@ function StageRow({ stage, projectCount, onPress }: StageRowProps) {
   );
 }
 
+type ActivityFilters = {
+  types: ActivityType[];
+  dateRange: DateRange;
+};
+
 export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
+  const router = useRouter();
   const { navigateToProfile } = useScreenNavigation();
   const { projects, activities, updateProjectAge, updateProjectOwners, getProjectById, getProjectActivities } = useProjects();
+  const { openAgeUpdateSheet, openTeamMemberSheet, openProjectActionsSheet, openActivityFilterSheet } = useSheetContext();
 
   const [activeTab, setActiveTab] = useState<TabValue>('today');
-
-  // Today tab: age update sheet state
-  const [selectedProjectForAge, setSelectedProjectForAge] = useState<Project | null>(null);
-  const [ageSheetOpen, setAgeSheetOpen] = useState(false);
-
-  // Projects/Workflows tabs: project detail sheet state
-  const [detailProject, setDetailProject] = useState<Project | null>(null);
-  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
-  const [showActivityOnOpen, setShowActivityOnOpen] = useState(false);
-  const [detailShowsActivity, setDetailShowsActivity] = useState(false);
 
   // Workflows tab: drill-down navigation state
   const [workflowsView, setWorkflowsView] = useState<WorkflowsViewState>({ level: 'workflows' });
@@ -268,15 +254,6 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
     types: [],
     dateRange: 'all',
   });
-  const [activityFilterSheetOpen, setActivityFilterSheetOpen] = useState(false);
-
-  // Owner sheet state
-  const [selectedProjectForOwner, setSelectedProjectForOwner] = useState<Project | null>(null);
-  const [ownerSheetOpen, setOwnerSheetOpen] = useState(false);
-
-  // Actions sheet state (for long press)
-  const [selectedProjectForActions, setSelectedProjectForActions] = useState<Project | null>(null);
-  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
 
   // Active (non-archived) projects
   const activeProjects = useMemo(() => {
@@ -374,75 +351,73 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
 
   // Today tab: handle project press (opens age update sheet)
   const handleTodayProjectPress = useCallback((project: Project) => {
-    setSelectedProjectForAge(project);
-    setAgeSheetOpen(true);
-  }, []);
+    openAgeUpdateSheet({
+      projectId: project.id,
+      project,
+      onSubmit: (status, reason, note) => {
+        updateProjectAge(project.id, status, reason, note);
+      },
+    });
+  }, [openAgeUpdateSheet, updateProjectAge]);
 
-  const handleAgeSubmit = useCallback(
-    (status: ProjectStatus, reason: AgeUpdateReason, note?: string) => {
-      if (selectedProjectForAge) {
-        updateProjectAge(selectedProjectForAge.id, status, reason, note);
-      }
-    },
-    [selectedProjectForAge, updateProjectAge]
-  );
-
-  // Projects/Workflows tab: handle project card press (opens detail sheet)
+  // Projects/Workflows tab: handle project card press (opens native project sheet)
   const handleProjectCardPress = useCallback((project: Project) => {
-    setDetailProject(project);
-    setShowActivityOnOpen(false);
-    setDetailShowsActivity(false);
-    setDetailSheetOpen(true);
-  }, []);
+    router.push({
+      pathname: '/project-sheet',
+      params: { id: project.id, view: 'detail' },
+    });
+  }, [router]);
 
   // Projects tab: handle age tap on project card (opens age update sheet)
   const handleProjectCardAgeTap = useCallback((project: Project) => {
-    setSelectedProjectForAge(project);
-    setAgeSheetOpen(true);
-  }, []);
+    openAgeUpdateSheet({
+      projectId: project.id,
+      project,
+      onSubmit: (status, reason, note) => {
+        updateProjectAge(project.id, status, reason, note);
+      },
+    });
+  }, [openAgeUpdateSheet, updateProjectAge]);
 
-  // Projects tab: handle activity tap on project card (opens detail sheet on Activity tab)
+  // Projects tab: handle activity tap on project card (opens native project sheet on activity tab)
   const handleProjectCardActivityTap = useCallback((project: Project) => {
-    setDetailProject(project);
-    setShowActivityOnOpen(true);
-    setDetailShowsActivity(true);
-    setDetailSheetOpen(true);
-  }, []);
+    router.push({
+      pathname: '/project-sheet',
+      params: { id: project.id, view: 'detail' },
+    });
+  }, [router]);
 
   // Projects tab: handle owner tap on project card (opens owner sheet)
   const handleProjectCardOwnerTap = useCallback((project: Project) => {
-    setSelectedProjectForOwner(project);
-    setOwnerSheetOpen(true);
-  }, []);
+    openTeamMemberSheet({
+      role: 'owners',
+      currentMembers: project.owners,
+      projectName: project.name,
+      onSave: (newOwners) => {
+        updateProjectOwners(project.id, newOwners);
+      },
+    });
+  }, [openTeamMemberSheet, updateProjectOwners]);
 
   // Handle long press on project card (opens actions sheet)
   const handleProjectCardLongPress = useCallback((project: Project) => {
-    setSelectedProjectForActions(project);
-    setActionsSheetOpen(true);
-  }, []);
+    openProjectActionsSheet({
+      project,
+    });
+  }, [openProjectActionsSheet]);
 
-  // Handle owner change from sheet
-  const handleOwnersChange = useCallback(
-    (newOwners: UserType[]) => {
-      if (selectedProjectForOwner) {
-        updateProjectOwners(selectedProjectForOwner.id, newOwners);
-      }
-    },
-    [selectedProjectForOwner, updateProjectOwners]
-  );
-
-  // Activities tab: handle activity press (opens detail sheet on Activity tab)
+  // Activities tab: handle activity press (opens native project sheet on activity tab)
   const handleActivityPress = useCallback(
-    (activity: ActivityType) => {
+    (activity: ActivityItemType) => {
       const project = getProjectById(activity.projectId);
       if (project) {
-        setDetailProject(project);
-        setShowActivityOnOpen(true);
-        setDetailShowsActivity(true);
-        setDetailSheetOpen(true);
+        router.push({
+          pathname: '/project-sheet',
+          params: { id: project.id, view: 'detail' },
+        });
       }
     },
-    [getProjectById]
+    [getProjectById, router]
   );
 
   // Workflows tab: navigation handlers
@@ -507,7 +482,7 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
   );
 
   const renderActivityItem = useCallback(
-    ({ item }: { item: ActivityType }) => {
+    ({ item }: { item: ActivityItemType }) => {
       const project = getProjectById(item.projectId);
       return (
         <ActivityItemLight
@@ -710,7 +685,10 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onPress={() => setActivityFilterSheetOpen(true)}
+                    onPress={() => openActivityFilterSheet({
+                      filters: activityFilters,
+                      onFiltersChange: setActivityFilters,
+                    })}
                   >
                     <Icon as={SlidersHorizontal} size={18} />
                   </Button>
@@ -855,79 +833,6 @@ export function MyWorkScreen({ onBackPress }: MyWorkScreenProps) {
           </Box>
         </TabsContent>
       </Tabs>
-
-      {/* Age Update Sheet (for Today tab) */}
-      {selectedProjectForAge ? (
-        <AgeUpdateSheet
-          open={ageSheetOpen}
-          onOpenChange={setAgeSheetOpen}
-          project={selectedProjectForAge}
-          onSubmit={handleAgeSubmit}
-        />
-      ) : null}
-
-      {/* Project Detail Sheet (for Projects/Workflows/Activities tabs) */}
-      {detailProject ? (
-        <BottomSheetModal
-          open={detailSheetOpen}
-          onOpenChange={(open) => {
-            setDetailSheetOpen(open);
-            if (!open) {
-              setShowActivityOnOpen(false);
-              setDetailShowsActivity(false);
-            }
-          }}
-          snapPoints={['50%', '90%']}
-          stackBehavior="push"
-          footer={
-            detailShowsActivity ? (
-              <NoteInputFooter projectId={detailProject.id} />
-            ) : undefined
-          }
-        >
-          <ProjectDetailContent
-            projectId={detailProject.id}
-            showActivity={showActivityOnOpen}
-            hideFooter
-            onActiveTabChange={(tab) => {
-              setDetailShowsActivity(tab === 'activity');
-            }}
-          />
-        </BottomSheetModal>
-      ) : null}
-
-      {/* Activity Filter Sheet */}
-      <ActivityFilterSheet
-        open={activityFilterSheetOpen}
-        onOpenChange={setActivityFilterSheetOpen}
-        filters={activityFilters}
-        onFiltersChange={setActivityFilters}
-      />
-
-      {/* Owner Sheet */}
-      {selectedProjectForOwner ? (
-        <TeamMemberSheet
-          open={ownerSheetOpen}
-          onOpenChange={setOwnerSheetOpen}
-          role="owners"
-          currentMembers={selectedProjectForOwner.owners}
-          onSave={handleOwnersChange}
-          projectName={selectedProjectForOwner.name}
-        />
-      ) : null}
-
-      {/* Actions Sheet (for long press) */}
-      {selectedProjectForActions ? (
-        <ProjectActionsSheet
-          open={actionsSheetOpen}
-          onOpenChange={setActionsSheetOpen}
-          project={selectedProjectForActions}
-          onDelete={() => {
-            setDetailSheetOpen(false);
-            setDetailProject(null);
-          }}
-        />
-      ) : null}
     </Box>
   );
 }
