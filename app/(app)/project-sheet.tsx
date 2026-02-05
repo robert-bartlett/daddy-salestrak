@@ -155,7 +155,7 @@ export default function ProjectSheet() {
 
   const activityCount = getProjectActivities(project.id).length;
 
-  // Preview View - Compact card-style preview with liquid glass
+  // Preview View - Compact card-style preview with frosted glass
   if (viewState === 'preview') {
     return (
       <BlurView
@@ -213,7 +213,7 @@ export default function ProjectSheet() {
     );
   }
 
-  // Detail View - Full project details with tabs and liquid glass
+  // Detail View - Full project details with tabs and frosted glass
   return (
     <BlurView
       intensity={100}

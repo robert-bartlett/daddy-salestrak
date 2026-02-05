@@ -10,7 +10,7 @@ import {
   Tag,
 } from 'lucide-react-native';
 
-import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
+import { NativeSheetScrollBody, NativeSheetHeader } from '@/components/ui/bottom-sheet';
 import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
@@ -97,7 +97,7 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
 
   return (
     <>
-      <BottomSheetHeader>
+      <NativeSheetHeader>
         <HStack gap="sm" align="center">
           <Button variant="ghost" size="icon" onPress={onBack}>
             <Icon as={ChevronLeft} size={20} />
@@ -111,9 +111,9 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
             </Text>
           </VStack>
         </HStack>
-      </BottomSheetHeader>
+      </NativeSheetHeader>
 
-      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
+      <NativeSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
         <VStack gap="sm">
           {/* Name + Type Row */}
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -350,7 +350,7 @@ export function AccountForm({ onBack, onCancel }: AccountFormProps) {
             </View>
           </View>
         </VStack>
-      </BottomSheetScrollBody>
+      </NativeSheetScrollBody>
     </>
   );
 }

@@ -158,7 +158,7 @@ export default function AddSheet() {
     tertiaryFill: sheetColors.iconBackground,
   };
 
-  // Entity selection screen with liquid glass effect
+  // Entity selection screen with frosted glass effect
   return (
     <BlurView
       intensity={100}

@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { BottomSheetHeader, BottomSheetScrollBody } from '@/components/ui/bottom-sheet';
+import { NativeSheetHeader, NativeSheetScrollBody } from '@/components/ui/bottom-sheet';
 import { CustomFieldRow } from './_custom-field-row';
 import {
   MOCK_WORKFLOWS,
@@ -211,7 +211,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
 
   return (
     <>
-      <BottomSheetHeader>
+      <NativeSheetHeader>
         <HStack gap="sm" align="center">
           <Button variant="ghost" size="icon" onPress={onBack}>
             <Icon as={ChevronLeft} size={20} />
@@ -225,9 +225,9 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
             </Text>
           </VStack>
         </HStack>
-      </BottomSheetHeader>
+      </NativeSheetHeader>
 
-      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
+      <NativeSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
         <VStack gap="sm">
           {/* Project Type + Workflow Row */}
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -611,7 +611,7 @@ export function ProjectForm({ coordinates, onBack, onCancel }: ProjectFormProps)
             </View>
           </View>
         </VStack>
-      </BottomSheetScrollBody>
+      </NativeSheetScrollBody>
     </>
   );
 }

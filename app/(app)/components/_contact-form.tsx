@@ -10,7 +10,7 @@ import {
   Tag,
 } from 'lucide-react-native';
 
-import { BottomSheetScrollBody, BottomSheetHeader } from '@/components/ui/bottom-sheet';
+import { NativeSheetScrollBody, NativeSheetHeader } from '@/components/ui/bottom-sheet';
 import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
@@ -102,7 +102,7 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
 
   return (
     <>
-      <BottomSheetHeader>
+      <NativeSheetHeader>
         <HStack gap="sm" align="center">
           <Button variant="ghost" size="icon" onPress={onBack}>
             <Icon as={ChevronLeft} size={20} />
@@ -116,9 +116,9 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
             </Text>
           </VStack>
         </HStack>
-      </BottomSheetHeader>
+      </NativeSheetHeader>
 
-      <BottomSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
+      <NativeSheetScrollBody contentContainerStyle={{ paddingBottom: 120 }}>
         <VStack gap="sm">
           {/* First Name + Last Name Row */}
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -404,7 +404,7 @@ export function ContactForm({ onBack, onCancel }: ContactFormProps) {
             </View>
           </View>
         </VStack>
-      </BottomSheetScrollBody>
+      </NativeSheetScrollBody>
     </>
   );
 }

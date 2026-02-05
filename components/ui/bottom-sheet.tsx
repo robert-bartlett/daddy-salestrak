@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Platform, useColorScheme } from 'react-native';
+import { View, Platform, useColorScheme, ScrollView, type ScrollViewProps, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import GorhomBottomSheet, {
   BottomSheetBackdrop,
@@ -233,6 +233,57 @@ const BottomSheetScrollBody = ({ className, contentContainerStyle, children, ...
 };
 
 BottomSheetScrollBody.displayName = 'BottomSheetScrollBody';
+
+// ============================================================================
+// Native Sheet Components (for use in native iOS formSheet modals)
+// ============================================================================
+
+type NativeSheetHeaderProps = ViewProps;
+
+/**
+ * Header component for native iOS formSheet modals.
+ * Matches BottomSheetHeader styling but works outside gorhom context.
+ */
+const NativeSheetHeader = React.forwardRef<View, NativeSheetHeaderProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <View
+        ref={ref}
+        className={cn(Platform.OS !== 'web' && 'dark', 'flex flex-col gap-2 px-4 pb-2 pt-2', className)}
+        {...props}
+      />
+    );
+  }
+);
+
+NativeSheetHeader.displayName = 'NativeSheetHeader';
+
+type NativeSheetScrollBodyProps = ScrollViewProps;
+
+/**
+ * Scrollable body component for native iOS formSheet modals.
+ * Matches BottomSheetScrollBody styling but uses regular ScrollView.
+ */
+const NativeSheetScrollBody = React.forwardRef<ScrollView, NativeSheetScrollBodyProps>(
+  ({ className, contentContainerStyle, children, ...props }, ref) => {
+    return (
+      <ScrollView
+        ref={ref}
+        className={cn('flex-1', className)}
+        contentContainerStyle={[{ paddingHorizontal: 16 }, contentContainerStyle]}
+        keyboardShouldPersistTaps="handled"
+        {...props}
+      >
+        {/* Dark mode wrapper for native - ensures CSS variables work */}
+        <View className={cn(Platform.OS !== 'web' && 'dark')}>
+          {children}
+        </View>
+      </ScrollView>
+    );
+  }
+);
+
+NativeSheetScrollBody.displayName = 'NativeSheetScrollBody';
 
 // ============================================================================
 // Footer Component
@@ -631,6 +682,9 @@ export {
   BottomSheetBody,
   BottomSheetScrollBody,
   BottomSheetFooter,
+  // Native sheet components (for iOS formSheet modals)
+  NativeSheetHeader,
+  NativeSheetScrollBody,
   // Re-export gorhom primitives for advanced use cases
   BottomSheetFlatList,
   BottomSheetSectionList,
@@ -645,4 +699,6 @@ export type {
   BottomSheetBodyProps,
   BottomSheetScrollBodyProps,
   BottomSheetFooterProps,
+  NativeSheetHeaderProps,
+  NativeSheetScrollBodyProps,
 };

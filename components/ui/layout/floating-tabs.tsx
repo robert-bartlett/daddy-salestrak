@@ -100,7 +100,7 @@ const FloatingTabBar = React.memo(
           ]}
           {...props}
         >
-          {/* iOS 26 Liquid Glass effect */}
+          {/* iOS frosted glass effect */}
           <BlurView
             intensity={100}
             tint="dark"
