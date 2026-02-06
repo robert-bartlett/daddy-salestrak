@@ -39,6 +39,10 @@ type ProjectDetailContentProps = {
   onActiveTabChange?: (tab: 'details' | 'activity') => void;
   /** If true, use native ScrollView instead of BottomSheetScrollBody (for native iOS sheets) */
   useNativeScroll?: boolean;
+  /** If true, hide the favorite star button in the header (for external placement) */
+  hideFavoriteButton?: boolean;
+  /** Top padding for the content area */
+  topPadding?: number;
 };
 
 // Exported footer component for external use
@@ -86,7 +90,7 @@ export function NoteInputFooter({ projectId, onFocus, hidden = false }: NoteInpu
   );
 }
 
-export function ProjectDetailContent({ projectId, showActivity = false, hideFooter = false, onActiveTabChange, useNativeScroll = false }: ProjectDetailContentProps) {
+export function ProjectDetailContent({ projectId, showActivity = false, hideFooter = false, onActiveTabChange, useNativeScroll = false, hideFavoriteButton = false, topPadding = 0 }: ProjectDetailContentProps) {
   const {
     getProjectById,
     getProjectActivities,
@@ -212,11 +216,11 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
   return (
     <>
 
-      <ScrollWrapper contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollWrapper contentContainerStyle={{ paddingBottom: 40, paddingTop: topPadding }}>
         <VStack gap="lg">
           {/* Project Header */}
           <HStack justify="between" align="start">
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, paddingRight: hideFavoriteButton ? 80 : 0 }}>
               <VStack gap="sm">
                 <Text size="2xl" weight="semibold" style={{ color: colors.text }}>
                   {project.name}
@@ -231,14 +235,16 @@ export function ProjectDetailContent({ projectId, showActivity = false, hideFoot
             </View>
 
             {/* Favorite Button */}
-            <Button variant="ghost" size="icon" onPress={handleToggleFavorite}>
-              <Icon
-                as={Star}
-                size={20}
-                color={project.isFavorite ? '#FFD700' : colors.textMuted}
-                fill={project.isFavorite ? '#FFD700' : 'none'}
-              />
-            </Button>
+            {hideFavoriteButton ? null : (
+              <Button variant="ghost" size="icon" onPress={handleToggleFavorite}>
+                <Icon
+                  as={Star}
+                  size={20}
+                  color={project.isFavorite ? '#FFD700' : colors.textMuted}
+                  fill={project.isFavorite ? '#FFD700' : 'none'}
+                />
+              </Button>
+            )}
           </HStack>
 
           {/* Archived Banner */}
