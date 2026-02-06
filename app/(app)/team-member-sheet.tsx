@@ -335,8 +335,8 @@ export default function TeamMemberSheet() {
         </Pressable>
       </View>
 
-      {/* Search and Chips */}
-      <View style={{ backgroundColor: sheetBackground }}>
+      {/* Search and Selection Area */}
+      <View style={{ flexDirection: 'column' }}>
         {/* Search Bar */}
         <View
           style={{
@@ -346,6 +346,7 @@ export default function TeamMemberSheet() {
             borderRadius: 10,
             marginHorizontal: HEADER_PADDING,
             marginTop: 8,
+            marginBottom: 8,
             paddingHorizontal: 10,
             height: 36,
             gap: 8,
@@ -381,65 +382,65 @@ export default function TeamMemberSheet() {
 
         {/* Selected Chips */}
         <View style={{ height: 44, justifyContent: 'center' }}>
-          {selectedMembers.length > 0 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: HEADER_PADDING, gap: 6, alignItems: 'center' }}
-            >
-              {selectedMembers.map((member) => (
-                <Pressable
-                  key={member.id}
-                  onPress={() => removeMember(member.id)}
+        {selectedMembers.length > 0 ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: HEADER_PADDING, gap: 6, alignItems: 'center' }}
+          >
+            {selectedMembers.map((member) => (
+              <Pressable
+                key={member.id}
+                onPress={() => removeMember(member.id)}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: accentColors?.secondary ?? 'rgba(0, 122, 255, 0.15)',
+                  paddingLeft: 3,
+                  paddingRight: 8,
+                  paddingVertical: 3,
+                  borderRadius: 16,
+                  gap: 5,
+                }}
+              >
+                <View
                   style={{
-                    flexDirection: 'row',
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: 'rgba(255, 255, 255, 0.15)',
                     alignItems: 'center',
-                    backgroundColor: accentColors?.secondary ?? 'rgba(0, 122, 255, 0.15)',
-                    paddingLeft: 3,
-                    paddingRight: 8,
-                    paddingVertical: 3,
-                    borderRadius: 16,
-                    gap: 5,
+                    justifyContent: 'center',
                   }}
                 >
-                  <View
+                  <Text
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      fontSize: 10,
+                      fontWeight: '600',
+                      color: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.6)',
                     }}
                   >
-                    <Text
-                      style={{
-                        fontSize: 10,
-                        fontWeight: '600',
-                        color: isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.6)',
-                      }}
-                    >
-                      {member.initials}
-                    </Text>
-                  </View>
-                  <Text style={{ fontSize: 13, fontWeight: '500', color: accentColor }}>
-                    {member.name.split(' ')[0]}
+                    {member.initials}
                   </Text>
-                  <Icon as={X} size={14} color={accentColor} />
-                </Pressable>
-              ))}
-            </ScrollView>
-          ) : (
-            <Text
-              style={{
-                fontSize: 13,
-                color: colors.subtitle,
-                paddingHorizontal: HEADER_PADDING,
-              }}
-            >
-              Tap to select
-            </Text>
-          )}
+                </View>
+                <Text style={{ fontSize: 13, fontWeight: '500', color: accentColor }}>
+                  {member.name.split(' ')[0]}
+                </Text>
+                <Icon as={X} size={14} color={accentColor} />
+              </Pressable>
+            ))}
+          </ScrollView>
+        ) : (
+          <Text
+            style={{
+              fontSize: 13,
+              color: colors.subtitle,
+              paddingHorizontal: HEADER_PADDING,
+            }}
+          >
+            Tap to select
+          </Text>
+        )}
         </View>
       </View>
 

@@ -63,6 +63,7 @@ function AppContent() {
 
                   {/* Main sheets */}
                   <Stack.Screen name="add-sheet" options={nativeSheetOptions} />
+                  <Stack.Screen name="map-sheet" options={nativeSheetOptions} />
                   <Stack.Screen name="project-sheet" options={nativeSheetOptions} />
 
                   {/* Create entity form sheets (stack on top of add-sheet) */}

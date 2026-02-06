@@ -1,8 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, useColorScheme, ScrollView } from 'react-native';
+import { View, Pressable, useColorScheme, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Check } from 'lucide-react-native';
+import { GlassView } from 'expo-glass-effect';
+import { Check, X } from 'lucide-react-native';
 
 import { VStack, HStack, Box } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
@@ -65,30 +66,46 @@ export default function StageSelectSheet() {
   const currentIndex = workflow.stages.findIndex((s) => s.id === currentStageId);
 
   return (
-    <View style={{ flex: 1, backgroundColor: sheetBackground }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: sheetBackground }}
+      contentContainerStyle={{ flexGrow: 1 }}
+    >
       {/* Header */}
       <View
         style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           paddingHorizontal: 16,
           paddingTop: 16,
           paddingBottom: 12,
-          borderBottomWidth: 0.5,
-          borderBottomColor: colors.separator,
         }}
       >
         <Text size="lg" weight="semibold" style={{ color: colors.title }}>
           Change Stage
         </Text>
-        <Text size="sm" style={{ color: colors.subtitle, marginTop: 2 }}>
-          {workflow.name}
-        </Text>
+
+        <Pressable onPress={handleCancel}>
+          {({ pressed }) => (
+            <GlassView
+              glassEffectStyle="regular"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: pressed ? 0.7 : 1,
+              }}
+            >
+              <Icon as={X} size={18} color="#FFFFFF" />
+            </GlassView>
+          )}
+        </Pressable>
       </View>
 
       {/* Content */}
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16 }}
-      >
+      <View style={{ paddingHorizontal: 16, paddingBottom: 16 + insets.bottom }}>
         <VStack gap="xs">
           {workflow.stages.map((stage, index) => {
             const isCurrent = stage.id === currentStageId;
@@ -125,22 +142,7 @@ export default function StageSelectSheet() {
             );
           })}
         </VStack>
-      </ScrollView>
-
-      {/* Footer */}
-      <View
-        style={{
-          padding: 16,
-          paddingBottom: 16 + insets.bottom,
-          borderTopWidth: 0.5,
-          borderTopColor: colors.separator,
-          backgroundColor: sheetBackground,
-        }}
-      >
-        <Button variant="ghost" onPress={handleCancel}>
-          Cancel
-        </Button>
       </View>
-    </View>
+    </ScrollView>
   );
 }

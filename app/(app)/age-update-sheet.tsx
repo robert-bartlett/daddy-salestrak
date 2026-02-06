@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { View, useColorScheme, ScrollView } from 'react-native';
+import { View, Pressable, useColorScheme, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronRight } from 'lucide-react-native';
+import { GlassView } from 'expo-glass-effect';
+import { ChevronRight, X } from 'lucide-react-native';
 
 import { VStack, HStack } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
@@ -16,11 +17,6 @@ import type { ProjectStatus, AgeUpdateReason } from '@/lib/mock-data';
 
 /**
  * Native iOS Age Update Sheet
- *
- * Presented as a native formSheet with:
- * - Native iOS system appearance
- * - Native detent snapping
- * - Native drag handle
  */
 export default function AgeUpdateSheet() {
   const router = useRouter();
@@ -95,82 +91,103 @@ export default function AgeUpdateSheet() {
 
   return (
     <View style={{ flex: 1, backgroundColor: sheetBackground }}>
-      {/* Header */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 12,
-          borderBottomWidth: 0.5,
-          borderBottomColor: colors.separator,
-        }}
-      >
-        <Text size="lg" weight="semibold" style={{ color: colors.title }}>
-          Update Age
-        </Text>
-      </View>
-
-      {/* Content */}
       <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ padding: 16, gap: 20 }}
+        style={{ flex: 1, backgroundColor: sheetBackground }}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Status Selection */}
-        <VStack gap="sm">
-          <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
-            Status
+        {/* Header */}
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 12,
+          }}
+        >
+          <Text size="lg" weight="semibold" style={{ color: colors.title }}>
+            Update Age
           </Text>
-          <Button variant="outline" onPress={handleOpenStatusSelect}>
-            <View style={{ flex: 1 }}>
-              <HStack justify="between" align="center">
-                <HStack gap="sm" align="center">
-                  <View
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: selectedStatusColor,
-                    }}
-                  />
-                  <Text>{selectedStatusLabel}</Text>
+
+          <Pressable onPress={handleCancel}>
+            {({ pressed }) => (
+              <GlassView
+                glassEffectStyle="regular"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.7 : 1,
+                }}
+              >
+                <Icon as={X} size={18} color="#FFFFFF" />
+              </GlassView>
+            )}
+          </Pressable>
+        </View>
+
+        {/* Content */}
+        <View style={{ paddingHorizontal: 16, gap: 20 }}>
+          {/* Status Selection */}
+          <VStack gap="sm">
+            <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
+              Status
+            </Text>
+            <Button variant="outline" onPress={handleOpenStatusSelect}>
+              <View style={{ flex: 1 }}>
+                <HStack justify="between" align="center">
+                  <HStack gap="sm" align="center">
+                    <View
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: selectedStatusColor,
+                      }}
+                    />
+                    <Text>{selectedStatusLabel}</Text>
+                  </HStack>
+                  <Icon as={ChevronRight} size={20} />
                 </HStack>
-                <Icon as={ChevronRight} size={20} />
-              </HStack>
-            </View>
-          </Button>
-        </VStack>
+              </View>
+            </Button>
+          </VStack>
 
-        {/* Reason Selection */}
-        <VStack gap="sm">
-          <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
-            Reason
-          </Text>
-          <Button variant="outline" onPress={handleOpenReasonSelect}>
-            <View style={{ flex: 1 }}>
-              <HStack justify="between" align="center">
-                <Text>{selectedReasonLabel}</Text>
-                <Icon as={ChevronRight} size={20} />
-              </HStack>
-            </View>
-          </Button>
-        </VStack>
+          {/* Reason Selection */}
+          <VStack gap="sm">
+            <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
+              Reason
+            </Text>
+            <Button variant="outline" onPress={handleOpenReasonSelect}>
+              <View style={{ flex: 1 }}>
+                <HStack justify="between" align="center">
+                  <Text>{selectedReasonLabel}</Text>
+                  <Icon as={ChevronRight} size={20} />
+                </HStack>
+              </View>
+            </Button>
+          </VStack>
 
-        {/* Note Textarea */}
-        <VStack gap="sm">
-          <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
-            Note
-          </Text>
-          <Textarea
-            placeholder="Add a note..."
-            value={note}
-            onChangeText={setNote}
-            numberOfLines={3}
-          />
-        </VStack>
+          {/* Note Textarea */}
+          <VStack gap="sm">
+            <Text size="sm" weight="medium" style={{ color: colors.subtitle }}>
+              Note
+            </Text>
+            <Textarea
+              placeholder="Add a note..."
+              value={note}
+              onChangeText={setNote}
+              numberOfLines={3}
+            />
+          </VStack>
+        </View>
       </ScrollView>
 
-      {/* Footer */}
+      {/* Footer - Fixed at bottom */}
       <View
         style={{
           padding: 16,

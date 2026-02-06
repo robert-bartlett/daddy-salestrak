@@ -261,9 +261,9 @@ export default function MapFirstScreen() {
           300
         );
       }
-      // Navigate to native project sheet
+      // Navigate to map sheet (pin preview with project card)
       router.push({
-        pathname: '/project-sheet',
+        pathname: '/map-sheet',
         params: { id: projectId },
       });
     },
