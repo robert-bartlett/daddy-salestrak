@@ -1,18 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { View, Pressable, TextInput, Keyboard } from 'react-native';
+import { View, Pressable, TextInput, Keyboard, Modal, ScrollView, useColorScheme } from 'react-native';
 import { ChevronRight, Check } from 'lucide-react-native';
 
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Icon } from '@/components/ui/icon';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { getIOSSheetColors } from '@/lib/ios-colors';
 import { type CustomFieldDefinition } from '@/lib/mock-data';
 
 type CustomFieldRowProps = {
@@ -43,6 +37,8 @@ const dateFormatter = new Intl.DateTimeFormat('en-US', {
 });
 
 export function CustomFieldRow({ field, value, onChange, colors }: CustomFieldRowProps) {
+  const colorScheme = useColorScheme();
+  const sheetColors = getIOSSheetColors(colorScheme);
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -146,7 +142,7 @@ export function CustomFieldRow({ field, value, onChange, colors }: CustomFieldRo
           <DatePicker
             value={value instanceof Date ? value : null}
             onChange={(date) => onChange(date)}
-            placeholder="Select date"
+            placeholder={field.label}
           />
         </View>
       </View>
@@ -178,51 +174,88 @@ export function CustomFieldRow({ field, value, onChange, colors }: CustomFieldRo
               style={{ color: isEmpty ? colors.textMuted : colors.textSecondary }}
               numberOfLines={1}
             >
-              {isEmpty ? 'Select...' : displayValue}
+              {displayValue || field.label}
             </Text>
             <Icon as={ChevronRight} size={16} color={colors.textMuted} />
           </View>
         </Pressable>
 
-        {/* Dropdown Sheet */}
-        <Sheet open={dropdownOpen} onOpenChange={setDropdownOpen}>
-          <SheetContent side="bottom" showCloseButton={false}>
-            <SheetHeader>
-              <SheetTitle>{field.label}</SheetTitle>
-            </SheetHeader>
-            <ScrollArea maxHeight={400}>
-              <View style={{ paddingBottom: 32 }}>
-                {field.options?.map((option) => {
-                  const isSelected = option === value;
-                  return (
-                    <Pressable
-                      key={option}
-                      onPress={() => handleSelectDropdown(option)}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingHorizontal: 16,
-                        paddingVertical: 12,
-                      }}
-                    >
-                      <Text
-                        size="base"
-                        weight={isSelected ? 'medium' : 'regular'}
-                        style={{ color: colors.text }}
-                      >
-                        {option}
-                      </Text>
-                      {isSelected ? (
-                        <Icon as={Check} size={20} color={colors.accent} />
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
+        {/* Dropdown Modal - native formSheet */}
+        <Modal
+          visible={dropdownOpen}
+          presentationStyle="formSheet"
+          animationType="slide"
+          onRequestClose={() => setDropdownOpen(false)}
+        >
+          <View style={{ flex: 1, backgroundColor: sheetColors.background }}>
+            {/* Header with grabber */}
+            <View
+              style={{
+                paddingBottom: 12,
+                borderBottomWidth: 0.5,
+                borderBottomColor: sheetColors.separator,
+              }}
+            >
+              <View style={{ alignItems: 'center', paddingTop: 8, paddingBottom: 8 }}>
+                <View
+                  style={{
+                    width: 36,
+                    height: 5,
+                    borderRadius: 2.5,
+                    backgroundColor: sheetColors.grabber,
+                  }}
+                />
               </View>
-            </ScrollArea>
-          </SheetContent>
-        </Sheet>
+              <View style={{ paddingHorizontal: 20 }}>
+                <Text size="lg" weight="semibold" style={{ color: sheetColors.title }}>
+                  {field.label}
+                </Text>
+              </View>
+            </View>
+
+            {/* Scrollable options */}
+            <ScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={{ paddingBottom: 40 }}
+            >
+              {field.options?.map((option) => {
+                const isSelected = option === value;
+                return (
+                  <Pressable
+                    key={option}
+                    onPress={() => handleSelectDropdown(option)}
+                  >
+                    {({ pressed }) => (
+                      <View
+                        style={{
+                          opacity: pressed ? 0.7 : 1,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingHorizontal: 20,
+                          paddingVertical: 14,
+                          borderBottomWidth: 0.5,
+                          borderBottomColor: sheetColors.separator,
+                        }}
+                      >
+                        <Text
+                          size="base"
+                          weight={isSelected ? 'semibold' : 'regular'}
+                          style={{ color: sheetColors.title }}
+                        >
+                          {option}
+                        </Text>
+                        {isSelected ? (
+                          <Icon as={Check} size={20} color="#0A84FF" />
+                        ) : null}
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Modal>
       </>
     );
   }
@@ -267,7 +300,7 @@ export function CustomFieldRow({ field, value, onChange, colors }: CustomFieldRo
           style={{ color: isEmpty ? colors.textMuted : colors.textSecondary, textAlign: 'right' }}
           numberOfLines={1}
         >
-          {isEmpty ? 'Tap to edit' : displayValue}
+          {displayValue || field.label}
         </Text>
       )}
     </Pressable>

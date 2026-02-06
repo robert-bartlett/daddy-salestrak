@@ -243,13 +243,14 @@ type NativeSheetHeaderProps = ViewProps;
 /**
  * Header component for native iOS formSheet modals.
  * Matches BottomSheetHeader styling but works outside gorhom context.
+ * Has extra top padding to account for native grab handle.
  */
 const NativeSheetHeader = React.forwardRef<View, NativeSheetHeaderProps>(
   ({ className, ...props }, ref) => {
     return (
       <View
         ref={ref}
-        className={cn(Platform.OS !== 'web' && 'dark', 'flex flex-col gap-2 px-4 pb-2 pt-2', className)}
+        className={cn(Platform.OS !== 'web' && 'dark', 'flex flex-col gap-2 px-4 pb-2 pt-6', className)}
         {...props}
       />
     );
@@ -263,14 +264,16 @@ type NativeSheetScrollBodyProps = ScrollViewProps;
 /**
  * Scrollable body component for native iOS formSheet modals.
  * Matches BottomSheetScrollBody styling but uses regular ScrollView.
+ * Has top padding to account for native grab handle when no header is used.
  */
 const NativeSheetScrollBody = React.forwardRef<ScrollView, NativeSheetScrollBodyProps>(
-  ({ className, contentContainerStyle, children, ...props }, ref) => {
+  ({ className, contentContainerStyle, children, style, ...props }, ref) => {
     return (
       <ScrollView
         ref={ref}
-        className={cn('flex-1', className)}
-        contentContainerStyle={[{ paddingHorizontal: 16 }, contentContainerStyle]}
+        className={className}
+        style={[{ flex: 1 }, style]}
+        contentContainerStyle={[{ paddingHorizontal: 16, paddingTop: 8 }, contentContainerStyle]}
         keyboardShouldPersistTaps="handled"
         {...props}
       >
@@ -284,6 +287,51 @@ const NativeSheetScrollBody = React.forwardRef<ScrollView, NativeSheetScrollBody
 );
 
 NativeSheetScrollBody.displayName = 'NativeSheetScrollBody';
+
+type NativeSheetFooterProps = ViewProps & {
+  /** Additional bottom padding beyond safe area insets */
+  extraBottomPadding?: number;
+};
+
+/**
+ * Footer component for native iOS formSheet modals.
+ * Uses absolute positioning to stay fixed at the bottom of the sheet.
+ * Content above should have extra bottom padding to account for footer height.
+ */
+const NativeSheetFooter = React.forwardRef<View, NativeSheetFooterProps>(
+  ({ className, style, extraBottomPadding = 8, children, ...props }, ref) => {
+    const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const colors = getIOSSheetColors(colorScheme);
+
+    return (
+      <View
+        ref={ref}
+        className={cn(Platform.OS !== 'web' && 'dark', className)}
+        style={[
+          {
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: Math.max(insets.bottom, 8) + extraBottomPadding,
+            backgroundColor: colors.background,
+            zIndex: 9999,
+            elevation: 9999,
+          },
+          style,
+        ]}
+        {...props}
+      >
+        {children}
+      </View>
+    );
+  }
+);
+
+NativeSheetFooter.displayName = 'NativeSheetFooter';
 
 // ============================================================================
 // Footer Component
@@ -685,6 +733,7 @@ export {
   // Native sheet components (for iOS formSheet modals)
   NativeSheetHeader,
   NativeSheetScrollBody,
+  NativeSheetFooter,
   // Re-export gorhom primitives for advanced use cases
   BottomSheetFlatList,
   BottomSheetSectionList,
@@ -701,4 +750,5 @@ export type {
   BottomSheetFooterProps,
   NativeSheetHeaderProps,
   NativeSheetScrollBodyProps,
+  NativeSheetFooterProps,
 };

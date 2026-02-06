@@ -40,13 +40,14 @@ function AppContent() {
     sheetGrabberVisible: true,
     sheetExpandsWhenScrolledToEdge: true,
     sheetCornerRadius: -1,
-    contentStyle: { backgroundColor: colors.background },
+    contentStyle: { backgroundColor: colors.background, flex: 1 },
   };
 
   // Compact sheet options (for selection sheets that stack)
   const compactSheetOptions = {
     ...nativeSheetOptions,
     sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.compact],
+    contentStyle: { backgroundColor: colors.background, flex: 1 },
   };
 
   return (
@@ -63,6 +64,11 @@ function AppContent() {
                   {/* Main sheets */}
                   <Stack.Screen name="add-sheet" options={nativeSheetOptions} />
                   <Stack.Screen name="project-sheet" options={nativeSheetOptions} />
+
+                  {/* Create entity form sheets (stack on top of add-sheet) */}
+                  <Stack.Screen name="create-project-sheet" options={nativeSheetOptions} />
+                  <Stack.Screen name="create-contact-sheet" options={nativeSheetOptions} />
+                  <Stack.Screen name="create-account-sheet" options={nativeSheetOptions} />
 
                   {/* Age update flow */}
                   <Stack.Screen name="age-update-sheet" options={nativeSheetOptions} />

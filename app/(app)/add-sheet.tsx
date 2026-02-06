@@ -1,22 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Pressable, useColorScheme } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
-import { FolderKanban, UserCircle, Building2, MapPin, ChevronRight } from 'lucide-react-native';
+import { FolderKanban, UserCircle, Building2, ChevronRight } from 'lucide-react-native';
 
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
-import { ProjectForm } from './components/_project-form';
-import { ContactForm } from './components/_contact-form';
-import { AccountForm } from './components/_account-form';
 import { getIOSSheetColors } from '@/lib/ios-colors';
-
-type ViewState =
-  | { view: 'entity-selection' }
-  | { view: 'project-form' }
-  | { view: 'contact-form' }
-  | { view: 'account-form' };
 
 type EntityOption = {
   id: string;
@@ -27,18 +17,17 @@ type EntityOption = {
 };
 
 /**
- * Native iOS Add Sheet
+ * Native iOS Add Sheet - Entity Selection
  *
  * Presented as a native formSheet with:
  * - Native iOS frosted glass blur effect
  * - Native detent snapping (50%, 92%)
  * - Native drag handle
+ *
+ * Each form type is a separate route that stacks on top.
  */
 export default function AddSheet() {
-  console.log('=== AddSheet RENDERING ===');
-
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ lat?: string; lng?: string }>();
 
   // Parse coordinates from params if provided
@@ -46,15 +35,19 @@ export default function AddSheet() {
     ? { latitude: parseFloat(params.lat), longitude: parseFloat(params.lng) }
     : undefined;
 
-  // Start with project form if coordinates are provided (map tap)
-  const [viewState, setViewState] = useState<ViewState>(
-    coordinates ? { view: 'project-form' } : { view: 'entity-selection' }
-  );
+  // If coordinates provided (map tap), go directly to project form
+  useEffect(() => {
+    if (coordinates) {
+      router.replace({
+        pathname: '/create-project-sheet',
+        params: { lat: params.lat, lng: params.lng },
+      });
+    }
+  }, [coordinates, params.lat, params.lng, router]);
 
   // Delay rendering to avoid "state update on unmounted component" with native sheets
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    // Small delay to let the native sheet fully present before rendering content
     const timer = setTimeout(() => setIsMounted(true), 50);
     return () => clearTimeout(timer);
   }, []);
@@ -63,63 +56,13 @@ export default function AddSheet() {
   const colorScheme = useColorScheme();
   const sheetColors = getIOSSheetColors(colorScheme);
 
-  const handleDismiss = useCallback(() => {
-    router.back();
+  const navigateToForm = useCallback((formType: 'project' | 'contact' | 'account') => {
+    router.push(`/create-${formType}-sheet` as any);
   }, [router]);
 
-  const handleBack = useCallback(() => {
-    if (coordinates) {
-      // If opened from map tap, back should dismiss
-      handleDismiss();
-    } else {
-      setViewState({ view: 'entity-selection' });
-    }
-  }, [coordinates, handleDismiss]);
-
-  const navigateToForm = useCallback((view: 'project-form' | 'contact-form' | 'account-form') => {
-    setViewState({ view });
-  }, []);
-
-  // Wait for mount before rendering forms to avoid "state update on unmounted component"
-  if (!isMounted) {
+  // Wait for mount
+  if (!isMounted || coordinates) {
     return <View style={{ flex: 1, backgroundColor: sheetColors.background }} />;
-  }
-
-  // Render project form
-  if (viewState.view === 'project-form') {
-    return (
-      <View style={{ flex: 1 }}>
-        <ProjectForm
-          coordinates={coordinates}
-          onBack={handleBack}
-          onCancel={handleDismiss}
-        />
-      </View>
-    );
-  }
-
-  // Render contact form
-  if (viewState.view === 'contact-form') {
-    return (
-      <View style={{ flex: 1 }}>
-        <ContactForm
-          onBack={handleBack}
-          onCancel={handleDismiss}
-        />
-      </View>
-    );
-  }
-
-  // Render account form
-  if (viewState.view === 'account-form') {
-    return (
-      <View style={{ flex: 1 }}>
-        <AccountForm
-          onBack={handleBack}
-          onCancel={handleDismiss}
-        />
-      </View>
-    );
   }
 
   // Entity selection options
@@ -129,21 +72,21 @@ export default function AddSheet() {
       icon: FolderKanban,
       title: 'Project',
       description: 'Track a job, lead, or property',
-      onPress: () => navigateToForm('project-form'),
+      onPress: () => navigateToForm('project'),
     },
     {
       id: 'contact',
       icon: UserCircle,
       title: 'Contact',
       description: 'Add a person to your network',
-      onPress: () => navigateToForm('contact-form'),
+      onPress: () => navigateToForm('contact'),
     },
     {
       id: 'account',
       icon: Building2,
       title: 'Account',
       description: 'Create a company or organization',
-      onPress: () => navigateToForm('account-form'),
+      onPress: () => navigateToForm('account'),
     },
   ];
 
@@ -175,31 +118,6 @@ export default function AddSheet() {
         {entityOptions.map((option) => (
           <EntityOptionCard key={option.id} option={option} colors={colors} />
         ))}
-
-        {/* Location indicator if coordinates are set */}
-        {coordinates ? (
-          <View
-            style={{
-              backgroundColor: colors.cardBackground,
-              padding: 12,
-              borderRadius: 10,
-              borderCurve: 'continuous',
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <Icon as={MapPin} size={16} color="#34c759" />
-            <View style={{ gap: 2 }}>
-              <Text size="sm" weight="medium" style={{ color: colors.label }}>
-                Location Selected
-              </Text>
-              <Text size="xs" style={{ color: colors.secondaryLabel }}>
-                New projects will use this map location
-              </Text>
-            </View>
-          </View>
-        ) : null}
       </View>
     </BlurView>
   );
