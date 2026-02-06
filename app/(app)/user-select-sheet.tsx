@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Pressable, ScrollView, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 import { Check } from 'lucide-react-native';
 
 import { VStack, HStack } from '@/components/ui/layout';
@@ -37,14 +38,22 @@ export default function UserSelectSheet() {
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)', padding: 20 }}
+      >
         <Text style={{ color: colors.subtitle }}>No selection data available</Text>
-      </View>
+      </BlurView>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Header */}
       <View
         style={{
@@ -127,6 +136,6 @@ export default function UserSelectSheet() {
           );
         })}
       </ScrollView>
-    </View>
+    </BlurView>
   );
 }

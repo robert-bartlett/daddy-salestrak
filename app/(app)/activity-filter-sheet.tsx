@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Pressable, View, useColorScheme, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import {
   Check,
   MessageSquare,
@@ -68,7 +69,6 @@ export default function ActivityFilterSheet() {
   const colorScheme = useColorScheme();
   const colors = getIOSSheetColors(colorScheme);
   const isDark = colorScheme === 'dark';
-  const sheetBackground = isDark ? '#1c1c1e' : '#f2f2f7';
 
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#007AFF';
@@ -145,19 +145,33 @@ export default function ActivityFilterSheet() {
   const hasActiveFilters = types.length > 0 || dateRange !== 'all';
 
   if (!isMounted) {
-    return <View style={{ flex: 1, backgroundColor: sheetBackground }} />;
+    return (
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+      />
+    );
   }
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: sheetBackground, padding: 20 }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)', padding: 20 }}
+      >
         <Text style={{ color: colors.subtitle }}>No data available</Text>
-      </View>
+      </BlurView>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: sheetBackground }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Header */}
       <View
         style={{
@@ -297,7 +311,6 @@ export default function ActivityFilterSheet() {
           paddingBottom: 16 + insets.bottom,
           borderTopWidth: 0.5,
           borderTopColor: colors.separator,
-          backgroundColor: sheetBackground,
         }}
       >
         <HStack gap="sm">
@@ -318,6 +331,6 @@ export default function ActivityFilterSheet() {
           </View>
         </HStack>
       </View>
-    </View>
+    </BlurView>
   );
 }

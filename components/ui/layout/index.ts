@@ -13,3 +13,4 @@ export * from './header';
 export * from './bottom-nav';
 export * from './floating-tabs';
 export * from './horizontal-screen-container';
+export * from './floating-action-pill';

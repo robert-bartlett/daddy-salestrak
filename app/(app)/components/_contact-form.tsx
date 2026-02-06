@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
-import { View, Pressable, TextInput, useColorScheme, Keyboard, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { GlassView } from 'expo-glass-effect';
+import { View, Pressable, TextInput, useColorScheme, Keyboard } from 'react-native';
+import { BlurView } from 'expo-blur';
 import {
   ChevronRight,
   User,
@@ -9,10 +8,12 @@ import {
   Mail,
   Building2,
   Tag,
+  X,
+  Check,
 } from 'lucide-react-native';
 
 import { NativeSheetScrollBody } from '@/components/ui/bottom-sheet';
-import { VStack, HStack } from '@/components/ui/layout';
+import { VStack, HStack, FloatingActionPill, ACTION_PILL_FOOTER_HEIGHT } from '@/components/ui/layout';
 import { Text } from '@/components/ui/text';
 import { Input } from '@/components/ui/input';
 import { Icon } from '@/components/ui/icon';
@@ -29,8 +30,6 @@ type ContactFormProps = {
 export function ContactForm({ onBack }: ContactFormProps) {
   const colorScheme = useColorScheme();
   const colors = getIOSSheetColors(colorScheme);
-  const insets = useSafeAreaInsets();
-  const { height: windowHeight } = useWindowDimensions();
   const { addContact } = useContacts();
   const { closeSheet } = useMapSheet();
 
@@ -113,17 +112,18 @@ export function ContactForm({ onBack }: ContactFormProps) {
     setCompanyEditing(false);
   }, []);
 
-  // Footer height for scroll padding (includes 20px bottom offset)
-  const footerHeight = 20 + 12 + 56 + Math.max(insets.bottom, 8) + 8;
-
   return (
-    <View style={{ height: windowHeight, maxHeight: '100%' }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Scrollable content */}
       <NativeSheetScrollBody
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: 24,
-          paddingBottom: footerHeight + 16,
+          paddingBottom: ACTION_PILL_FOOTER_HEIGHT,
         }}
         onScrollBeginDrag={dismissKeyboard}
       >
@@ -334,88 +334,13 @@ export function ContactForm({ onBack }: ContactFormProps) {
         </VStack>
       </NativeSheetScrollBody>
 
-      {/* Footer - absolute positioned at bottom */}
-      <View
-        style={{
-          position: 'absolute',
-          bottom: 20,
-          left: 0,
-          right: 0,
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: Math.max(insets.bottom, 8) + 8,
-          backgroundColor: colors.background,
-          zIndex: 100,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            height: 56,
-            gap: 12,
-          }}
-        >
-          {/* Cancel Button - Glass effect */}
-          <Pressable onPress={onBack} style={{ flex: 1 }}>
-            {({ pressed }) => (
-              <GlassView
-                glassEffectStyle="regular"
-                style={{
-                  height: 50,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 25,
-                  borderCurve: 'continuous',
-                  opacity: pressed ? 0.7 : 1,
-                }}
-              >
-                <Text
-                  weight="medium"
-                  style={{
-                    color: '#FFFFFF',
-                    fontSize: 17,
-                  }}
-                >
-                  Cancel
-                </Text>
-              </GlassView>
-            )}
-          </Pressable>
-
-          {/* Create Button - Prominent glass pill */}
-          <Pressable
-            onPress={handleCreate}
-            disabled={!isValid}
-            style={{ flex: 1.2 }}
-          >
-            {({ pressed }) => (
-              <GlassView
-                glassEffectStyle="regular"
-                tintColor="rgba(120, 120, 128, 0.6)"
-                style={{
-                  height: 50,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 25,
-                  borderCurve: 'continuous',
-                  opacity: !isValid ? 0.4 : pressed ? 0.8 : 1,
-                }}
-              >
-                <Text
-                  weight="semibold"
-                  style={{
-                    color: '#FFFFFF',
-                    fontSize: 17,
-                  }}
-                >
-                  Create
-                </Text>
-              </GlassView>
-            )}
-          </Pressable>
-        </View>
-      </View>
+      {/* Floating action pill */}
+      <FloatingActionPill
+        actions={[
+          { icon: X, onPress: onBack, accessibilityLabel: 'Cancel' },
+          { icon: Check, onPress: handleCreate, disabled: !isValid, accessibilityLabel: 'Create' },
+        ]}
+      />
 
       {/* Inline list select overlay */}
       <InlineListSelect
@@ -426,6 +351,6 @@ export function ContactForm({ onBack }: ContactFormProps) {
         selectedId={listSelect?.selectedId}
         onSelect={listSelect?.onSelect}
       />
-    </View>
+    </BlurView>
   );
 }

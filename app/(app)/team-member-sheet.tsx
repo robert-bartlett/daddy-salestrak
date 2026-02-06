@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { Check, Search, X } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -299,19 +300,33 @@ export default function TeamMemberSheet() {
   );
 
   if (!isMounted) {
-    return <View style={{ flex: 1, backgroundColor: sheetBackground }} />;
+    return (
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+      />
+    );
   }
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: sheetBackground, padding: 20 }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)', padding: 20 }}
+      >
         <Text style={{ color: colors.subtitle }}>No data available</Text>
-      </View>
+      </BlurView>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: sheetBackground }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Header */}
       <View
         style={{
@@ -539,6 +554,6 @@ export default function TeamMemberSheet() {
           </View>
         ) : null}
       </View>
-    </View>
+    </BlurView>
   );
 }

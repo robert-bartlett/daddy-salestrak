@@ -13,7 +13,10 @@
  */
 
 import { useMemo, useCallback, useEffect, useRef } from 'react';
-import { View, Pressable, TextInput, Keyboard, Modal, ScrollView } from 'react-native';
+import { View, Pressable, TextInput, Keyboard, ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
+import { GlassView } from 'expo-glass-effect';
 import {
   ChevronLeft,
   ChevronRight,
@@ -24,11 +27,12 @@ import {
   Clock,
   X,
   Plus,
+  Search,
   FolderKanban,
   Activity,
 } from 'lucide-react-native';
 
-import { Box, HStack, VStack, Header } from '@/components/ui/layout';
+import { Box, HStack, VStack } from '@/components/ui/layout';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
@@ -365,9 +369,8 @@ function SectionHeader({ title }: { title: string }) {
 // ============================================================================
 
 export function CommandPalette() {
+  const router = useRouter();
   const {
-    isOpen,
-    close,
     query,
     setQuery,
     drillStack,
@@ -386,18 +389,13 @@ export function CommandPalette() {
 
   const inputRef = useRef<TextInput>(null);
 
-  // Focus input when opening
+  // Focus input on mount
   useEffect(() => {
-    if (isOpen) {
-      const timeout = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300);
-      return () => clearTimeout(timeout);
-    } else {
-      setQuery('');
-      clearDrill();
-    }
-  }, [isOpen, setQuery, clearDrill]);
+    const timeout = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Calculate project counts for stages
   const stageProjectCounts = useMemo(() => {
@@ -533,32 +531,40 @@ export function CommandPalette() {
   // Handlers
   const handleClose = useCallback(() => {
     Keyboard.dismiss();
-    close();
-  }, [close]);
+    setQuery('');
+    clearDrill();
+    router.back();
+  }, [setQuery, clearDrill, router]);
 
   const handleCreateProject = useCallback(() => {
     Keyboard.dismiss();
-    close();
+    setQuery('');
+    clearDrill();
+    router.back();
     setTimeout(() => {
       openTab('add');
     }, 100);
-  }, [close, openTab]);
+  }, [setQuery, clearDrill, router, openTab]);
 
   const handleCreateContact = useCallback(() => {
     Keyboard.dismiss();
-    close();
+    setQuery('');
+    clearDrill();
+    router.back();
     setTimeout(() => {
       openTab('add');
     }, 100);
-  }, [close, openTab]);
+  }, [setQuery, clearDrill, router, openTab]);
 
   const handleCreateAccount = useCallback(() => {
     Keyboard.dismiss();
-    close();
+    setQuery('');
+    clearDrill();
+    router.back();
     setTimeout(() => {
       openTab('add');
     }, 100);
-  }, [close, openTab]);
+  }, [setQuery, clearDrill, router, openTab]);
 
   const handleDrillActivity = useCallback(() => {
     drillInto({ type: 'activity', title: 'Recent Activity' });
@@ -574,12 +580,14 @@ export function CommandPalette() {
         addRecentSearch(query);
       }
       Keyboard.dismiss();
-      close();
+      setQuery('');
+      clearDrill();
+      router.back();
       setTimeout(() => {
         expandProject(projectId);
       }, 100);
     },
-    [query, addRecentSearch, close, expandProject]
+    [query, addRecentSearch, setQuery, clearDrill, router, expandProject]
   );
 
   const handleContactSelect = useCallback(
@@ -588,10 +596,12 @@ export function CommandPalette() {
         addRecentSearch(query);
       }
       Keyboard.dismiss();
-      close();
+      setQuery('');
+      clearDrill();
+      router.back();
       console.log('Selected contact:', contactId);
     },
-    [query, addRecentSearch, close]
+    [query, addRecentSearch, setQuery, clearDrill, router]
   );
 
   const handleAccountSelect = useCallback(
@@ -600,10 +610,12 @@ export function CommandPalette() {
         addRecentSearch(query);
       }
       Keyboard.dismiss();
-      close();
+      setQuery('');
+      clearDrill();
+      router.back();
       console.log('Selected account:', accountId);
     },
-    [query, addRecentSearch, close]
+    [query, addRecentSearch, setQuery, clearDrill, router]
   );
 
   const handleWorkflowDrill = useCallback(
@@ -626,12 +638,14 @@ export function CommandPalette() {
         addRecentSearch(query);
       }
       Keyboard.dismiss();
-      close();
+      setQuery('');
+      clearDrill();
+      router.back();
       setTimeout(() => {
         expandProject(projectId, true);
       }, 100);
     },
-    [query, addRecentSearch, close, expandProject]
+    [query, addRecentSearch, setQuery, clearDrill, router, expandProject]
   );
 
   const handleRecentSearchSelect = useCallback(
@@ -651,56 +665,67 @@ export function CommandPalette() {
     ('activities' in results && results.activities && results.activities.length > 0) ||
     ('stages' in results && results.stages && results.stages.length > 0);
 
-  // Build title for header
-  const headerTitle = useMemo(() => {
-    if (drillStack.length === 0) return 'Search';
-    return drillStack[drillStack.length - 1].title;
-  }, [drillStack]);
-
   // Count unread activities
   const unreadCount = useMemo(() => {
     return activities.filter((a) => !a.read).length;
   }, [activities]);
 
-  // Render content
-  const renderContent = () => (
-    <Box fill background="default">
-      {/* Handle indicator */}
-      <View style={{ alignItems: 'center', paddingTop: 6, paddingBottom: 2 }}>
-        <View
-          style={{
-            width: 36,
-            height: 5,
-            borderRadius: 2.5,
-            backgroundColor: 'rgba(255, 255, 255, 0.3)',
-          }}
-        />
-      </View>
-
-      {/* Header with back button when drilling */}
-      <Header
-        title={headerTitle}
-        background="default"
-        safeAreaTop={false}
-        left={
-          drillStack.length > 0 ? (
-            <Button variant="ghost" size="icon" onPress={drillBack}>
-              <Icon as={ChevronLeft} size={22} />
-            </Button>
-          ) : undefined
-        }
-        right={
-          <Button variant="ghost" size="icon" onPress={handleClose}>
-            <Icon as={X} size={22} />
-          </Button>
-        }
-      />
-
-      {/* Search Input */}
-      <Box paddingX="md" paddingY="sm">
-        <HStack gap="sm" align="center">
-          <View style={{ flex: 1 }}>
-            <Input
+  return (
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
+      {/* Search row - floating on top, Apple Maps style */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+        }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {drillStack.length > 0 ? (
+            <Pressable onPress={drillBack}>
+              {({ pressed }) => (
+                <GlassView
+                  glassEffectStyle="regular"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: pressed ? 0.7 : 1,
+                  }}
+                >
+                  <Icon as={ChevronLeft} size={20} color="#FFFFFF" />
+                </GlassView>
+              )}
+            </Pressable>
+          ) : null}
+          {/* Search pill */}
+          <View
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              height: 48,
+              borderRadius: 24,
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              borderWidth: 0.5,
+              borderColor: 'rgba(255, 255, 255, 0.12)',
+              borderCurve: 'continuous',
+              paddingHorizontal: 14,
+              gap: 10,
+            }}
+          >
+            <Icon as={Search} size={18} color="rgba(255, 255, 255, 0.4)" />
+            <TextInput
               ref={inputRef}
               placeholder={
                 currentLevel?.type === 'workflow'
@@ -713,26 +738,62 @@ export function CommandPalette() {
                   ? `Search workflows...`
                   : 'Search...'
               }
+              placeholderTextColor="rgba(255, 255, 255, 0.3)"
               value={query}
               onChangeText={setQuery}
-              width="full"
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="search"
+              style={{
+                flex: 1,
+                fontSize: 17,
+                color: '#FFFFFF',
+                minWidth: 0,
+              }}
             />
+            {query.length > 0 ? (
+              <Pressable onPress={() => setQuery('')} hitSlop={8}>
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon as={X} size={12} color="rgba(255, 255, 255, 0.8)" />
+                </View>
+              </Pressable>
+            ) : null}
           </View>
-          {query.length > 0 ? (
-            <Button variant="ghost" size="icon" onPress={() => setQuery('')}>
-              <Icon as={X} size={18} />
-            </Button>
-          ) : null}
-        </HStack>
-      </Box>
+          {/* Close button - same height as pill */}
+          <Pressable onPress={handleClose}>
+            {({ pressed }) => (
+              <GlassView
+                glassEffectStyle="regular"
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 24,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  opacity: pressed ? 0.7 : 1,
+                }}
+              >
+                <Icon as={X} size={20} color="#FFFFFF" />
+              </GlassView>
+            )}
+          </Pressable>
+        </View>
+      </View>
 
-      {/* Results */}
+      {/* Results - scrolls behind the search row */}
       <ScrollView
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingTop: 68, paddingBottom: 40 }}
       >
         {/* Empty state for search */}
         {query.trim() && !hasResults ? (
@@ -933,17 +994,6 @@ export function CommandPalette() {
           </VStack>
         ) : null}
       </ScrollView>
-    </Box>
-  );
-
-  return (
-    <Modal
-      visible={isOpen}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
-    >
-      {renderContent()}
-    </Modal>
+    </BlurView>
   );
 }

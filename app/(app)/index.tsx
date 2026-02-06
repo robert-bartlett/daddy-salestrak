@@ -31,13 +31,11 @@ import { Icon } from '@/components/ui/icon';
 import { useScreenNavigation } from '@/lib/screen-navigation-context';
 import { useProjects } from '@/lib/projects-context';
 import { useAccentColors } from '@/lib/theme-context';
-import { useUniversalSearch } from '@/lib/universal-search-context';
 import { useSheetContext, type MapFilters, type InboxFilters } from '@/lib/sheet-context';
 import { getStageById } from '@/lib/mock-data';
 import { getPinColor } from '@/lib/map-colors';
 import { getStatusFromAge } from '@/lib/age-utils';
 import { SearchScreen } from './components/_search-screen';
-import { CommandPalette } from './components/_command-palette';
 import { InboxScreen } from './components/_inbox-screen';
 import { ProfileScreen } from './components/_profile-screen';
 import { MyWorkScreen } from './components/_my-work-screen';
@@ -97,7 +95,6 @@ export default function MapFirstScreen() {
   } = useScreenNavigation();
   const accentColors = useAccentColors();
   const accentColor = accentColors?.primary ?? '#3b82f6';
-  const { open: openSearch } = useUniversalSearch();
   const { openMapFilterSheet, openInboxFilterSheet } = useSheetContext();
   const router = useRouter();
 
@@ -119,13 +116,13 @@ export default function MapFirstScreen() {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
         event.preventDefault();
-        openSearch();
+        router.push('/search-sheet');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openSearch]);
+  }, [router]);
 
   // Get tabs based on active screen
   const currentTabs = useMemo(() => {
@@ -324,8 +321,8 @@ export default function MapFirstScreen() {
   );
 
   const handleSearchPress = useCallback(() => {
-    openSearch();
-  }, [openSearch]);
+    router.push('/search-sheet');
+  }, [router]);
 
   const handleFilter = useCallback(() => {
     openMapFilterSheet({
@@ -519,8 +516,6 @@ export default function MapFirstScreen() {
         hidden={tabBarHidden}
       />
 
-      {/* Command Palette - universal search */}
-      <CommandPalette />
     </>
   );
 }

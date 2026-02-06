@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { View, Pressable, ScrollView, useColorScheme } from 'react-native';
 import { useRouter } from 'expo-router';
+import { BlurView } from 'expo-blur';
 import {
   Check,
   MessageSquare,
@@ -101,14 +102,22 @@ export default function InboxFilterSheet() {
 
   if (!data) {
     return (
-      <View style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)', padding: 20 }}
+      >
         <Text style={{ color: colors.subtitle }}>No filter data available</Text>
-      </View>
+      </BlurView>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <BlurView
+      intensity={100}
+      tint="dark"
+      style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+    >
       {/* Header */}
       <View
         style={{
@@ -264,6 +273,6 @@ export default function InboxFilterSheet() {
           <Text weight="semibold" style={{ color: '#fff' }}>Done</Text>
         </Pressable>
       </View>
-    </View>
+    </BlurView>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Pressable, View, FlatList, TextInput, Keyboard, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 import { MapPin, X } from 'lucide-react-native';
 
 import { Box, VStack, HStack, Surface, Header } from '@/components/ui/layout';
@@ -126,8 +127,13 @@ export function SearchSheet({ open, onOpenChange }: SearchSheetProps) {
       animationType="slide"
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
+      transparent
     >
-      <Box fill background="default">
+      <BlurView
+        intensity={100}
+        tint="dark"
+        style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
+      >
         {/* Handle indicator */}
         <View style={{ alignItems: 'center', paddingTop: 6, paddingBottom: 2 }}>
           <View
@@ -200,7 +206,7 @@ export function SearchSheet({ open, onOpenChange }: SearchSheetProps) {
             </Surface>
           }
         />
-      </Box>
+      </BlurView>
     </Modal>
   );
 }

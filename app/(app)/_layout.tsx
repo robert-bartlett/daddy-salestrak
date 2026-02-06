@@ -31,7 +31,7 @@ function AppContent() {
   const colors = getIOSSheetColors(colorScheme);
 
   // Common formSheet options for native iOS sheets
-  // contentStyle sets the background of the sheet content area
+  // contentStyle is transparent — each sheet uses BlurView for its background
   const nativeSheetOptions = {
     presentation: 'formSheet' as const,
     headerShown: false,
@@ -40,15 +40,15 @@ function AppContent() {
     sheetGrabberVisible: true,
     sheetExpandsWhenScrolledToEdge: true,
     sheetCornerRadius: -1,
-    contentStyle: { backgroundColor: colors.background, flex: 1 },
+    contentStyle: { backgroundColor: 'transparent', flex: 1 },
   };
 
   // Compact sheet options (for selection sheets that stack)
   const compactSheetOptions = {
     ...nativeSheetOptions,
     sheetAllowedDetents: [...NATIVE_SHEET_DETENTS.compact],
-    contentStyle: { backgroundColor: colors.background, flex: 1 },
   };
+
 
   return (
     <View className={`flex-1 ${themeClass}`}>
@@ -66,7 +66,7 @@ function AppContent() {
                   <Stack.Screen name="map-sheet" options={nativeSheetOptions} />
                   <Stack.Screen name="project-sheet" options={nativeSheetOptions} />
 
-                  {/* Create entity form sheets (stack on top of add-sheet) */}
+                  {/* Create entity form sheets */}
                   <Stack.Screen name="create-project-sheet" options={nativeSheetOptions} />
                   <Stack.Screen name="create-contact-sheet" options={nativeSheetOptions} />
                   <Stack.Screen name="create-account-sheet" options={nativeSheetOptions} />
@@ -100,6 +100,9 @@ function AppContent() {
 
                   {/* Generic list selection */}
                   <Stack.Screen name="list-select-sheet" options={compactSheetOptions} />
+
+                  {/* Search / Command palette */}
+                  <Stack.Screen name="search-sheet" options={nativeSheetOptions} />
                 </Stack>
               </UniversalSearchProvider>
             </ScreenNavigationProvider>

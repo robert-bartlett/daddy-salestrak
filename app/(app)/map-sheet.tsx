@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { View, Pressable, useColorScheme } from 'react-native';
+import { View, ScrollView, Pressable, useColorScheme } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { BlurView } from 'expo-blur';
-import { MapPin } from 'lucide-react-native';
+import { MapPin, Plus } from 'lucide-react-native';
 
 import { Text } from '@/components/ui/text';
 import { Icon } from '@/components/ui/icon';
@@ -10,7 +10,6 @@ import { HStack } from '@/components/ui/layout';
 import { useProjects } from '@/lib/projects-context';
 import { useSheetContext } from '@/lib/sheet-context';
 import { getIOSSheetColors } from '@/lib/ios-colors';
-import { useAccentColors } from '@/lib/theme-context';
 import { ProjectCard } from './components/_project-card';
 
 /**
@@ -31,12 +30,9 @@ export default function MapSheet() {
   const { getProjectById, getProjectActivities, updateProjectAge, updateProjectOwners } =
     useProjects();
   const { openAgeUpdateSheet, openTeamMemberSheet } = useSheetContext();
-  const accentColors = useAccentColors();
-  const accentColor = accentColors?.primary ?? '#0A84FF';
 
   const colorScheme = useColorScheme();
   const colors = getIOSSheetColors(colorScheme);
-
   // Mount delay for native sheet timing
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -124,53 +120,88 @@ export default function MapSheet() {
       tint="dark"
       style={{ flex: 1, backgroundColor: 'rgba(30, 30, 30, 0.25)' }}
     >
-      <View style={{ paddingHorizontal: 16, paddingTop: 20, gap: 16 }}>
-        {/* Address Header */}
-        <HStack gap="sm" align="center">
-          <Icon as={MapPin} size={18} color={colors.subtitle} />
-          <Text
-            size="sm"
-            weight="medium"
-            numberOfLines={1}
-            style={{ flex: 1, color: colors.subtitle }}
-          >
-            {project.address}
-          </Text>
-        </HStack>
-
-        {/* Project Card */}
-        <ProjectCard
-          project={project}
-          activityCount={activityCount}
-          onPress={handlePress}
-          onAgeTap={handleAgeTap}
-          onActivityTap={handleActivityTap}
-          onOwnerTap={handleOwnerTap}
-        />
-
-        {/* Add Project Button */}
-        <Pressable onPress={handleAddProject}>
-          {({ pressed }) => (
-            <View
-              style={{
-                opacity: pressed ? 0.7 : 1,
-                backgroundColor: accentColors?.secondary ?? 'rgba(59, 130, 246, 0.15)',
-                borderRadius: 8,
-                borderCurve: 'continuous',
-                paddingVertical: 8,
-                paddingHorizontal: 12,
-                borderWidth: 1,
-                borderColor: accentColors?.muted ?? 'rgba(59, 130, 246, 0.25)',
-              }}
+      <View style={{ flex: 1 }}>
+        {/* Scrollable content */}
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 20,
+            paddingBottom: 80,
+            gap: 16,
+          }}
+        >
+          {/* Address Header */}
+          <HStack gap="sm" align="center">
+            <Icon as={MapPin} size={18} color={colors.subtitle} />
+            <Text
+              size="sm"
+              weight="medium"
+              numberOfLines={1}
+              style={{ flex: 1, color: colors.subtitle }}
             >
-              <HStack gap="xs" align="center" justify="center">
-                <Text weight="medium" style={{ color: accentColor }}>
-                  + Add project
-                </Text>
-              </HStack>
-            </View>
-          )}
-        </Pressable>
+              {project.address}
+            </Text>
+          </HStack>
+
+          {/* Project Card(s) */}
+          <ProjectCard
+            project={project}
+            activityCount={activityCount}
+            onPress={handlePress}
+            onAgeTap={handleAgeTap}
+            onActivityTap={handleActivityTap}
+            onOwnerTap={handleOwnerTap}
+          />
+        </ScrollView>
+
+        {/* Sticky Footer */}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 20,
+            left: 0,
+            right: 0,
+            paddingHorizontal: 16,
+            paddingTop: 12,
+          }}
+        >
+          <Pressable onPress={handleAddProject}>
+            {({ pressed }) => (
+              <View
+                style={{
+                  borderRadius: 14,
+                  borderCurve: 'continuous',
+                  overflow: 'hidden',
+                  opacity: pressed ? 0.7 : 1,
+                }}
+              >
+                <BlurView
+                  intensity={80}
+                  tint="dark"
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    borderRadius: 14,
+                    borderCurve: 'continuous',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.18)',
+                  }}
+                >
+                  <HStack gap="xs" align="center">
+                    <Icon as={Plus} size={16} color="#FFFFFF" />
+                    <Text weight="medium" style={{ color: '#FFFFFF' }}>
+                      Add project
+                    </Text>
+                  </HStack>
+                </BlurView>
+              </View>
+            )}
+          </Pressable>
+        </View>
       </View>
     </BlurView>
   );
