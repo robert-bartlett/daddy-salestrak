@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { View, Pressable, TextInput, useColorScheme, Keyboard } from 'react-native';
+import { View, Pressable, TextInput, useColorScheme, Keyboard, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassView } from 'expo-glass-effect';
 import {
@@ -30,6 +30,7 @@ export function ContactForm({ onBack }: ContactFormProps) {
   const colorScheme = useColorScheme();
   const colors = getIOSSheetColors(colorScheme);
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const { addContact } = useContacts();
   const { closeSheet } = useMapSheet();
 
@@ -112,17 +113,17 @@ export function ContactForm({ onBack }: ContactFormProps) {
     setCompanyEditing(false);
   }, []);
 
-  // Footer height for scroll padding
-  const footerHeight = 56 + 12 + Math.max(insets.bottom, 8) + 8;
+  // Footer height for scroll padding (includes 20px bottom offset)
+  const footerHeight = 20 + 12 + 56 + Math.max(insets.bottom, 8) + 8;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ height: windowHeight, maxHeight: '100%' }}>
       {/* Scrollable content */}
       <NativeSheetScrollBody
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingTop: 24,
-          paddingBottom: footerHeight + 16, // Extra space so content isn't hidden behind footer
+          paddingBottom: footerHeight + 16,
         }}
         onScrollBeginDrag={dismissKeyboard}
       >
@@ -333,17 +334,18 @@ export function ContactForm({ onBack }: ContactFormProps) {
         </VStack>
       </NativeSheetScrollBody>
 
-      {/* Sticky Footer - Absolute positioned on top of content */}
+      {/* Footer - absolute positioned at bottom */}
       <View
         style={{
           position: 'absolute',
-          bottom: 0,
+          bottom: 20,
           left: 0,
           right: 0,
           paddingHorizontal: 16,
           paddingTop: 12,
           paddingBottom: Math.max(insets.bottom, 8) + 8,
           backgroundColor: colors.background,
+          zIndex: 100,
         }}
       >
         <View

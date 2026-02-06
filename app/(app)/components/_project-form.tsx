@@ -221,8 +221,8 @@ export function ProjectForm({ coordinates, onBack }: ProjectFormProps) {
     setAddressEditing(false);
   }, []);
 
-  // Footer height for scroll padding
-  const footerHeight = 12 + 56 + Math.max(insets.bottom, 8) + 8;
+  // Footer height for scroll padding (includes 20px bottom offset)
+  const footerHeight = 20 + 12 + 56 + Math.max(insets.bottom, 8) + 8;
 
   return (
     <View style={{ height: windowHeight, maxHeight: '100%' }}>
@@ -554,7 +554,7 @@ export function ProjectForm({ coordinates, onBack }: ProjectFormProps) {
       <View
         style={{
           position: 'absolute',
-          bottom: 0,
+          bottom: 20,
           left: 0,
           right: 0,
           paddingHorizontal: 16,
